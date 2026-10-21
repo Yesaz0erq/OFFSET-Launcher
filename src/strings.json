@@ -1,0 +1,1965 @@
+{
+  "languages": {
+    "zh": "中文",
+    "en": "English",
+    "ja": "日本語"
+  },
+  "ui": {
+    "sSideExpand": {
+      "zh": "展开侧栏",
+      "en": "Expand sidebar",
+      "ja": "サイドバーを展開"
+    },
+    "sTitle": {
+      "zh": "OFFSET · Minecraft Launcher",
+      "en": "OFFSET · Minecraft Launcher",
+      "ja": "OFFSET · Minecraft Launcher"
+    },
+    "sBrand": {
+      "zh": "OFFSET",
+      "en": "OFFSET",
+      "ja": "OFFSET"
+    },
+    "sHome": {
+      "zh": "开始游戏",
+      "en": "Play",
+      "ja": "プレイ"
+    },
+    "sVersions": {
+      "zh": "版本管理",
+      "en": "Versions",
+      "ja": "バージョン"
+    },
+    "sAccount": {
+      "zh": "账户",
+      "en": "Account",
+      "ja": "アカウント"
+    },
+    "sSettings": {
+      "zh": "设置",
+      "en": "Settings",
+      "ja": "設定"
+    },
+    "sFolder": {
+      "zh": "游戏目录  ↗",
+      "en": "Game folder  ↗",
+      "ja": "ゲームフォルダー  ↗"
+    },
+    "sHeading": {
+      "zh": "开始游戏",
+      "en": "Ready to play",
+      "ja": "プレイの準備"
+    },
+    "sHeroTag": {
+      "zh": "Minecraft Java 版 · 原生汇编启动器",
+      "en": "Minecraft: Java Edition · native assembly launcher",
+      "ja": "Minecraft Java版 · ネイティブ アセンブリ ランチャー"
+    },
+    "sHeroVersion": {
+      "zh": "当前版本",
+      "en": "Current version",
+      "ja": "現在のバージョン"
+    },
+    "sProfileCaption": {
+      "zh": "启动配置",
+      "en": "Profile",
+      "ja": "プロファイル"
+    },
+    "sSessionCaption": {
+      "zh": "会话",
+      "en": "Session",
+      "ja": "セッション"
+    },
+    "sVersionLabel": {
+      "zh": "游戏版本",
+      "en": "Game version",
+      "ja": "ゲームバージョン"
+    },
+    "sPlayerLabel": {
+      "zh": "离线玩家名",
+      "en": "Offline player name",
+      "ja": "オフライン プレイヤー名"
+    },
+    "sOffline": {
+      "zh": "离线模式",
+      "en": "Offline",
+      "ja": "オフライン"
+    },
+    "sOnline": {
+      "zh": "微软账户",
+      "en": "Microsoft",
+      "ja": "Microsoft"
+    },
+    "sRamLabel": {
+      "zh": "分配内存",
+      "en": "Memory",
+      "ja": "メモリ"
+    },
+    "sJavaLabel": {
+      "zh": "Java",
+      "en": "Java",
+      "ja": "Java"
+    },
+    "sJavaAuto": {
+      "zh": "已设置",
+      "en": "Configured",
+      "ja": "設定済み"
+    },
+    "sJavaMissing": {
+      "zh": "未设置",
+      "en": "Not set",
+      "ja": "未設定"
+    },
+    "sReady": {
+      "zh": "就绪",
+      "en": "Ready",
+      "ja": "準備完了"
+    },
+    "sLaunch": {
+      "zh": "启动游戏  →",
+      "en": "Launch  →",
+      "ja": "起動  →"
+    },
+    "sWorking": {
+      "zh": "正在处理…",
+      "en": "Working…",
+      "ja": "処理中…"
+    },
+    "sRefresh": {
+      "zh": "刷新",
+      "en": "Refresh",
+      "ja": "更新"
+    },
+    "sVersionHeading": {
+      "zh": "版本管理",
+      "en": "Versions",
+      "ja": "バージョン管理"
+    },
+    "sAccountHeading": {
+      "zh": "账户",
+      "en": "Account",
+      "ja": "アカウント"
+    },
+    "sAccountOffline": {
+      "zh": "离线身份",
+      "en": "Offline identity",
+      "ja": "オフライン ID"
+    },
+    "sAccountOfflineDesc": {
+      "zh": "无需登录",
+      "en": "No sign-in required",
+      "ja": "サインイン不要"
+    },
+    "sAccountOnline": {
+      "zh": "微软账户",
+      "en": "Microsoft account",
+      "ja": "Microsoft アカウント"
+    },
+    "sAccountOnlineDesc": {
+      "zh": "在浏览器登录",
+      "en": "Sign in with your browser",
+      "ja": "ブラウザーでサインイン"
+    },
+    "sLogin": {
+      "zh": "登录  ↗",
+      "en": "Sign in  ↗",
+      "ja": "サインイン  ↗"
+    },
+    "sLogout": {
+      "zh": "退出登录",
+      "en": "Sign out",
+      "ja": "サインアウト"
+    },
+    "sNoAccount": {
+      "zh": "未登录",
+      "en": "Not signed in",
+      "ja": "未サインイン"
+    },
+    "sClientLabel": {
+      "zh": "Microsoft Client ID",
+      "en": "Microsoft Client ID",
+      "ja": "Microsoft Client ID"
+    },
+    "sClientHelp": {
+      "zh": "填写自己的公开客户端 ID。",
+      "en": "Enter your own public-client Application ID.",
+      "ja": "ご自身のパブリック クライアント ID を入力してください。"
+    },
+    "sClientHelp2": {
+      "zh": "需开通设备代码登录及 Minecraft API；登录仅本次有效。",
+      "en": "Requires device-code sign-in and Minecraft API access; sign-in lasts for this session only.",
+      "ja": "デバイス コード認証と Minecraft API の許可が必要です。サインインはこのセッションのみ有効です。"
+    },
+    "sSettingsHeading": {
+      "zh": "设置",
+      "en": "Settings",
+      "ja": "設定"
+    },
+    "sGameDirLabel": {
+      "zh": "游戏目录",
+      "en": "Game folder",
+      "ja": "ゲームフォルダー"
+    },
+    "sJavaPathLabel": {
+      "zh": "Java 路径",
+      "en": "Java path",
+      "ja": "Java のパス"
+    },
+    "sMemoryLabel": {
+      "zh": "内存（MiB，512–%u，本机上限）",
+      "en": "Memory (MiB, 512–%u, this PC's limit)",
+      "ja": "メモリ（MiB、512–%u、この PC の上限）"
+    },
+    "sLanguageLabel": {
+      "zh": "界面语言",
+      "en": "Language",
+      "ja": "表示言語"
+    },
+    "sSave": {
+      "zh": "保存",
+      "en": "Save",
+      "ja": "保存"
+    },
+    "sSaved": {
+      "zh": "已保存",
+      "en": "Saved",
+      "ja": "保存しました"
+    },
+    "sSettingsHelp": {
+      "zh": "Java 需单独安装；1.21.1 使用 Java 21。",
+      "en": "Java is installed separately; 1.21.1 uses Java 21.",
+      "ja": "Java は別途インストールが必要です。1.21.1 は Java 21 を使用します。"
+    },
+    "sCancelLogin": {
+      "zh": "取消登录",
+      "en": "Cancel sign-in",
+      "ja": "サインインを中止"
+    },
+    "sBadMemory": {
+      "zh": "请输入 512–%u MiB。",
+      "en": "Enter 512–%u MiB.",
+      "ja": "512–%u MiB の範囲で入力してください。"
+    },
+    "sBadPath": {
+      "zh": "游戏目录无效。",
+      "en": "The game folder is invalid.",
+      "ja": "ゲームフォルダーが無効です。"
+    },
+    "sSaveFailed": {
+      "zh": "保存失败，请检查目录写入权限。",
+      "en": "Could not save. Check write permission for the folder.",
+      "ja": "保存できませんでした。フォルダーの書き込み権限を確認してください。"
+    },
+    "sMods": {
+      "zh": "模组中心",
+      "en": "Mods",
+      "ja": "Mod"
+    },
+    "sModHeading": {
+      "zh": "模组中心",
+      "en": "Mods",
+      "ja": "Mod センター"
+    },
+    "sModDiscover": {
+      "zh": "下载模组",
+      "en": "Discover",
+      "ja": "探す"
+    },
+    "sModLocal": {
+      "zh": "本地管理",
+      "en": "Installed",
+      "ja": "インストール済み"
+    },
+    "sModApi": {
+      "zh": "接口设置",
+      "en": "API keys",
+      "ja": "API 設定"
+    },
+    "sModrinth": {
+      "zh": "Modrinth",
+      "en": "Modrinth",
+      "ja": "Modrinth"
+    },
+    "sCurseForge": {
+      "zh": "CurseForge",
+      "en": "CurseForge",
+      "ja": "CurseForge"
+    },
+    "sModGame": {
+      "zh": "游戏版本",
+      "en": "Game version",
+      "ja": "ゲームバージョン"
+    },
+    "sModLoader": {
+      "zh": "加载器",
+      "en": "Loader",
+      "ja": "ローダー"
+    },
+    "sModKeyword": {
+      "zh": "关键词",
+      "en": "Keywords",
+      "ja": "キーワード"
+    },
+    "sModQueryCue": {
+      "zh": "搜索模组，留空查看热门",
+      "en": "Search mods, or leave empty for popular",
+      "ja": "Mod を検索（空欄で人気順）"
+    },
+    "sModSearch": {
+      "zh": "搜索  →",
+      "en": "Search  →",
+      "ja": "検索  →"
+    },
+    "sModLoaderNote": {
+      "zh": "请按游戏版本和加载器选择模组。",
+      "en": "Pick mods that match your game version and loader.",
+      "ja": "ゲームバージョンとローダーに合う Mod を選んでください。"
+    },
+    "sModFiles": {
+      "zh": "版本",
+      "en": "Files",
+      "ja": "ファイル"
+    },
+    "sModSelectPrompt": {
+      "zh": "选择模组",
+      "en": "Select a mod",
+      "ja": "Mod を選択"
+    },
+    "sModDependencies": {
+      "zh": "必需依赖  ↗",
+      "en": "Required dependencies  ↗",
+      "ja": "必須の依存関係  ↗"
+    },
+    "sModPrev": {
+      "zh": "上一页",
+      "en": "Previous",
+      "ja": "前へ"
+    },
+    "sModNext": {
+      "zh": "下一页",
+      "en": "Next",
+      "ja": "次へ"
+    },
+    "sModWebsite": {
+      "zh": "项目官网  ↗",
+      "en": "Website  ↗",
+      "ja": "公式サイト  ↗"
+    },
+    "sModDownload": {
+      "zh": "下载  ↓",
+      "en": "Download  ↓",
+      "ja": "ダウンロード  ↓"
+    },
+    "sModOfficialOnly": {
+      "zh": "前往官网  ↗",
+      "en": "Get from website  ↗",
+      "ja": "公式サイトで入手  ↗"
+    },
+    "sModRescan": {
+      "zh": "刷新",
+      "en": "Refresh",
+      "ja": "更新"
+    },
+    "sModToggle": {
+      "zh": "启用 / 禁用",
+      "en": "Enable / Disable",
+      "ja": "有効 / 無効"
+    },
+    "sModTrash": {
+      "zh": "移入回收区",
+      "en": "Move to trash",
+      "ja": "ゴミ箱へ移動"
+    },
+    "sModOpenFolder": {
+      "zh": "模组目录  ↗",
+      "en": "Mods folder  ↗",
+      "ja": "Mod フォルダー  ↗"
+    },
+    "sModTrashHelp": {
+      "zh": "可从 mods/.offset-trash 恢复。",
+      "en": "Files can be restored from mods/.offset-trash.",
+      "ja": "mods/.offset-trash から復元できます。"
+    },
+    "sModApiHeading": {
+      "zh": "CurseForge",
+      "en": "CurseForge",
+      "ja": "CurseForge"
+    },
+    "sModKeyLabel": {
+      "zh": "API Key",
+      "en": "API Key",
+      "ja": "API Key"
+    },
+    "sModSaveKey": {
+      "zh": "保存密钥",
+      "en": "Save key",
+      "ja": "キーを保存"
+    },
+    "sModGetKey": {
+      "zh": "获取密钥  ↗",
+      "en": "Get a key  ↗",
+      "ja": "キーを取得  ↗"
+    },
+    "sModKeyHelp": {
+      "zh": "密钥仅在本机加密保存。",
+      "en": "The key is stored encrypted on this PC only.",
+      "ja": "キーはこの PC にのみ暗号化して保存されます。"
+    },
+    "sModKeyHelp2": {
+      "zh": "点击保存生效；清空后保存可移除。",
+      "en": "Click Save to apply; save an empty field to remove it.",
+      "ja": "保存で反映されます。空欄で保存すると削除されます。"
+    },
+    "sModSourceNote": {
+      "zh": "CurseForge 需要有效 API Key。",
+      "en": "CurseForge requires a valid API key.",
+      "ja": "CurseForge には有効な API Key が必要です。"
+    },
+    "sModBadFilter": {
+      "zh": "请填写游戏版本并选择加载器。",
+      "en": "Enter a game version and choose a loader.",
+      "ja": "ゲームバージョンを入力し、ローダーを選んでください。"
+    },
+    "sModTrashQuestion": {
+      "zh": "移入回收区？可从 mods/.offset-trash 恢复。",
+      "en": "Move to trash? It can be restored from mods/.offset-trash.",
+      "ja": "ゴミ箱へ移動しますか？ mods/.offset-trash から復元できます。"
+    },
+    "sModOnPrefix": {
+      "zh": "已启用 · ",
+      "en": "On · ",
+      "ja": "有効 · "
+    },
+    "sModOffPrefix": {
+      "zh": "已禁用 · ",
+      "en": "Off · ",
+      "ja": "無効 · "
+    },
+    "modCountFormat": {
+      "zh": "%u 个项目 · 第 %u 页",
+      "en": "%u projects · page %u",
+      "ja": "%u 件 · %u ページ目"
+    },
+    "modLocalFormat": {
+      "zh": "%u 个本地模组",
+      "en": "%u local mods",
+      "ja": "ローカル Mod %u 件"
+    },
+    "sModCancel": {
+      "zh": "取消  ×",
+      "en": "Cancel  ×",
+      "ja": "中止  ×"
+    },
+    "sModNoDeps": {
+      "zh": "未声明必需依赖",
+      "en": "No required dependencies declared",
+      "ja": "必須の依存関係はありません"
+    },
+    "sVRelease": {
+      "zh": "正式版",
+      "en": "Releases",
+      "ja": "リリース"
+    },
+    "sVSnapshot": {
+      "zh": "快照",
+      "en": "Snapshots",
+      "ja": "スナップショット"
+    },
+    "sVAll": {
+      "zh": "全部",
+      "en": "All",
+      "ja": "すべて"
+    },
+    "sVSearchCue": {
+      "zh": "搜索版本",
+      "en": "Search versions",
+      "ja": "バージョンを検索"
+    },
+    "sVVanilla": {
+      "zh": "原版",
+      "en": "Vanilla",
+      "ja": "バニラ"
+    },
+    "sVPending": {
+      "zh": "待下载",
+      "en": "Pending",
+      "ja": "待機中"
+    },
+    "sVRunning": {
+      "zh": "下载中",
+      "en": "Downloading",
+      "ja": "ダウンロード中"
+    },
+    "sVComplete": {
+      "zh": "已完成",
+      "en": "Done",
+      "ja": "完了"
+    },
+    "sVFailed": {
+      "zh": "失败",
+      "en": "Failed",
+      "ja": "失敗"
+    },
+    "sVCancelled": {
+      "zh": "已取消",
+      "en": "Cancelled",
+      "ja": "中止"
+    },
+    "sVCatalogRow": {
+      "zh": "%s    %s",
+      "en": "%s    %s",
+      "ja": "%s    %s"
+    },
+    "sVQueueRow": {
+      "zh": "%s  ·  %s %s  ·  %s",
+      "en": "%s  ·  %s %s  ·  %s",
+      "ja": "%s  ·  %s %s  ·  %s"
+    },
+    "sVAdded": {
+      "zh": "已加入任务",
+      "en": "Added to tasks",
+      "ja": "タスクに追加しました"
+    },
+    "sVChooseVersion": {
+      "zh": "请选择版本",
+      "en": "Choose a version",
+      "ja": "バージョンを選択してください"
+    },
+    "sVQueueLimit": {
+      "zh": "最多可添加 64 个任务",
+      "en": "Up to 64 tasks can be queued",
+      "ja": "タスクは最大 64 件までです"
+    },
+    "sVOneBase": {
+      "zh": "安装加载器时请选择一个游戏版本",
+      "en": "Choose exactly one game version to install a loader",
+      "ja": "ローダーを入れるにはゲームバージョンを 1 つ選んでください"
+    },
+    "sVNoLoader": {
+      "zh": "暂无兼容版本",
+      "en": "No compatible version yet",
+      "ja": "対応バージョンはまだありません"
+    },
+    "sVNoPending": {
+      "zh": "没有待下载任务",
+      "en": "No pending tasks",
+      "ja": "待機中のタスクはありません"
+    },
+    "sVDownloadTab": {
+      "zh": "下载",
+      "en": "Download",
+      "ja": "ダウンロード"
+    },
+    "sVInstalledTab": {
+      "zh": "已安装",
+      "en": "Installed",
+      "ja": "インストール済み"
+    },
+    "sVTasksTab": {
+      "zh": "任务 (%u)",
+      "en": "Tasks (%u)",
+      "ja": "タスク (%u)"
+    },
+    "sVCancel": {
+      "zh": "取消",
+      "en": "Cancel",
+      "ja": "中止"
+    },
+    "sVLoaderLabel": {
+      "zh": "加载器",
+      "en": "Loader",
+      "ja": "ローダー"
+    },
+    "sVLoaderVersion": {
+      "zh": "加载器版本",
+      "en": "Loader version",
+      "ja": "ローダーのバージョン"
+    },
+    "sVAddQueue": {
+      "zh": "加入任务",
+      "en": "Add to tasks",
+      "ja": "タスクに追加"
+    },
+    "sVDownloadNow": {
+      "zh": "下载",
+      "en": "Download",
+      "ja": "ダウンロード"
+    },
+    "sVSetCurrent": {
+      "zh": "设为当前",
+      "en": "Use this version",
+      "ja": "このバージョンを使う"
+    },
+    "sVOpenVersion": {
+      "zh": "打开目录",
+      "en": "Open folder",
+      "ja": "フォルダーを開く"
+    },
+    "sVStart": {
+      "zh": "开始下载",
+      "en": "Start",
+      "ja": "開始"
+    },
+    "sVRetry": {
+      "zh": "重试失败",
+      "en": "Retry failed",
+      "ja": "失敗を再試行"
+    },
+    "sVRemove": {
+      "zh": "移除任务",
+      "en": "Remove",
+      "ja": "削除"
+    },
+    "sVClearDone": {
+      "zh": "清空完成",
+      "en": "Clear done",
+      "ja": "完了を消去"
+    },
+    "sVCurrentSet": {
+      "zh": "已设为当前版本",
+      "en": "Now using this version",
+      "ja": "このバージョンに切り替えました"
+    },
+    "sPacks": {
+      "zh": "整合包",
+      "en": "Modpacks",
+      "ja": "Modパック"
+    },
+    "sPackBrowse": {
+      "zh": "下载整合包",
+      "en": "Browse packs",
+      "ja": "パックを探す"
+    },
+    "sPackQueryCue": {
+      "zh": "搜索整合包",
+      "en": "Search modpacks",
+      "ja": "Modパックを検索"
+    },
+    "sPackGameCue": {
+      "zh": "游戏版本（可选）",
+      "en": "Game version (optional)",
+      "ja": "ゲーム版（任意）"
+    },
+    "sPackImport": {
+      "zh": "导入文件",
+      "en": "Import file",
+      "ja": "ファイルを導入"
+    },
+    "sPackInstall": {
+      "zh": "下载安装",
+      "en": "Install pack",
+      "ja": "ダウンロード"
+    },
+    "sPackPlay": {
+      "zh": "选用整合包",
+      "en": "Use this pack",
+      "ja": "このパックを選択"
+    },
+    "sPackIsolated": {
+      "zh": "整合包使用独立游戏目录。",
+      "en": "Each pack has its own game directory.",
+      "ja": "パックごとに独立したゲームフォルダーを使用します。"
+    },
+    "sDetailHeading": {
+      "zh": "介绍",
+      "en": "Details",
+      "ja": "紹介"
+    },
+    "sDetailBack": {
+      "zh": "返回",
+      "en": "Back",
+      "ja": "戻る"
+    },
+    "sDetailMcmod": {
+      "zh": "MC 百科",
+      "en": "MC Wiki",
+      "ja": "MC百科"
+    },
+    "sDetailLoading": {
+      "zh": "正在加载介绍…",
+      "en": "Loading details…",
+      "ja": "紹介を読み込み中…"
+    },
+    "sDetailUnavailable": {
+      "zh": "介绍暂时无法获取，可访问项目官网。",
+      "en": "Details unavailable. Visit the project website.",
+      "ja": "紹介を取得できません。公式サイトをご覧ください。"
+    },
+    "sPersonalHeading": {
+      "zh": "个性化",
+      "en": "Personalization",
+      "ja": "カスタマイズ"
+    },
+    "sPersonalColor": {
+      "zh": "主题色",
+      "en": "Accent color",
+      "ja": "テーマカラー"
+    },
+    "sPersonalCustom": {
+      "zh": "自定义 HEX",
+      "en": "Custom HEX",
+      "ja": "カスタム HEX"
+    },
+    "sPersonalName": {
+      "zh": "启动器名称",
+      "en": "Launcher name",
+      "ja": "ランチャー名"
+    },
+    "sPersonalMotion": {
+      "zh": "界面动效",
+      "en": "Animations",
+      "ja": "アニメーション"
+    },
+    "sPersonalOn": {
+      "zh": "开启",
+      "en": "On",
+      "ja": "オン"
+    },
+    "sPersonalOff": {
+      "zh": "关闭",
+      "en": "Off",
+      "ja": "オフ"
+    },
+    "sPersonalApply": {
+      "zh": "应用",
+      "en": "Apply",
+      "ja": "適用"
+    },
+    "sPersonalReset": {
+      "zh": "恢复默认",
+      "en": "Reset",
+      "ja": "初期設定"
+    },
+    "sPersonalInvalid": {
+      "zh": "请输入六位 HEX 颜色；颜色过浅时会自动加深。",
+      "en": "Enter six HEX digits. Light colors are darkened.",
+      "ja": "6桁のHEX色を入力。明るい色は自動で暗くします。"
+    },
+    "sPersonalSaved": {
+      "zh": "个性化设置已保存。",
+      "en": "Personalization saved.",
+      "ja": "設定を保存しました。"
+    },
+    "sVmHeading": {
+      "zh": "版本管理",
+      "en": "Version management",
+      "ja": "バージョン管理"
+    },
+    "sVmManage": {
+      "zh": "管理",
+      "en": "Manage",
+      "ja": "管理"
+    },
+    "sVmOverview": {
+      "zh": "概览",
+      "en": "Overview",
+      "ja": "概要"
+    },
+    "sVmSettings": {
+      "zh": "独立设置",
+      "en": "Settings",
+      "ja": "個別設定"
+    },
+    "sVmMods": {
+      "zh": "模组",
+      "en": "Mods",
+      "ja": "Mod"
+    },
+    "sVmBack": {
+      "zh": "返回列表",
+      "en": "Back to versions",
+      "ja": "一覧へ戻る"
+    },
+    "sVmName": {
+      "zh": "显示名称",
+      "en": "Display name",
+      "ja": "表示名"
+    },
+    "sVmJava": {
+      "zh": "Java 路径",
+      "en": "Java path",
+      "ja": "Java パス"
+    },
+    "sVmMemory": {
+      "zh": "内存（MiB，0 为全局）",
+      "en": "Memory (MiB, 0 = global)",
+      "ja": "メモリ（MiB、0は共通）"
+    },
+    "sVmIsolation": {
+      "zh": "游戏数据",
+      "en": "Data directory",
+      "ja": "ゲームデータ"
+    },
+    "sVmShared": {
+      "zh": "共享",
+      "en": "Shared",
+      "ja": "共有"
+    },
+    "sVmIsolated": {
+      "zh": "独立",
+      "en": "Isolated",
+      "ja": "個別"
+    },
+    "sVmInherit": {
+      "zh": "空白时使用全局设置",
+      "en": "Blank uses global settings",
+      "ja": "空欄は共通設定を使用"
+    },
+    "sVmSave": {
+      "zh": "保存",
+      "en": "Save",
+      "ja": "保存"
+    },
+    "sVmSaved": {
+      "zh": "独立设置已保存。",
+      "en": "Version settings saved.",
+      "ja": "個別設定を保存しました。"
+    },
+    "sVmInvalid": {
+      "zh": "请检查名称、Java 路径和内存范围。",
+      "en": "Check the name, Java path and memory limit.",
+      "ja": "表示名、Java パス、メモリ上限を確認してください。"
+    },
+    "sVmBase": {
+      "zh": "游戏版本",
+      "en": "Minecraft version",
+      "ja": "ゲームバージョン"
+    },
+    "sVmLoader": {
+      "zh": "加载器",
+      "en": "Loader",
+      "ja": "ローダー"
+    },
+    "sVmDataDir": {
+      "zh": "游戏目录",
+      "en": "Game folder",
+      "ja": "ゲームフォルダー"
+    },
+    "sVmVersionDir": {
+      "zh": "版本目录",
+      "en": "Version folder",
+      "ja": "バージョンフォルダー"
+    },
+    "sVmModsDir": {
+      "zh": "模组目录",
+      "en": "Mods folder",
+      "ja": "Modフォルダー"
+    },
+    "sVmSaves": {
+      "zh": "存档",
+      "en": "Saves",
+      "ja": "ワールド"
+    },
+    "sVmLogs": {
+      "zh": "日志",
+      "en": "Logs",
+      "ja": "ログ"
+    },
+    "sVmResources": {
+      "zh": "资源包",
+      "en": "Resource packs",
+      "ja": "リソースパック"
+    },
+    "sVmUse": {
+      "zh": "设为当前",
+      "en": "Use version",
+      "ja": "この版を選択"
+    },
+    "sVmRepair": {
+      "zh": "补全文件",
+      "en": "Repair files",
+      "ja": "ファイルを補完"
+    },
+    "sVmOverviewNote": {
+      "zh": "独立设置仅作用于此版本。",
+      "en": "Settings apply only to this version.",
+      "ja": "設定はこのバージョンのみに適用されます。"
+    },
+    "sVmIsolationNote": {
+      "zh": "独立模式不搬移现有存档和模组。",
+      "en": "Isolation keeps existing saves and mods in place.",
+      "ja": "個別モードは既存のワールドやModを移動しません。"
+    },
+    "sVmGlobal": {
+      "zh": "使用全局",
+      "en": "Global settings",
+      "ja": "共通設定"
+    },
+    "sVmMemoryRange": {
+      "zh": "512–%u MiB",
+      "en": "512–%u MiB",
+      "ja": "512–%u MiB"
+    },
+    "sVmUnavailable": {
+      "zh": "版本不可用，请刷新已安装列表。",
+      "en": "Version unavailable. Refresh installed versions.",
+      "ja": "バージョンを読み込めません。一覧を更新してください。"
+    },
+    "sLogCrash": {
+      "zh": "崩溃报告",
+      "en": "Crash report",
+      "ja": "クラッシュレポート"
+    },
+    "sLogEmpty": {
+      "zh": "暂无启动日志",
+      "en": "No launch log yet",
+      "ja": "起動ログはありません"
+    },
+    "sLogExport": {
+      "zh": "导出",
+      "en": "Export",
+      "ja": "書き出す"
+    },
+    "sLogExported": {
+      "zh": "报告已导出。",
+      "en": "Report exported.",
+      "ja": "レポートを保存しました。"
+    },
+    "sLogExportFailed": {
+      "zh": "报告导出失败。",
+      "en": "Report export failed.",
+      "ja": "レポートを保存できませんでした。"
+    },
+    "sLogFolder": {
+      "zh": "日志目录",
+      "en": "Log folder",
+      "ja": "ログフォルダー"
+    },
+    "sLogNoCrash": {
+      "zh": "本次启动没有崩溃报告",
+      "en": "No crash report for this run",
+      "ja": "今回のクラッシュレポートはありません"
+    },
+    "sLogOutput": {
+      "zh": "启动输出",
+      "en": "Launch output",
+      "ja": "起動ログ"
+    },
+    "sLogRefresh": {
+      "zh": "刷新",
+      "en": "Refresh",
+      "ja": "更新"
+    },
+    "sLogsHeading": {
+      "zh": "日志",
+      "en": "Logs",
+      "ja": "ログ"
+    },
+    "sPackChooseArchive": {
+      "zh": "选择文件",
+      "en": "Choose file",
+      "ja": "ファイルを選択"
+    },
+    "sPackImportArchive": {
+      "zh": "整合包文件",
+      "en": "Archive",
+      "ja": "パックファイル"
+    },
+    "sPackImportEmpty": {
+      "zh": "选择 .mrpack 或 .zip 整合包",
+      "en": "Choose a .mrpack or .zip modpack",
+      "ja": ".mrpack または .zip を選択"
+    },
+    "sPackImportFolder": {
+      "zh": "实例目录名",
+      "en": "Instance folder name",
+      "ja": "インスタンスフォルダー名"
+    },
+    "sPackImportFolderHelp": {
+      "zh": "字母、数字、点、横线或下划线",
+      "en": "Letters, numbers, dots, hyphens or underscores",
+      "ja": "英数字・ドット・ハイフン・アンダースコア"
+    },
+    "sPackImportFormat": {
+      "zh": "格式",
+      "en": "Format",
+      "ja": "形式"
+    },
+    "sPackImportFormats": {
+      "zh": "Modrinth · CurseForge · Prism / MultiMC",
+      "en": "Modrinth · CurseForge · Prism / MultiMC",
+      "ja": "Modrinth · CurseForge · Prism / MultiMC"
+    },
+    "sPackImportInvalidFolder": {
+      "zh": "实例目录名无效或已存在。",
+      "en": "Invalid or existing instance folder.",
+      "ja": "フォルダー名が無効か、すでに存在します。"
+    },
+    "sPackImportName": {
+      "zh": "名称",
+      "en": "Name",
+      "ja": "名前"
+    },
+    "sPackImportReady": {
+      "zh": "预检完成，可以导入。",
+      "en": "Ready to import.",
+      "ja": "確認完了。インポートできます。"
+    },
+    "sPackImportReset": {
+      "zh": "取消导入",
+      "en": "Clear",
+      "ja": "クリア"
+    },
+    "sPackImportStart": {
+      "zh": "导入",
+      "en": "Import",
+      "ja": "インポート"
+    },
+    "sPackImportTab": {
+      "zh": "导入整合包",
+      "en": "Import",
+      "ja": "インポート"
+    },
+    "sPackImportVersion": {
+      "zh": "Minecraft / 加载器",
+      "en": "Minecraft / Loader",
+      "ja": "Minecraft / ローダー"
+    },
+    "sLogSaveFailed": {
+      "zh": "日志保存失败，请检查目录权限或磁盘空间。",
+      "en": "Log saving failed. Check folder permissions or disk space.",
+      "ja": "ログを保存できません。アクセス権限と空き容量を確認してください。"
+    },
+    "sPackExportAuthor": {
+      "zh": "作者",
+      "en": "Author",
+      "ja": "作者"
+    },
+    "sPackExportChoose": {
+      "zh": "选择位置",
+      "en": "Destination",
+      "ja": "保存先"
+    },
+    "sPackExportContent": {
+      "zh": "%u 个文件 · %u MiB",
+      "en": "%u files · %u MiB",
+      "ja": "%u ファイル · %u MiB"
+    },
+    "sPackExportDestinationBad": {
+      "zh": "请选择不存在的 .mrpack 或 .zip 文件。",
+      "en": "Choose a new .mrpack or .zip file.",
+      "ja": "新しい .mrpack または .zip を選択してください。"
+    },
+    "sPackExportEmpty": {
+      "zh": "选择来源后预览",
+      "en": "Select a source and preview.",
+      "ja": "元を選択して確認"
+    },
+    "sPackExportInvalid": {
+      "zh": "请检查包名、版本号和作者。",
+      "en": "Check the pack name, version and author.",
+      "ja": "名前・版・作者を確認してください。"
+    },
+    "sPackExportNeedPreview": {
+      "zh": "请先预览导出内容。",
+      "en": "Preview the content first.",
+      "ja": "出力内容を先に確認してください。"
+    },
+    "sPackExportOutput": {
+      "zh": "输出文件",
+      "en": "Output file",
+      "ja": "出力先"
+    },
+    "sPackExportPickOutput": {
+      "zh": "请选择新的导出文件。",
+      "en": "Choose a new export file.",
+      "ja": "新しい出力ファイルを選択してください。"
+    },
+    "sPackExportPreview": {
+      "zh": "预览",
+      "en": "Preview",
+      "ja": "確認"
+    },
+    "sPackExportSaves": {
+      "zh": "存档",
+      "en": "Worlds",
+      "ja": "ワールド"
+    },
+    "sPackExportSource": {
+      "zh": "来源版本",
+      "en": "Source version",
+      "ja": "元バージョン"
+    },
+    "sPackExportStart": {
+      "zh": "导出",
+      "en": "Export",
+      "ja": "出力"
+    },
+    "sPackExportTab": {
+      "zh": "导出整合包",
+      "en": "Export",
+      "ja": "エクスポート"
+    },
+    "sPackExportVersion": {
+      "zh": "版本号",
+      "en": "Pack version",
+      "ja": "パック版"
+    },
+    "sPackExportWith": {
+      "zh": "包含",
+      "en": "Include",
+      "ja": "含める"
+    },
+    "sPackExportWithout": {
+      "zh": "不包含",
+      "en": "Exclude",
+      "ja": "含めない"
+    },
+    "sPackExportContents": {
+      "ja": "内容",
+      "en": "Content",
+      "zh": "内容"
+    },
+    "sPackExportMods": {
+      "ja": "Mod",
+      "en": "Mods",
+      "zh": "模组"
+    },
+    "sPackExportConfig": {
+      "ja": "設定",
+      "en": "Config",
+      "zh": "配置"
+    },
+    "sPackExportResources": {
+      "ja": "リソース",
+      "en": "Resources",
+      "zh": "资源"
+    }
+  },
+  "status": {
+    "authCodePrefix": {
+      "source": "en",
+      "zh": "打开 ",
+      "en": "Open ",
+      "ja": "開く: "
+    },
+    "authCodeMiddle": {
+      "source": "en",
+      "zh": " | 代码: ",
+      "en": " | Code: ",
+      "ja": " | コード: "
+    },
+    "authSignedPrefix": {
+      "source": "en",
+      "zh": "已登录：",
+      "en": "Signed in as ",
+      "ja": "サインイン中: "
+    },
+    "authMsgClient": {
+      "source": "en",
+      "zh": "微软登录需要在“账户”页填写你注册的公开客户端 Application ID。",
+      "en": "Microsoft sign-in needs your registered public-client Application ID on the Account page.",
+      "ja": "Microsoft サインインには、アカウント ページで登録済みのパブリック クライアント Application ID が必要です。"
+    },
+    "authMsgInvalidId": {
+      "source": "en",
+      "zh": "Application ID 必须是你自己注册的微软公开客户端 GUID。",
+      "en": "Application ID must be a GUID from your own Microsoft public-client registration.",
+      "ja": "Application ID は、ご自身で登録した Microsoft パブリック クライアントの GUID である必要があります。"
+    },
+    "authMsgStart": {
+      "source": "en",
+      "zh": "正在请求微软设备代码…",
+      "en": "Requesting a Microsoft device code...",
+      "ja": "Microsoft デバイス コードを要求しています…"
+    },
+    "authMsgDevice": {
+      "source": "en",
+      "zh": "微软设备授权失败，请检查 Application ID 与公开客户端权限。",
+      "en": "Microsoft device authorization failed. Check Application ID and public-client permissions.",
+      "ja": "Microsoft デバイス認証に失敗しました。Application ID とパブリック クライアントの権限を確認してください。"
+    },
+    "authMsgToken": {
+      "source": "en",
+      "zh": "微软授权失败或被拒绝，请重新开始登录。",
+      "en": "Microsoft authorization failed or was declined. Start sign-in again to retry.",
+      "ja": "Microsoft の認証に失敗したか、拒否されました。もう一度サインインしてください。"
+    },
+    "authMsgExpired": {
+      "source": "en",
+      "zh": "微软登录已过期，请重新登录以获取新的设备代码。",
+      "en": "Microsoft sign-in expired. Start sign-in again for a new device code.",
+      "ja": "Microsoft サインインの有効期限が切れました。新しいデバイス コードで再度サインインしてください。"
+    },
+    "authMsgCancel": {
+      "source": "en",
+      "zh": "已取消微软登录。",
+      "en": "Microsoft sign-in cancelled.",
+      "ja": "Microsoft サインインを中止しました。"
+    },
+    "authMsgNetwork": {
+      "source": "en",
+      "zh": "登录请求失败，请检查网络连接后重试。",
+      "en": "Sign-in request failed. Check your network connection and try again.",
+      "ja": "サインイン要求に失敗しました。ネットワーク接続を確認して再試行してください。"
+    },
+    "authMsgFormat": {
+      "source": "en",
+      "zh": "登录服务器返回了无效或过大的响应。",
+      "en": "Sign-in server returned an invalid or oversized response.",
+      "ja": "サインイン サーバーから無効または大きすぎる応答が返されました。"
+    },
+    "authMsgXbox": {
+      "source": "en",
+      "zh": "微软已授权，正在连接 Xbox Live…",
+      "en": "Microsoft authorized. Connecting to Xbox Live...",
+      "ja": "Microsoft の認証が完了しました。Xbox Live に接続しています…"
+    },
+    "authMsgXboxFail": {
+      "source": "en",
+      "zh": "Xbox Live 登录失败，请确认该微软账户已创建 Xbox 档案。",
+      "en": "Xbox Live sign-in failed. Ensure this Microsoft account has an Xbox profile.",
+      "ja": "Xbox Live のサインインに失敗しました。この Microsoft アカウントに Xbox プロフィールがあるか確認してください。"
+    },
+    "authMsgXsts": {
+      "source": "en",
+      "zh": "正在通过 XSTS 验证 Xbox 账户…",
+      "en": "Verifying Xbox account with XSTS...",
+      "ja": "XSTS で Xbox アカウントを確認しています…"
+    },
+    "authMsgXstsFail": {
+      "source": "en",
+      "zh": "XSTS 拒绝登录，请检查 Xbox 档案、家庭权限和账户地区。",
+      "en": "XSTS denied sign-in. Check Xbox profile, family permissions, and account region.",
+      "ja": "XSTS がサインインを拒否しました。Xbox プロフィール、ファミリー設定、アカウントの地域を確認してください。"
+    },
+    "authMsgMinecraft": {
+      "source": "en",
+      "zh": "Xbox 已授权，正在检查 Minecraft 所有权…",
+      "en": "Xbox authorized. Checking Minecraft ownership...",
+      "ja": "Xbox の認証が完了しました。Minecraft の所有権を確認しています…"
+    },
+    "authMsgMcFail": {
+      "source": "en",
+      "zh": "Minecraft 认证失败，你的应用可能需要 Minecraft API 审核。",
+      "en": "Minecraft authentication failed. Your application may require Minecraft API approval.",
+      "ja": "Minecraft の認証に失敗しました。アプリに Minecraft API の承認が必要な可能性があります。"
+    },
+    "authMsgOwnFail": {
+      "source": "en",
+      "zh": "该账户没有有效的 Minecraft Java 版权益，请检查购买或 Game Pass 状态。",
+      "en": "This account has no active Minecraft Java entitlement. Check ownership or Game Pass status.",
+      "ja": "このアカウントには有効な Minecraft Java 版の権利がありません。購入状況または Game Pass を確認してください。"
+    },
+    "authMsgProfile": {
+      "source": "en",
+      "zh": "该账户没有可用的 Minecraft Java 档案，请先完成档案设置。",
+      "en": "This account has no usable Minecraft Java profile. Complete profile setup first.",
+      "ja": "このアカウントには使用できる Minecraft Java プロフィールがありません。先にプロフィールを設定してください。"
+    },
+    "authMsgLogout": {
+      "source": "en",
+      "zh": "已退出登录，会话凭据已从内存清除。",
+      "en": "Signed out. Session credentials have been cleared from memory.",
+      "ja": "サインアウトしました。セッションの資格情報はメモリから消去されました。"
+    },
+    "eFmtProgress": {
+      "source": "en",
+      "zh": "资源：已校验 %u / %u",
+      "en": "Assets: %u / %u verified",
+      "ja": "アセット: %u / %u 件を検証済み"
+    },
+    "eStatusScan": {
+      "source": "en",
+      "zh": "正在检查 Minecraft 元数据…",
+      "en": "Checking Minecraft metadata...",
+      "ja": "Minecraft のメタデータを確認しています…"
+    },
+    "eStatusManifest": {
+      "source": "en",
+      "zh": "正在获取 Minecraft 版本列表…",
+      "en": "Fetching Minecraft version list...",
+      "ja": "Minecraft のバージョン一覧を取得しています…"
+    },
+    "eStatusInstall": {
+      "source": "en",
+      "zh": "正在校验客户端、依赖库与资源…",
+      "en": "Verifying client, libraries and assets...",
+      "ja": "クライアント、ライブラリ、アセットを検証しています…"
+    },
+    "eStatusLaunch": {
+      "source": "en",
+      "zh": "正在启动 Minecraft…",
+      "en": "Starting Minecraft...",
+      "ja": "Minecraft を起動しています…"
+    },
+    "eStatusRunning": {
+      "source": "en",
+      "zh": "Minecraft 正在运行，关闭游戏后返回。",
+      "en": "Minecraft is running. Close the game to return.",
+      "ja": "Minecraft を実行中です。ゲームを閉じると戻ります。"
+    },
+    "eStatusDone": {
+      "source": "en",
+      "zh": "Minecraft 已退出，可以再次启动。",
+      "en": "Minecraft has exited. Ready to launch again.",
+      "ja": "Minecraft が終了しました。再度起動できます。"
+    },
+    "eStatusInstalled": {
+      "source": "en",
+      "zh": "安装校验完成，可以启动。",
+      "en": "Installation verified. Ready to launch.",
+      "ja": "インストールを検証しました。起動できます。"
+    },
+    "eErrVersion": {
+      "source": "en",
+      "zh": "请输入有效的官方 Minecraft 版本号（例如 1.21.1）。",
+      "en": "Enter a valid official Minecraft version ID (for example 1.21.1).",
+      "ja": "有効な公式 Minecraft バージョン ID を入力してください（例: 1.21.1）。"
+    },
+    "eErrUnknown": {
+      "source": "en",
+      "zh": "官方 Mojang 清单中未找到该版本。",
+      "en": "Version was not found in the official Mojang manifest.",
+      "ja": "公式 Mojang マニフェストにこのバージョンが見つかりません。"
+    },
+    "eErrNetwork": {
+      "source": "en",
+      "zh": "下载失败或 SHA-1 校验失败，请检查网络后重试。",
+      "en": "Download failed or SHA-1 verification failed. Check your connection and retry.",
+      "ja": "ダウンロードまたは SHA-1 検証に失敗しました。接続を確認して再試行してください。"
+    },
+    "eErrMetadata": {
+      "source": "en",
+      "zh": "Minecraft 元数据无效，已安全停止安装。",
+      "en": "Invalid Minecraft metadata. Installation stopped safely.",
+      "ja": "Minecraft のメタデータが無効です。インストールを安全に停止しました。"
+    },
+    "eErrInherited": {
+      "source": "en",
+      "zh": "该版本继承自其他配置；此功能仅支持官方原版。",
+      "en": "This version inherits another profile. This build supports official vanilla versions only.",
+      "ja": "このバージョンは別のプロファイルを継承しています。この操作は公式バニラのみ対応です。"
+    },
+    "eErrOld": {
+      "source": "en",
+      "zh": "该版本使用旧式启动元数据，请选择 1.13 或更高的原版。",
+      "en": "This version uses legacy launch metadata. Choose vanilla Minecraft 1.13 or newer.",
+      "ja": "このバージョンは旧形式の起動メタデータです。1.13 以降のバニラを選んでください。"
+    },
+    "eErrPath": {
+      "source": "en",
+      "zh": "元数据中的路径无效或过长。",
+      "en": "A metadata path is invalid or too long.",
+      "ja": "メタデータ内のパスが無効か長すぎます。"
+    },
+    "eErrJava": {
+      "source": "en",
+      "zh": "未找到 Java，请填写合适的 64 位 javaw.exe 完整路径。",
+      "en": "Java was not found. Set a full path to a suitable 64-bit javaw.exe.",
+      "ja": "Java が見つかりません。適切な 64 ビット javaw.exe のフルパスを設定してください。"
+    },
+    "eErrName": {
+      "source": "en",
+      "zh": "离线玩家名须为 3–16 位 ASCII 字母、数字或下划线。",
+      "en": "Offline names must contain 3-16 ASCII letters, digits or underscores.",
+      "ja": "オフライン名は 3〜16 文字の半角英数字またはアンダースコアにしてください。"
+    },
+    "eErrAuth": {
+      "source": "en",
+      "zh": "在线模式启动前请先登录微软账户。",
+      "en": "Sign in to Microsoft before launching in online mode.",
+      "ja": "オンライン モードで起動する前に Microsoft にサインインしてください。"
+    },
+    "eErrStart": {
+      "source": "en",
+      "zh": "Windows 无法启动 Java，请检查 Java 路径、游戏目录与内存设置。",
+      "en": "Windows could not start Java. Check Java path, game folder and memory setting.",
+      "ja": "Windows が Java を起動できませんでした。Java のパス、ゲームフォルダー、メモリ設定を確認してください。"
+    },
+    "eErrArgs": {
+      "source": "en",
+      "zh": "启动参数超出支持范围或包含未知占位符。",
+      "en": "Launch arguments exceed the supported bound or contain an unknown placeholder.",
+      "ja": "起動引数が上限を超えているか、不明なプレースホルダーを含んでいます。"
+    },
+    "eErrTar": {
+      "source": "en",
+      "zh": "本地库解压失败，该版本需要 Windows 自带的 tar.exe。",
+      "en": "Native extraction failed. Windows tar.exe is required for this Minecraft version.",
+      "ja": "ネイティブ ライブラリの展開に失敗しました。このバージョンには Windows の tar.exe が必要です。"
+    },
+    "eErrExit": {
+      "source": "en",
+      "zh": "Minecraft 异常退出，请查看 logs/latest.log 与 Java 版本。",
+      "en": "Minecraft exited with an error. Check the game logs/latest.log and Java version.",
+      "ja": "Minecraft がエラーで終了しました。logs/latest.log と Java のバージョンを確認してください。"
+    },
+    "eErrCancel": {
+      "source": "en",
+      "zh": "操作已取消，已校验的下载文件会保留。",
+      "en": "Operation cancelled. Verified downloaded files are kept.",
+      "ja": "操作を中止しました。検証済みのファイルは保持されます。"
+    },
+    "eErrMissing": {
+      "source": "en",
+      "zh": "缺少必需的游戏文件，请联网后对该版本执行安装 / 修复。",
+      "en": "Required game files are missing. Use Install / Repair for this version while online.",
+      "ja": "必要なゲーム ファイルがありません。オンラインでこのバージョンをインストール / 修復してください。"
+    },
+    "cfMsgKey": {
+      "source": "zh",
+      "zh": "请先在模组页面填写并保存你自己的 CurseForge API Key。",
+      "en": "Enter and save your own CurseForge API key on the Mods page first.",
+      "ja": "先に Mod ページでご自身の CurseForge API Key を入力して保存してください。"
+    },
+    "cfMsgBadKey": {
+      "source": "zh",
+      "zh": "CurseForge API Key 格式无效，请勿包含空格、换行或控制字符。",
+      "en": "Invalid CurseForge API key format. Remove spaces, line breaks or control characters.",
+      "ja": "CurseForge API Key の形式が無効です。空白・改行・制御文字を含めないでください。"
+    },
+    "cfMsgAuth": {
+      "source": "zh",
+      "zh": "CurseForge 拒绝了 API Key，请检查密钥是否有效及应用权限。",
+      "en": "CurseForge rejected the API key. Check that it is valid and has access.",
+      "ja": "CurseForge が API Key を拒否しました。キーの有効性と権限を確認してください。"
+    },
+    "cfMsgRate": {
+      "source": "zh",
+      "zh": "CurseForge 请求过于频繁，请稍后重试。",
+      "en": "Too many CurseForge requests. Try again later.",
+      "ja": "CurseForge へのリクエストが多すぎます。しばらくしてから再試行してください。"
+    },
+    "cfMsgNetwork": {
+      "source": "zh",
+      "zh": "CurseForge 请求失败，请检查网络或稍后重试。",
+      "en": "CurseForge request failed. Check your network or try again later.",
+      "ja": "CurseForge へのリクエストに失敗しました。ネットワークを確認するか、後で再試行してください。"
+    },
+    "cfMsgFormat": {
+      "source": "zh",
+      "zh": "CurseForge 返回的数据无效或超过支持范围。",
+      "en": "CurseForge returned invalid or oversized data.",
+      "ja": "CurseForge から無効または大きすぎるデータが返されました。"
+    },
+    "cfMsgFilter": {
+      "source": "zh",
+      "zh": "请填写 Minecraft 版本并选择支持的模组加载器。",
+      "en": "Enter a Minecraft version and choose a supported mod loader.",
+      "ja": "Minecraft のバージョンを入力し、対応する Mod ローダーを選んでください。"
+    },
+    "cfMsgSearch": {
+      "source": "zh",
+      "zh": "正在搜索 CurseForge 模组…",
+      "en": "Searching CurseForge…",
+      "ja": "CurseForge を検索しています…"
+    },
+    "cfMsgVersions": {
+      "source": "zh",
+      "zh": "正在读取 CurseForge 的兼容文件…",
+      "en": "Loading compatible CurseForge files…",
+      "ja": "CurseForge の対応ファイルを読み込んでいます…"
+    },
+    "cfMsgFound": {
+      "source": "zh",
+      "zh": "CurseForge 搜索完成，选择项目查看兼容版本。",
+      "en": "CurseForge search complete. Select a project to see compatible files.",
+      "ja": "CurseForge の検索が完了しました。プロジェクトを選ぶと対応ファイルが表示されます。"
+    },
+    "cfMsgNoProjects": {
+      "source": "zh",
+      "zh": "CurseForge 没有找到符合条件的模组。",
+      "en": "No matching mods found on CurseForge.",
+      "ja": "CurseForge に条件に合う Mod は見つかりませんでした。"
+    },
+    "cfMsgFiles": {
+      "source": "zh",
+      "zh": "已读取兼容文件。下载受限的文件请使用项目官网入口。",
+      "en": "Compatible files loaded. Use the website link for restricted files.",
+      "ja": "対応ファイルを読み込みました。配布制限のあるファイルは公式サイトから入手してください。"
+    },
+    "cfMsgNoFiles": {
+      "source": "zh",
+      "zh": "该项目没有符合当前游戏版本与加载器的可用文件。",
+      "en": "This project has no files for the current game version and loader.",
+      "ja": "このプロジェクトには現在のゲームバージョンとローダーに合うファイルがありません。"
+    },
+    "cfMsgSelect": {
+      "source": "zh",
+      "zh": "请先选择一个 CurseForge 项目。",
+      "en": "Select a CurseForge project first.",
+      "ja": "先に CurseForge のプロジェクトを選んでください。"
+    },
+    "cfMsgCancel": {
+      "source": "zh",
+      "zh": "模组请求已取消。",
+      "en": "Mod request cancelled.",
+      "ja": "Mod のリクエストを中止しました。"
+    },
+    "ldListStatus": {
+      "source": "zh",
+      "zh": "正在获取加载器版本…",
+      "en": "Fetching loader versions…",
+      "ja": "ローダーのバージョンを取得しています…"
+    },
+    "ldInstallStatus": {
+      "source": "zh",
+      "zh": "正在安装加载器…",
+      "en": "Installing loader…",
+      "ja": "ローダーをインストールしています…"
+    },
+    "ldFailure": {
+      "source": "zh",
+      "zh": "加载器安装失败，请检查安装日志与 Java 版本。",
+      "en": "Loader install failed. Check the installer log and Java version.",
+      "ja": "ローダーのインストールに失敗しました。インストール ログと Java のバージョンを確認してください。"
+    },
+    "ldCancelled": {
+      "source": "zh",
+      "zh": "安装已取消，缓存已保留。",
+      "en": "Install cancelled. Cache kept.",
+      "ja": "インストールを中止しました。キャッシュは保持されます。"
+    },
+    "ldInvalid": {
+      "source": "zh",
+      "zh": "加载器版本或游戏版本无效。",
+      "en": "Invalid loader or game version.",
+      "ja": "ローダーまたはゲームのバージョンが無効です。"
+    },
+    "ldNetwork": {
+      "source": "zh",
+      "zh": "加载器列表获取失败。",
+      "en": "Could not fetch the loader list.",
+      "ja": "ローダー一覧を取得できませんでした。"
+    },
+    "mrDependencyPrefix": {
+      "source": "zh",
+      "zh": "必需依赖: ",
+      "en": "Required: ",
+      "ja": "必須: "
+    },
+    "mrDependencyUnknown": {
+      "source": "zh",
+      "zh": "(未提供项目ID)",
+      "en": "(no project ID)",
+      "ja": "(プロジェクト ID なし)"
+    },
+    "mrMsgSearch": {
+      "source": "zh",
+      "zh": "正在 Modrinth 搜索模组…",
+      "en": "Searching Modrinth…",
+      "ja": "Modrinth を検索しています…"
+    },
+    "mrMsgFound": {
+      "source": "zh",
+      "zh": "Modrinth 搜索完成，选择项目查看兼容版本。",
+      "en": "Modrinth search complete. Select a project to see compatible versions.",
+      "ja": "Modrinth の検索が完了しました。プロジェクトを選ぶと対応バージョンが表示されます。"
+    },
+    "mrMsgEmpty": {
+      "source": "zh",
+      "zh": "Modrinth 未找到匹配项目，可更换关键词、游戏版本或加载器。",
+      "en": "Nothing found on Modrinth. Try other keywords, game version or loader.",
+      "ja": "Modrinth に一致する項目はありません。キーワード、ゲームバージョン、ローダーを変えてみてください。"
+    },
+    "mrMsgVersions": {
+      "source": "zh",
+      "zh": "正在查询 Modrinth 兼容版本…",
+      "en": "Loading compatible Modrinth versions…",
+      "ja": "Modrinth の対応バージョンを読み込んでいます…"
+    },
+    "mrMsgVersionsReady": {
+      "source": "zh",
+      "zh": "兼容版本已加载，选择版本后下载；必需依赖需分别安装。",
+      "en": "Compatible versions loaded. Pick one to download; install required dependencies separately.",
+      "ja": "対応バージョンを読み込みました。選んでダウンロードしてください。必須の依存関係は別途インストールが必要です。"
+    },
+    "mrMsgNoFiles": {
+      "source": "zh",
+      "zh": "没有符合当前游戏版本与加载器、且可下载的 JAR 文件。",
+      "en": "No downloadable JAR matches the current game version and loader.",
+      "ja": "現在のゲームバージョンとローダーに合うダウンロード可能な JAR はありません。"
+    },
+    "mrMsgFilter": {
+      "source": "zh",
+      "zh": "请填写有效的游戏版本，并选择 Fabric、Forge、NeoForge 或 Quilt。",
+      "en": "Enter a valid game version and choose Fabric, Forge, NeoForge or Quilt.",
+      "ja": "有効なゲームバージョンを入力し、Fabric・Forge・NeoForge・Quilt から選んでください。"
+    },
+    "mrMsgProject": {
+      "source": "zh",
+      "zh": "请先选择一个有效的 Modrinth 项目。",
+      "en": "Select a valid Modrinth project first.",
+      "ja": "先に有効な Modrinth プロジェクトを選んでください。"
+    },
+    "mrMsgNetwork": {
+      "source": "zh",
+      "zh": "Modrinth 请求失败，请检查网络后重试。",
+      "en": "Modrinth request failed. Check your network and retry.",
+      "ja": "Modrinth へのリクエストに失敗しました。ネットワークを確認して再試行してください。"
+    },
+    "mrMsgRate": {
+      "source": "zh",
+      "zh": "Modrinth 请求过于频繁，请稍候重试。",
+      "en": "Too many Modrinth requests. Please wait and retry.",
+      "ja": "Modrinth へのリクエストが多すぎます。少し待ってから再試行してください。"
+    },
+    "mrMsgFormat": {
+      "source": "zh",
+      "zh": "Modrinth 返回的数据无效，已停止处理。",
+      "en": "Modrinth returned invalid data. Processing stopped.",
+      "ja": "Modrinth から無効なデータが返されたため、処理を停止しました。"
+    },
+    "mrMsgCancel": {
+      "source": "zh",
+      "zh": "模组查询已取消。",
+      "en": "Mod lookup cancelled.",
+      "ja": "Mod の検索を中止しました。"
+    },
+    "mlStatusScan": {
+      "source": "zh",
+      "zh": "本地模组列表已刷新。",
+      "en": "Local mod list refreshed.",
+      "ja": "ローカル Mod 一覧を更新しました。"
+    },
+    "mlStatusLimit": {
+      "source": "zh",
+      "zh": "本地模组超过 512 个，仅显示前 512 个。",
+      "en": "More than 512 local mods; showing the first 512.",
+      "ja": "ローカル Mod が 512 件を超えています。先頭の 512 件のみ表示します。"
+    },
+    "mlStatusToggle": {
+      "source": "zh",
+      "zh": "模组启用状态已更新。",
+      "en": "Mod state updated.",
+      "ja": "Mod の有効 / 無効を更新しました。"
+    },
+    "mlStatusTrash": {
+      "source": "zh",
+      "zh": "模组已移入 mods/.offset-trash，可从该文件夹恢复。",
+      "en": "Mod moved to mods/.offset-trash; restore it from that folder.",
+      "ja": "Mod を mods/.offset-trash に移動しました。このフォルダーから復元できます。"
+    },
+    "mlErrFile": {
+      "source": "zh",
+      "zh": "未选择有效模组，或文件名称无效。",
+      "en": "No valid mod selected, or the file name is invalid.",
+      "ja": "有効な Mod が選択されていないか、ファイル名が無効です。"
+    },
+    "mlErrMove": {
+      "source": "zh",
+      "zh": "文件操作失败：目标已存在、文件被占用或目录不可写。原文件已保留。",
+      "en": "File operation failed: target exists, file is in use, or folder is read-only. Original kept.",
+      "ja": "ファイル操作に失敗しました（同名ファイルあり・使用中・書き込み不可）。元のファイルは保持されます。"
+    },
+    "mlErrDownload": {
+      "source": "zh",
+      "zh": "模组下载或完整性校验失败，请检查网络后重试。",
+      "en": "Mod download or integrity check failed. Check your network and retry.",
+      "ja": "Mod のダウンロードまたは整合性チェックに失敗しました。ネットワークを確認して再試行してください。"
+    },
+    "mlErrBlocked": {
+      "source": "zh",
+      "zh": "该文件没有可用的官方下载地址或 SHA-1，请打开项目官网获取。",
+      "en": "This file has no official download URL or SHA-1. Get it from the project website.",
+      "ja": "このファイルには公式のダウンロード URL または SHA-1 がありません。公式サイトから入手してください。"
+    },
+    "mlErrCollision": {
+      "source": "zh",
+      "zh": "同名模组已存在且内容不同；请先禁用或移入回收区。未覆盖原文件。",
+      "en": "A different mod with the same name exists; disable or trash it first. Nothing was overwritten.",
+      "ja": "同名で内容の異なる Mod があります。先に無効化するかゴミ箱へ移動してください。上書きはしていません。"
+    },
+    "mlErrCancel": {
+      "source": "zh",
+      "zh": "模组操作已取消。",
+      "en": "Mod operation cancelled.",
+      "ja": "Mod の操作を中止しました。"
+    },
+    "mlErrZip": {
+      "source": "zh",
+      "zh": "下载内容不是有效的 JAR/ZIP 文件，未放入 mods。",
+      "en": "Download is not a valid JAR/ZIP file; it was not added to mods.",
+      "ja": "ダウンロードしたファイルは有効な JAR/ZIP ではないため、mods に追加しませんでした。"
+    },
+    "mlStatusDownload": {
+      "source": "zh",
+      "zh": "正在下载并校验模组…",
+      "en": "Downloading and verifying mod…",
+      "ja": "Mod をダウンロードして検証しています…"
+    },
+    "mlStatusInstalled": {
+      "source": "zh",
+      "zh": "模组已下载到 mods。请确认已安装对应加载器和必需依赖。",
+      "en": "Mod saved to mods. Make sure the loader and required dependencies are installed.",
+      "ja": "Mod を mods に保存しました。対応ローダーと必須の依存関係を確認してください。"
+    },
+    "mlStatusDependencies": {
+      "source": "zh",
+      "zh": "模组已下载；此文件声明了必需依赖，请根据详情另行安装。",
+      "en": "Mod downloaded. It declares required dependencies; see details and install them separately.",
+      "ja": "Mod をダウンロードしました。必須の依存関係があるため、詳細を見て別途インストールしてください。"
+    },
+    "mlStatusSame": {
+      "source": "zh",
+      "zh": "相同内容的模组已经存在，无需重复下载。",
+      "en": "An identical mod already exists; nothing to download.",
+      "ja": "同じ内容の Mod がすでにあるため、ダウンロードは不要です。"
+    },
+    "mlStatusKey": {
+      "source": "zh",
+      "zh": "CurseForge API Key 已在本机加密保存。",
+      "en": "CurseForge API key saved encrypted on this PC.",
+      "ja": "CurseForge API Key をこの PC に暗号化して保存しました。"
+    },
+    "mlStatusKeyRemoved": {
+      "source": "zh",
+      "zh": "已清除本机保存的 CurseForge API Key。",
+      "en": "Saved CurseForge API key removed from this PC.",
+      "ja": "この PC に保存した CurseForge API Key を削除しました。"
+    },
+    "mlErrKey": {
+      "source": "zh",
+      "zh": "API Key 无效：不能包含控制字符，且长度不能超过 255 字节。",
+      "en": "Invalid API key: no control characters, and at most 255 bytes.",
+      "ja": "API Key が無効です。制御文字を含めず、255 バイト以内にしてください。"
+    },
+    "mlErrKeySave": {
+      "source": "zh",
+      "zh": "API Key 加密保存失败，请检查启动器目录的写入权限。",
+      "en": "Could not save the encrypted API key. Check write permission for the launcher folder.",
+      "ja": "API Key を暗号化保存できませんでした。ランチャー フォルダーの書き込み権限を確認してください。"
+    },
+    "modUiKeyMessage": {
+      "source": "zh",
+      "zh": "请选择一个项目或文件。",
+      "en": "Select a project or file.",
+      "ja": "プロジェクトまたはファイルを選んでください。"
+    },
+    "vStatusFetch": {
+      "source": "zh",
+      "zh": "正在获取版本列表…",
+      "en": "Fetching version list…",
+      "ja": "バージョン一覧を取得しています…"
+    },
+    "vStatusReady": {
+      "source": "zh",
+      "zh": "版本列表已更新。",
+      "en": "Version list updated.",
+      "ja": "バージョン一覧を更新しました。"
+    },
+    "vStatusError": {
+      "source": "zh",
+      "zh": "版本列表下载失败，请重试。",
+      "en": "Could not download the version list. Please retry.",
+      "ja": "バージョン一覧を取得できませんでした。再試行してください。"
+    },
+    "vStatusCancel": {
+      "source": "zh",
+      "zh": "已取消。",
+      "en": "Cancelled.",
+      "ja": "中止しました。"
+    },
+    "vStatusQueueFull": {
+      "source": "zh",
+      "zh": "下载队列已满。",
+      "en": "Download queue is full.",
+      "ja": "ダウンロード キューがいっぱいです。"
+    },
+    "vStatusQueueInvalid": {
+      "source": "zh",
+      "zh": "版本或加载器无效。",
+      "en": "Invalid version or loader.",
+      "ja": "バージョンまたはローダーが無効です。"
+    },
+    "vStatusQueueRunning": {
+      "source": "zh",
+      "zh": "下载进行中。",
+      "en": "Download in progress.",
+      "ja": "ダウンロード中です。"
+    },
+    "vFmtInstall": {
+      "source": "zh",
+      "zh": "安装 %u/%u · %s",
+      "en": "Installing %u/%u · %s",
+      "ja": "インストール中 %u/%u · %s"
+    },
+    "vFmtDone": {
+      "source": "zh",
+      "zh": "完成 %u · 失败 %u",
+      "en": "Done %u · failed %u",
+      "ja": "完了 %u · 失敗 %u"
+    },
+    "pcSearchStatus": {
+      "source": "zh",
+      "zh": "正在搜索整合包…",
+      "en": "Searching modpacks…",
+      "ja": "Modパックを検索中…"
+    },
+    "pcVersionStatus": {
+      "source": "zh",
+      "zh": "正在读取整合包版本…",
+      "en": "Loading modpack versions…",
+      "ja": "Modパックのバージョンを取得中…"
+    },
+    "pcReadyStatus": {
+      "source": "zh",
+      "zh": "整合包列表已更新。",
+      "en": "Modpack list updated.",
+      "ja": "Modパック一覧を更新しました。"
+    },
+    "pcFailureStatus": {
+      "source": "zh",
+      "zh": "整合包请求失败，请检查网络或接口密钥。",
+      "en": "Modpack request failed. Check connection or API key.",
+      "ja": "Modパックの取得に失敗しました。接続やAPIキーを確認してください。"
+    },
+    "pcSelectStatus": {
+      "source": "zh",
+      "zh": "请选择整合包及可下载版本。",
+      "en": "Select a modpack and an available version.",
+      "ja": "Modパックとダウンロード可能なバージョンを選択してください。"
+    },
+    "pcDownloadStatus": {
+      "source": "zh",
+      "zh": "正在下载整合包…",
+      "en": "Downloading modpack…",
+      "ja": "Modパックをダウンロード中…"
+    },
+    "pcCancelStatus": {
+      "source": "zh",
+      "zh": "整合包任务已取消。",
+      "en": "Modpack task cancelled.",
+      "ja": "Modパックの処理を中止しました。"
+    },
+    "dqLoadingStatus": {
+      "source": "zh",
+      "zh": "正在读取项目介绍…",
+      "en": "Loading project details…",
+      "ja": "プロジェクト紹介を取得中…"
+    },
+    "dqReadyStatus": {
+      "source": "zh",
+      "zh": "项目介绍已加载。",
+      "en": "Project details loaded.",
+      "ja": "プロジェクト紹介を読み込みました。"
+    },
+    "dqFailureStatus": {
+      "source": "zh",
+      "zh": "项目介绍暂不可用，可访问项目官网。",
+      "en": "Project details unavailable. Visit the project website.",
+      "ja": "紹介を取得できません。公式サイトをご覧ください。"
+    },
+    "pkMsgStart": {
+      "source": "zh",
+      "zh": "正在安装整合包…",
+      "en": "Installing modpack…",
+      "ja": "Modパックを導入中…"
+    },
+    "pkMsgArchive": {
+      "source": "zh",
+      "zh": "整合包压缩文件无效、路径不安全或超过支持范围。",
+      "en": "Invalid or unsupported modpack archive.",
+      "ja": "Modパックの圧縮ファイルが無効または未対応です。"
+    },
+    "pkMsgManifest": {
+      "source": "zh",
+      "zh": "整合包清单无效，或包含暂不支持的依赖。",
+      "en": "Invalid manifest or unsupported dependencies.",
+      "ja": "マニフェストが無効、または未対応の依存関係があります。"
+    },
+    "pkMsgDestination": {
+      "source": "zh",
+      "zh": "实例目录已存在，或临时目录不属于本整合包。",
+      "en": "Instance exists, or staging directory belongs to another pack.",
+      "ja": "インスタンスが既に存在するか、一時フォルダーが別のパックのものです。"
+    },
+    "pkMsgFiles": {
+      "source": "zh",
+      "zh": "正在下载整合包文件…",
+      "en": "Downloading pack files…",
+      "ja": "パックのファイルをダウンロード中…"
+    },
+    "pkMsgBlocked": {
+      "source": "zh",
+      "zh": "整合包包含无法通过官方接口下载的必需文件，请查看来源官网。",
+      "en": "Required files are unavailable through the official API. Visit the source website.",
+      "ja": "公式APIで取得できない必須ファイルがあります。配布サイトをご確認ください。"
+    },
+    "pkMsgNetwork": {
+      "source": "zh",
+      "zh": "整合包文件下载或校验失败，临时缓存已保留。",
+      "en": "Pack download or verification failed. Staging cache retained.",
+      "ja": "ダウンロードまたは検証に失敗しました。一時キャッシュは保持されます。"
+    },
+    "pkMsgOverride": {
+      "source": "zh",
+      "zh": "整合包配置复制失败，临时缓存已保留。",
+      "en": "Failed to copy pack configuration. Staging cache retained.",
+      "ja": "パック設定のコピーに失敗しました。一時キャッシュは保持されます。"
+    },
+    "pkMsgDone": {
+      "source": "zh",
+      "zh": "整合包安装完成，可选择并启动。",
+      "en": "Modpack installed. Select it to play.",
+      "ja": "Modパックを導入しました。選択してプレイできます。"
+    },
+    "pkMsgCancel": {
+      "source": "zh",
+      "zh": "整合包安装已取消，临时缓存已保留。",
+      "en": "Modpack installation cancelled. Staging cache retained.",
+      "ja": "Modパックの導入を中止しました。一時キャッシュは保持されます。"
+    },
+    "pkMsgInspect": {
+      "source": "zh",
+      "zh": "正在识别整合包…",
+      "en": "Inspecting modpack…",
+      "ja": "Modパックを確認しています…"
+    },
+    "pkMsgChanged": {
+      "source": "zh",
+      "zh": "整合包文件已改变，请重新选择文件。",
+      "en": "The archive changed. Choose it again.",
+      "ja": "パックが変更されました。もう一度選択してください。"
+    },
+    "peMsgScan": {
+      "source": "zh",
+      "zh": "正在整理导出内容…",
+      "en": "Collecting export content…",
+      "ja": "書き出す内容を確認中…"
+    },
+    "peMsgSource": {
+      "source": "zh",
+      "zh": "源版本无效，或包含不安全路径、过大文件。",
+      "en": "Invalid source, unsafe path, or file too large.",
+      "ja": "元のバージョンが無効、パスが不正、またはファイルが大きすぎます。"
+    },
+    "peMsgMetadata": {
+      "source": "zh",
+      "zh": "整合包名称、版本号或作者无效。",
+      "en": "Invalid pack name, version, or author.",
+      "ja": "パック名、バージョン、または作者が無効です。"
+    },
+    "peMsgDestination": {
+      "source": "zh",
+      "zh": "请选择源实例以外的新文件，扩展名须匹配导出格式。",
+      "en": "Choose a new file outside the source instance with the matching extension.",
+      "ja": "元のインスタンス外に、形式に合った拡張子で新しいファイルを指定してください。"
+    },
+    "peMsgWrite": {
+      "source": "zh",
+      "zh": "正在生成整合包…",
+      "en": "Exporting modpack…",
+      "ja": "Modパックを書き出し中…"
+    },
+    "peMsgFailed": {
+      "source": "zh",
+      "zh": "整合包导出失败，源实例未更改。",
+      "en": "Modpack export failed. Source instance unchanged.",
+      "ja": "Modパックの書き出しに失敗しました。元のインスタンスは変更されていません。"
+    },
+    "peMsgDone": {
+      "source": "zh",
+      "zh": "整合包已导出。",
+      "en": "Modpack exported.",
+      "ja": "Modパックを書き出しました。"
+    },
+    "peMsgCancel": {
+      "source": "zh",
+      "zh": "整合包导出已取消。",
+      "en": "Modpack export cancelled.",
+      "ja": "Modパックの書き出しを中止しました。"
+    }
+  }
+}
