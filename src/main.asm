@@ -2209,7 +2209,7 @@ proc PaintInterface uses ebx esi edi,w,h
     mov [gOffX],0
     ; cross-fade the previous page out
     cmp [transActive],0
-    je .sidebar
+    je .fixedHeader
     ; old page clears in the first half so the new one reads cleanly
     mov eax,[transEase]
     shl eax,1
