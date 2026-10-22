@@ -6,7 +6,9 @@ include 'win32ax.inc'
 include 'mod_types.inc'
 include 'version_types.inc'
 include 'servers_types.inc'
-NAV_COUNT = 9
+; Sidebar entries are the primary pages. Personalization and logs remain
+; available from Settings so the rail stays compact.
+NAV_COUNT = 7
 WM_APP = 8000h
 OFFSET_I18N = 1
 OFFSET_VERSION_SETTINGS = 1
@@ -55,6 +57,7 @@ hClient dd 0
 hGameDir dd 0
 hJava dd 0
 hMemory dd 0
+hJvmArgs dd 0
 fSmall dd 0
 fBody dd 0
 fBodyStrong dd 0
@@ -86,6 +89,7 @@ kJava du 'Java',0
 kName du 'Player',0
 kVersion du 'Version',0
 kMemory du 'MemoryMiB',0
+kJvmArgs du 'JvmArgs',0
 kClient du 'MicrosoftClientID',0
 kMode du 'Online',0
 iniSuffix du '\offset.ini',0
@@ -113,8 +117,12 @@ monoSession du 'B',0
 eyebrowPacks du '06 / MODPACKS',0
 eyebrowPersonal du '07 / PERSONALIZE',0
 eyebrowDetails du 'PROJECT / DETAILS',0
-navKeys du '1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0,'8',0,'9',0
-navLabels dd sHome,sVersions,sAccount,sSettings,sMods,sPacks,sPersonalHeading,sLogsHeading,sServersHeading
+; Page ids behind the compact sidebar: Home, Versions, Account, Settings,
+; Mods, Packs and Servers. Settings owns the secondary pages.
+navPageIds dd 0,1,2,3,4,5,8
+navKeys du '1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0
+navLabels dd sHome,sVersions,sAccount,sSettings,sMods,sPacks,sServersHeading
+sJvmArgsLabel du 'Java 虚拟机参数',0
 segLabels dd 4 dup(0)
 createControls dd 0
 modTab dd 0
@@ -146,6 +154,7 @@ include 'strings.inc'
 ; their virtual size. This keeps the portable executable small.
 gameDir rw 1024
 javaPath rw 1024
+jvmArgs rw 4096
 playerName rb 64
 selectedVersion rb 128
 clientId rb 128
@@ -298,14 +307,15 @@ endp
 ; Wait for the compositor's next frame; never spin faster than ~120 fps
 ; (DwmFlush returns at once when composition is unavailable).
 proc FramePace
+.pace:
     invoke DwmFlush
     stdcall NowMs
     mov ecx,eax
     sub ecx,[lastLoopFrame]
     cmp ecx,8
     jae .ok
-    invoke Sleep,8
-    stdcall NowMs
+    invoke Sleep,1
+    jmp .pace
 .ok:
     mov [lastLoopFrame],eax
     ret
@@ -461,6 +471,10 @@ proc CreateControls
     invoke SendMessageW,eax,EM_SETLIMITTEXT,10,0
     cinvoke wsprintfW,ramText,fmtNum,[memoryMb]
     invoke SetWindowTextW,[hMemory],ramText
+    stdcall NewControl,editClass,ES_MULTILINE+ES_AUTOVSCROLL+WS_VSCROLL,107,278,498,768,68
+    mov [hJvmArgs],eax
+    invoke SendMessageW,eax,EM_SETLIMITTEXT,4000,0
+    invoke SetWindowTextW,[hJvmArgs],jvmArgs
     stdcall CreateModControls
     stdcall CreateAccountControls
     stdcall ServersUiCreate
@@ -506,6 +520,7 @@ proc SyncPage
     invoke ShowWindow,[hGameDir],SW_HIDE
     invoke ShowWindow,[hJava],SW_HIDE
     invoke ShowWindow,[hMemory],SW_HIDE
+    invoke ShowWindow,[hJvmArgs],SW_HIDE
     stdcall HideModControls
     stdcall HideVersionControls
     stdcall HideVersionPageControls
@@ -540,6 +555,7 @@ proc SyncPage
     invoke ShowWindow,[hGameDir],SW_SHOW
     invoke ShowWindow,[hJava],SW_SHOW
     invoke ShowWindow,[hMemory],SW_SHOW
+    invoke ShowWindow,[hJvmArgs],SW_SHOW
     jmp .done
 .home:
     stdcall RefreshHomeVersionSettings
@@ -608,6 +624,31 @@ proc GoPage page
     ret
 endp
 
+; Convert a compact sidebar slot (0..NAV_COUNT-1) to its backing page id.
+proc NavPageFromIndex index
+    mov eax,[index]
+    mov eax,[navPageIds+eax*4]
+    ret
+endp
+
+proc NavIndexFromPage page
+    xor ecx,ecx
+.loop:
+    cmp ecx,NAV_COUNT
+    jae .settings
+    mov eax,[navPageIds+ecx*4]
+    cmp eax,[page]
+    je .found
+    inc ecx
+    jmp .loop
+.found:
+    mov eax,ecx
+    ret
+.settings:
+    mov eax,3
+    ret
+endp
+
 proc PullSettings uses ebx
     invoke GetWindowTextA,[hVersion],selectedVersion,128
     invoke GetWindowTextA,[hPlayer],playerName,64
@@ -622,6 +663,7 @@ proc PullSettings uses ebx
     jae .badPath
     invoke lstrcpyW,gameDir,pathBuffer
     invoke GetWindowTextW,[hJava],javaPath,1024
+    invoke GetWindowTextW,[hJvmArgs],jvmArgs,2048
     invoke GetWindowTextW,[hMemory],textBuffer,64
     stdcall MemoryDetect
     stdcall MemoryParseW,textBuffer
@@ -640,6 +682,65 @@ proc PullSettings uses ebx
 .badPath:
     invoke lstrcpyW,statusText,sBadPath
     xor eax,eax
+    ret
+endp
+
+; The page header stays on the current canvas while the body cross-fades.
+; This prevents the eyebrow, title and sheet marker from appearing to jump.
+proc PaintFixedHeader
+    mov eax,[contentX]
+    mov [gOffX],eax
+    mov [gOffY],0
+    stdcall GfxBegin,[bbDC]
+    cmp [currentPage],0
+    je .home
+    cmp [currentPage],1
+    je .versions
+    cmp [currentPage],2
+    je .account
+    cmp [currentPage],4
+    je .mods
+    cmp [currentPage],5
+    je .packs
+    cmp [currentPage],6
+    je .personal
+    cmp [currentPage],7
+    je .logs
+    cmp [currentPage],8
+    je .servers
+    stdcall PageHeader,eyebrowSettings,sSettingsHeading,4
+    jmp .done
+.home:
+    stdcall PageHeader,eyebrowHome,sHeading,1
+    jmp .done
+.versions:
+    cmp [vmActive],0
+    jne .versionPage
+    stdcall PageHeader,eyebrowVersions,sVersions,2
+    jmp .done
+.versionPage:
+    stdcall PageHeader,vmEyebrow,vmTitleW,2
+    jmp .done
+.account:
+    stdcall PageHeader,eyebrowAccount,sAccountHeading,3
+    jmp .done
+.mods:
+    stdcall PageHeader,eyebrowMods,sModHeading,5
+    jmp .done
+.packs:
+    stdcall PageHeader,eyebrowPacks,sPacks,6
+    jmp .done
+.personal:
+    stdcall PageHeader,eyebrowPersonal,sPersonalHeading,7
+    jmp .done
+.logs:
+    stdcall PageHeader,logEyebrow,sLogsHeading,8
+    jmp .done
+.servers:
+    stdcall PageHeader,serversUiEyebrow,sServersHeading,9
+.done:
+    stdcall GfxEnd
+    mov [gOffX],0
     ret
 endp
 
@@ -662,6 +763,7 @@ proc LoadSettings
     stdcall GetIniPath
     invoke GetPrivateProfileStringW,sectionName,kGame,gameDir,gameDir,1024,iniPath
     invoke GetPrivateProfileStringW,sectionName,kJava,javaPath,javaPath,1024,iniPath
+    invoke GetPrivateProfileStringW,sectionName,kJvmArgs,emptyW,jvmArgs,2048,iniPath
     invoke GetPrivateProfileStringW,sectionName,kName,emptyW,textBuffer,256,iniPath
     cmp word [textBuffer],0
     jne .name
@@ -719,6 +821,9 @@ proc SaveSettings uses ebx
     test eax,eax
     jz .writeFailed
     invoke WritePrivateProfileStringW,sectionName,kJava,javaPath,iniPath
+    test eax,eax
+    jz .writeFailed
+    invoke WritePrivateProfileStringW,sectionName,kJvmArgs,jvmArgs,iniPath
     test eax,eax
     jz .writeFailed
     invoke MultiByteToWideChar,65001,0,playerName,-1,textBuffer,2048
@@ -843,6 +948,7 @@ proc KeyInput key
     sub eax,'1'
     cmp eax,NAV_COUNT-1
     ja .unhandled
+    stdcall NavPageFromIndex,eax
     cmp eax,[currentPage]
     je .samePage
     stdcall GoPage,eax
@@ -1019,6 +1125,7 @@ proc StartWorker uses ebx,callback
     invoke EnableWindow,[hGameDir],0
     invoke EnableWindow,[hJava],0
     invoke EnableWindow,[hMemory],0
+    invoke EnableWindow,[hJvmArgs],0
     stdcall EnableModControls,0
     stdcall EnableVersionControls,0
     stdcall EnableVersionPageControls,0
@@ -1466,9 +1573,9 @@ proc NavIcon uses ebx esi edi,kind,x,y,argb
     cmp eax,4
     je .mods
     cmp eax,5
-    je .mods
+    je .packs
     cmp eax,6
-    je .settings
+    je .servers
     cmp eax,7
     je .logs
     cmp eax,8
@@ -1578,6 +1685,24 @@ proc NavIcon uses ebx esi edi,kind,x,y,argb
     lea ecx,[edi+1]
     stdcall StrokeRR,eax,ecx,7,7,2,[argb],14
     ret
+.packs:
+    lea eax,[esi-8]
+    lea ecx,[edi-5]
+    lea edx,[edi-9]
+    stdcall LineA,eax,ecx,esi,edx,[argb],14
+    lea eax,[esi+8]
+    lea ecx,[edi-5]
+    lea edx,[edi-9]
+    stdcall LineA,esi,edx,eax,ecx,[argb],14
+    lea eax,[esi-8]
+    lea ecx,[edi+1]
+    lea edx,[edi+5]
+    stdcall LineA,eax,ecx,esi,edx,[argb],14
+    lea eax,[esi+8]
+    lea ecx,[edi+1]
+    lea edx,[edi+5]
+    stdcall LineA,esi,edx,eax,ecx,[argb],14
+    ret
 endp
 
 ; ---------------------------------------------------------------- sidebar
@@ -1592,6 +1717,7 @@ proc PaintSidebar uses ebx esi edi
         iconX dd ?
         tx dd ?
         ty dd ?
+        selected dd ?
     endl
     stdcall SidebarWidth
     mov [sw],eax
@@ -1641,7 +1767,8 @@ proc PaintSidebar uses ebx esi edi
     stdcall Lerp,31,34,[sideT]
     mov [iconX],eax
     ; selection pill rides a spring between items
-    mov eax,[currentPage]
+    stdcall NavIndexFromPage,[currentPage]
+    mov [selected],eax
     shl eax,8
     stdcall AnimSet,0,eax,0
     stdcall AnimGet,0
@@ -1665,7 +1792,7 @@ proc PaintSidebar uses ebx esi edi
     mov [navHotBase],eax
 @@:
     mov eax,[i]
-    cmp eax,[currentPage]
+    cmp eax,[selected]
     je .selected
     stdcall HoverLevel,[idx]
     test eax,eax
@@ -1894,8 +2021,8 @@ endp
 ; ---------------------------------------------------------------- settings
 proc PaintSettings
     stdcall PageHeader,eyebrowSettings,sSettingsHeading,4
-    stdcall Card,252,124,836,448,18
-    stdcall CornerTicks,252,124,836,448,A_CROSS
+    stdcall Card,252,124,836,468,18
+    stdcall CornerTicks,252,124,836,468,A_CROSS
     stdcall Text,0,sGameDirLabel,280,166,760,28,[fMedium],T_INK
     stdcall Field,278,204,768,42,[hGameDir]
     stdcall Text,0,sJavaPathLabel,280,265,760,28,[fMedium],T_INK
@@ -1907,8 +2034,11 @@ proc PaintSettings
     mov eax,[uiLang]
     stdcall Segmented,640,402,300,42,3,7,langNames,eax,[fBody]
     stdcall LineA,278,470,1060,470,A_DIVIDER,10
-    stdcall Text,0,sSettingsHelp,280,486,760,40,[fSmall],T_SECOND
-    stdcall Button,0,sSave,252,600,240,52,1
+    stdcall Text,0,sJvmArgsLabel,280,482,300,26,[fMedium],T_INK
+    stdcall Field,278,514,768,64,[hJvmArgs]
+    stdcall Button,0,sSave,252,600,190,42,1
+    stdcall Button,0,sPersonalHeading,458,600,190,42,0
+    stdcall Button,0,sLogsHeading,664,600,190,42,0
     stdcall StatusLine,254,676,830,32
     ret
 endp
@@ -2083,7 +2213,7 @@ proc PaintInterface uses ebx esi edi,w,h
     add eax,1024
     imul eax,255
     shr eax,10
-    jz .sidebar
+    jz .fixedHeader
     shl eax,16
     mov [alpha],eax
     stdcall SidebarWidth
@@ -2092,6 +2222,9 @@ proc PaintInterface uses ebx esi edi,w,h
     mov ecx,[w]
     sub ecx,eax
     invoke AlphaBlend,[bbDC],eax,0,ecx,[h],[snapDC],eax,0,ecx,[h],[alpha]
+.fixedHeader:
+    ; Keep the page heading on the destination canvas while the body fades.
+    stdcall PaintFixedHeader
 .sidebar:
     ; sidebar is clipped to its current width so labels slide under the edge
     invoke SaveDC,[bbDC]
@@ -2236,6 +2369,7 @@ proc Click uses ebx esi edi,x,y
     jae .done
     cmp eax,NAV_COUNT-1
     ja .done
+    stdcall NavPageFromIndex,eax
     cmp eax,[currentPage]
     je .done
     stdcall GoPage,eax
@@ -2294,6 +2428,27 @@ proc Click uses ebx esi edi,x,y
 .idle:
     cmp [currentPage],0
     je .home
+    cmp [currentPage],3
+    jne .settingsControls
+    ; Secondary tools now live inside Settings.
+    cmp [y],600
+    jb .settingsControls
+    cmp [y],642
+    ja .settingsControls
+    cmp [x],458
+    jb .settingsControls
+    cmp [x],648
+    jbe .openPersonal
+    cmp [x],664
+    jb .settingsControls
+    cmp [x],854
+    ja .settingsControls
+    stdcall GoPage,7
+    jmp .done
+.openPersonal:
+    stdcall GoPage,6
+    jmp .done
+.settingsControls:
     ; settings: language segmented control
     cmp [y],402
     jb .saveButton
@@ -2317,7 +2472,7 @@ proc Click uses ebx esi edi,x,y
     ja .done
     cmp [x],252
     jb .done
-    cmp [x],493
+    cmp [x],442
     ja .done
     stdcall SaveSettings
     test eax,eax
@@ -2647,6 +2802,7 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     invoke EnableWindow,[hGameDir],1
     invoke EnableWindow,[hJava],1
     invoke EnableWindow,[hMemory],1
+    invoke EnableWindow,[hJvmArgs],1
     stdcall EnableModControls,1
     stdcall EnableVersionControls,1
     stdcall EnableVersionPageControls,1

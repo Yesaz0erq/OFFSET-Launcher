@@ -2138,6 +2138,77 @@ proc EEmitToken, tok, phase
  ret
 endp
 
+; Append user supplied JVM options. The settings field accepts spaces,
+; tabs or newlines between options and ignores grouping quotes.
+proc EAppendCustomJvm uses ebx esi edi, source
+    mov esi,[source]
+.skip:
+    mov al,[esi]
+    cmp al,0
+    je .done
+    cmp al,' '
+    je .advance
+    cmp al,9
+    je .advance
+    cmp al,13
+    je .advance
+    cmp al,10
+    je .advance
+    jmp .tokenStart
+.advance:
+    inc esi
+    jmp .skip
+.tokenStart:
+    mov edi,eValue
+    xor ebx,ebx
+.token:
+    lodsb
+    cmp al,0
+    je .final
+    cmp al,'"'
+    jne @f
+    xor ebx,1
+    jmp .token
+@@:
+    test ebx,ebx
+    jnz .copy
+    cmp al,' '
+    je .finish
+    cmp al,9
+    je .finish
+    cmp al,13
+    je .finish
+    cmp al,10
+    je .finish
+.copy:
+    cmp edi,eValue+65530
+    jae .bad
+    stosb
+    jmp .token
+.finish:
+    mov byte [edi],0
+    cmp edi,eValue
+    je .skip
+    stdcall EAppendJava,eValue
+    test eax,eax
+    jz .bad
+    jmp .skip
+.final:
+    mov byte [edi],0
+    cmp edi,eValue
+    je .done
+    stdcall EAppendJava,eValue
+    test eax,eax
+    jz .bad
+    jmp .done
+.done:
+    mov eax,1
+    ret
+.bad:
+    xor eax,eax
+    ret
+endp
+
 proc EContainsToken uses esi edi, source
  mov esi,[source]
  .next:
@@ -2227,6 +2298,17 @@ proc EPrepareLaunch uses ebx esi edi
  stdcall EArgumentArray,eax,0
  test eax,eax
  jz .args
+if defined jvmArgs
+    invoke WideCharToMultiByte,65001,0,jvmArgs,-1,eBuf,4096,0,0
+    test eax,eax
+    jz .args
+    cmp byte [eBuf],0
+    je .customJvmDone
+    stdcall EAppendCustomJvm,eBuf
+    test eax,eax
+    jz .args
+.customJvmDone:
+end if
  if defined OFFSET_LAUNCH_LOG
  stdcall EAppendJava,eLogStdout
  test eax,eax
