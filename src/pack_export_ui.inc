@@ -30,8 +30,10 @@ peUiSave OPENFILENAME
 peUiRootW rw 1024
 peUiCandidateRootW rw 1024
 peUiVersionA rb 128
+peUiListA rb 128
 peUiWantedA rb 128
 peUiVersionW rw 128
+peUiListW rw 128
 peUiNameW rw 128
 peUiLabelW rw 64
 peUiAuthorW rw 128
@@ -44,18 +46,18 @@ peUiSummaryW rw 32768
 section '.peuic' code readable executable
  nop
 proc CreatePackExportControls
- stdcall NewControl,comboClass,CBS_DROPDOWNLIST+WS_VSCROLL,411,452,210,598,220
+ stdcall NewControl,comboClass,CBS_DROPDOWNLIST+WS_VSCROLL,411,440,202,624,72
  mov [hPeUiSource],eax
  mov [peUiControls],eax
- stdcall NewControl,editClass,ES_AUTOHSCROLL,412,452,276,598,24
+ stdcall NewControl,editClass,ES_AUTOHSCROLL,412,452,310,598,24
  mov [hPeUiName],eax
  mov [peUiControls+4],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,80,0
- stdcall NewControl,editClass,ES_AUTOHSCROLL,413,452,324,192,24
+ stdcall NewControl,editClass,ES_AUTOHSCROLL,413,452,358,192,24
  mov [hPeUiVersion],eax
  mov [peUiControls+8],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,40,0
- stdcall NewControl,editClass,ES_AUTOHSCROLL,414,812,324,238,24
+ stdcall NewControl,editClass,ES_AUTOHSCROLL,414,812,358,238,24
  mov [hPeUiAuthor],eax
  mov [peUiControls+12],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,80,0
@@ -241,7 +243,39 @@ proc ShowPackExportControls uses esi
  inc esi
  cmp esi,5
  jb .loop
+ ; The source combo is kept as a data model; the visible list is drawn below.
+ invoke ShowWindow,[hPeUiSource],SW_HIDE
  ret
+endp
+
+proc PaintPackExportVersionList uses ebx esi edi,dc
+    stdcall FillRR,440,202,624,72,7,A_FIELD
+    invoke SendMessageA,[hPeUiSource],CB_GETCURSEL,0,0
+    mov edi,eax
+    xor esi,esi
+.row:
+    cmp esi,3
+    jae .done
+    invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
+    cmp esi,eax
+    jae .done
+    invoke SendMessageA,[hPeUiSource],CB_GETLBTEXT,esi,peUiListA
+    invoke MultiByteToWideChar,65001,0,peUiListA,-1,peUiListW,128
+    mov eax,esi
+    imul eax,24
+    add eax,204
+    cmp esi,edi
+    jne .plain
+    stdcall FillRR,444,eax,616,22,4,[themeAccentARGB]
+    stdcall Text,0,peUiListW,452,eax,596,22,[fBody],T_WHITE
+    jmp .next
+.plain:
+    stdcall Text,0,peUiListW,452,eax,596,22,[fBody],T_INK
+.next:
+    inc esi
+    jmp .row
+.done:
+    ret
 endp
 proc PackExportUiCommand,wparam
  cmp [currentPage],5
@@ -553,31 +587,30 @@ endp
 proc PaintPackExport,dc
  stdcall Card,252,185,836,428,18
  stdcall Text,[dc],sPackExportSource,280,210,154,26,[fSmall],C_MUTED
- stdcall Field,440,202,624,36,[hPeUiSource]
- stdcall TextDraw,peUiDataDirW,440,242,624,20,[fSmall],T_MUTED,DT_LEFT+DT_PATH_ELLIPSIS,0
- stdcall Text,[dc],sPackImportName,280,276,154,26,[fSmall],C_MUTED
- stdcall Field,440,270,624,36,[hPeUiName]
- stdcall Text,[dc],sPackExportVersion,280,324,154,26,[fSmall],C_MUTED
- stdcall Field,440,318,216,36,[hPeUiVersion]
- stdcall Text,[dc],sPackExportAuthor,690,324,100,26,[fSmall],C_MUTED
- stdcall Field,800,318,264,36,[hPeUiAuthor]
- stdcall Text,[dc],sPackImportFormat,280,374,154,26,[fSmall],C_MUTED
+ stdcall PaintPackExportVersionList,[dc]
+ stdcall TextDraw,peUiDataDirW,440,280,624,20,[fSmall],T_MUTED,DT_LEFT+DT_PATH_ELLIPSIS,0
+ stdcall Text,[dc],sPackImportName,280,310,154,26,[fSmall],C_MUTED
+ stdcall Field,440,304,624,36,[hPeUiName]
+ stdcall Text,[dc],sPackExportVersion,280,358,154,26,[fSmall],C_MUTED
+ stdcall Field,440,352,216,36,[hPeUiVersion]
+ stdcall Text,[dc],sPackExportAuthor,690,358,100,26,[fSmall],C_MUTED
+ stdcall Field,800,352,264,36,[hPeUiAuthor]
+ stdcall Text,[dc],sPackImportFormat,280,406,154,26,[fSmall],C_MUTED
  mov [segLabels],sModrinth
  mov [segLabels+4],sCurseForge
  mov [segLabels+8],packFormatPrism
  mov eax,[peUiFormat]
  dec eax
- stdcall Segmented,440,364,624,40,3,4,segLabels,eax,[fBody]
- stdcall Text,[dc],sPackExportContents,280,424,154,26,[fSmall],C_MUTED
- stdcall Button,[dc],sPackExportMods,440,414,144,40,[peUiMods]
- stdcall Button,[dc],sPackExportConfig,596,414,144,40,[peUiConfig]
- stdcall Button,[dc],sPackExportResources,752,414,144,40,[peUiResources]
- stdcall Button,[dc],sPackExportSaves,908,414,156,40,[peUiSaves]
+ stdcall Segmented,440,396,624,40,3,4,segLabels,eax,[fBody]
+ stdcall Text,[dc],sPackExportContents,280,464,154,26,[fSmall],C_MUTED
+ stdcall Button,[dc],sPackExportMods,440,456,144,40,[peUiMods]
+ stdcall Button,[dc],sPackExportConfig,596,456,144,40,[peUiConfig]
+ stdcall Button,[dc],sPackExportResources,752,456,144,40,[peUiResources]
+ stdcall Button,[dc],sPackExportSaves,908,456,156,40,[peUiSaves]
  mov eax,[peUiBytes]
  add eax,1048575
  shr eax,20
  cinvoke wsprintfW,peUiScratchW,sPackExportContent,[peUiFiles],eax
- stdcall Text,[dc],peUiScratchW,280,464,782,26,[fSmall],C_MUTED
  stdcall Text,[dc],sPackExportOutput,280,570,154,24,[fSmall],C_MUTED
  mov eax,peUiDestW
  cmp word [peUiDestW],0
@@ -596,6 +629,34 @@ endp
 proc ClickPackExport uses ebx,x,y
  cmp [busy],0
  jne .done
+ cmp [y],202
+ jb .format
+ cmp [y],274
+ ja .format
+ cmp [x],440
+ jb .done
+ cmp [x],1064
+ jae .done
+ mov eax,[y]
+ sub eax,202
+ xor edx,edx
+ mov ecx,24
+ div ecx
+ cmp eax,3
+ jae .done
+ mov ebx,eax
+ invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
+ cmp ebx,eax
+ jae .done
+ invoke SendMessageA,[hPeUiSource],CB_SETCURSEL,ebx,0
+ invoke SendMessageA,[hPeUiSource],CB_GETLBTEXT,ebx,peUiVersionA
+ invoke MultiByteToWideChar,65001,0,peUiVersionA,-1,peUiVersionW,128
+ invoke SetWindowTextW,[hPeUiName],peUiVersionW
+ stdcall PackExportUiInvalidate
+ mov word [peUiDataDirW],0
+ stdcall VsResolveData,peUiRootW,peUiVersionA,peUiDataDirW,2048
+ jmp .redraw
+.format:
  cmp [y],364
  jb .saves
  cmp [y],404
@@ -619,7 +680,7 @@ proc ClickPackExport uses ebx,x,y
 .saves:
  cmp [y],414
  jb .buttons
- cmp [y],454
+ cmp [y],496
  ja .buttons
  cmp [x],440
  jb .done
