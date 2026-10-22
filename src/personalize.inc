@@ -500,6 +500,19 @@ endp
 
 proc ClickPersonalization uses ebx esi,x,y
     local parsed:DWORD
+    cmp [y],68
+    jb .edit
+    cmp [y],100
+    ja .edit
+    cmp [x],888
+    jb .edit
+    cmp [x],1088
+    ja .edit
+    if defined GoPage
+    stdcall GoPage,3
+    end if
+    ret
+.edit:
     cmp [y],182
     jb .actions
     cmp [y],242

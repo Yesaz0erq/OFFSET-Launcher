@@ -205,6 +205,11 @@
       "en": "Java path",
       "ja": "Java のパス"
     },
+    "sJvmArgsLabel": {
+      "zh": "Java 虚拟机参数",
+      "en": "Java VM parameters",
+      "ja": "Java VM パラメータ"
+    },
     "sMemoryLabel": {
       "zh": "内存（MiB，512–%u，本机上限）",
       "en": "Memory (MiB, 512–%u, this PC's limit)",

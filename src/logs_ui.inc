@@ -209,6 +209,19 @@ proc PaintLogs,dc
  ret
 endp
 proc ClickLogs,x,y
+ cmp [y],68
+ jb .content
+ cmp [y],100
+ ja .content
+ cmp [x],888
+ jb .content
+ cmp [x],1088
+ ja .content
+ if defined GoPage
+ stdcall GoPage,3
+ end if
+ ret
+.content:
  cmp [busy],0
  jne .done
  cmp [y],124

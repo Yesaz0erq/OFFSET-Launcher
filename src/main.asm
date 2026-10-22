@@ -127,7 +127,6 @@ eyebrowDetails du 'PROJECT / DETAILS',0
 navPageIds dd 0,1,2,3,4,5,8
 navKeys du '1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0
 navLabels dd sHome,sVersions,sAccount,sSettings,sMods,sPacks,sServersHeading
-sJvmArgsLabel du 'Java 虚拟机参数',0
 segLabels dd 4 dup(0)
 createControls dd 0
 modTab dd 0
@@ -759,9 +758,11 @@ proc PaintFixedHeader
     jmp .done
 .personal:
     stdcall PageHeader,eyebrowPersonal,sPersonalHeading,7
+    stdcall Button,0,sDetailBack,888,68,200,32,0
     jmp .done
 .logs:
     stdcall PageHeader,logEyebrow,sLogsHeading,8
+    stdcall Button,0,sDetailBack,888,68,200,32,0
     jmp .done
 .servers:
     stdcall PageHeader,serversUiEyebrow,sServersHeading,9
