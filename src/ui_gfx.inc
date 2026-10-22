@@ -762,6 +762,13 @@ proc Field uses ebx,x,y,w,h,control
     mov ebx,eax
     cmp [control],0
     je .plain
+if defined hJvmArgs
+    ; The multiline JVM field owns a large canvas card; do not add a
+    ; second focus halo outside that card.
+    mov eax,[hJvmArgs]
+    cmp [control],eax
+    je .plain
+end if
     cmp ebx,[control]
     je .focused
     ; a combo box's edit child also counts
