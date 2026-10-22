@@ -2,8 +2,8 @@
   "date": "2026-10-22",
   "version": "0.9.0",
   "binary": "dist/OFFSET.exe",
-  "bytes": 326144,
-  "sha256": "c0968005c29756c2bbc1d283918b8207b6afac24011cae2565c4dfa18e5c1df4",
+  "bytes": 326656,
+  "sha256": "c423c3b009eaa682b69ad00a77130ebc696a7c6bb9efd3a631709c65cbecbf66",
   "language": "original x86 FASM assembly",
   "previous_feature_validation": "docs/validation-0.8.0.json",
   "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome 'C:\\Program Files\\Java\\jdk-21.0.12'",
@@ -58,7 +58,7 @@
   "tests_exit_code": 0,
   "full_regression_suites": 46,
   "test_log": "tests/out/validation-fixed-header-settings.log",
-  "full_regression_binary_sha256": "c0968005c29756c2bbc1d283918b8207b6afac24011cae2565c4dfa18e5c1df4",
+  "full_regression_binary_sha256": "c423c3b009eaa682b69ad00a77130ebc696a7c6bb9efd3a631709c65cbecbf66",
   "final_affected_regressions": {
     "tests": [
       "download-progress",
@@ -597,8 +597,8 @@
   ],
   "release": {
     "path": "dist/OFFSET-0.9.0-windows.zip",
-    "bytes": 174113,
-    "sha256": "398bce406fc73db57fe35cf7a3996b4e18adae2f91ca1c71993cd8bc40504931",
+    "bytes": 174182,
+    "sha256": "cdab502f1b35eb7c4f8f5502d3a26d6d460ef9c413f7a28e430bfd93dff7d0ee",
     "entries": [
       "LICENSE",
       "OFFSET.exe",

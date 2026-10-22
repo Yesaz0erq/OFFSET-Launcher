@@ -47,6 +47,7 @@ statusLock dd 0
 currentPage dd 0
 lastPage dd -1
 suppressPageHeader dd 0
+headerFadeAlpha dd 0
 busy dd 0
 workerHandle dd 0
 workerCallback dd 0
@@ -742,6 +743,38 @@ proc PaintFixedHeader
 .done:
     stdcall GfxEnd
     mov [gOffX],0
+    ret
+endp
+
+; Cross-fade the captured header over the destination header. The body uses
+; the same transition curve, but this region is composited separately so the
+; fixed header changes without a hard cut.
+proc PaintHeaderFade uses ebx esi
+    cmp [transActive],0
+    je .done
+    mov eax,[transEase]
+    shl eax,1
+    cmp eax,1024
+    jb @f
+    mov eax,1024
+@@:
+    neg eax
+    add eax,1024
+    imul eax,255
+    shr eax,10
+    test eax,eax
+    jz .done
+    shl eax,16
+    mov [headerFadeAlpha],eax
+    stdcall SidebarWidth
+    stdcall Scale,eax
+    mov ebx,eax
+    mov ecx,[bufW]
+    sub ecx,ebx
+    stdcall Scale,124
+    mov esi,eax
+    invoke AlphaBlend,[bbDC],ebx,0,ecx,esi,[snapDC],ebx,0,ecx,esi,[headerFadeAlpha]
+.done:
     ret
 endp
 
@@ -2233,6 +2266,7 @@ proc PaintInterface uses ebx esi edi,w,h
 .fixedHeader:
     ; Keep the page heading on the destination canvas while the body fades.
     stdcall PaintFixedHeader
+    stdcall PaintHeaderFade
 .sidebar:
     ; sidebar is clipped to its current width so labels slide under the edge
     invoke SaveDC,[bbDC]
