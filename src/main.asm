@@ -475,7 +475,7 @@ proc CreateControls
     invoke SendMessageW,eax,EM_SETLIMITTEXT,10,0
     cinvoke wsprintfW,ramText,fmtNum,[memoryMb]
     invoke SetWindowTextW,[hMemory],ramText
-    stdcall NewControl,editClass,ES_MULTILINE+ES_AUTOVSCROLL+WS_VSCROLL,107,278,498,768,68
+    stdcall NewControl,editClass,ES_MULTILINE+ES_AUTOVSCROLL,107,278,514,768,64
     mov [hJvmArgs],eax
     invoke SendMessageW,eax,EM_SETLIMITTEXT,4000,0
     invoke SetWindowTextW,[hJvmArgs],jvmArgs

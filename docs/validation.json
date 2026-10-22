@@ -3,7 +3,7 @@
   "version": "0.9.0",
   "binary": "dist/OFFSET.exe",
   "bytes": 326656,
-  "sha256": "432fbf45e02500ffe38afb9bbd1c53350eae2617c0aa731fbc0fbc1f47bcedba",
+  "sha256": "5ad8960df9ca2e49a00d6efd3d683811c6c0f53baebe041f0d48343b6d83e905",
   "language": "original x86 FASM assembly",
   "previous_feature_validation": "docs/validation-0.8.0.json",
   "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome 'C:\\Program Files\\Java\\jdk-21.0.12'",
@@ -58,7 +58,7 @@
   "tests_exit_code": 0,
   "full_regression_suites": 46,
   "test_log": "tests/out/validation-fixed-header-settings.log",
-  "full_regression_binary_sha256": "432fbf45e02500ffe38afb9bbd1c53350eae2617c0aa731fbc0fbc1f47bcedba",
+  "full_regression_binary_sha256": "5ad8960df9ca2e49a00d6efd3d683811c6c0f53baebe041f0d48343b6d83e905",
   "final_affected_regressions": {
     "tests": [
       "download-progress",
@@ -597,8 +597,8 @@
   ],
   "release": {
     "path": "dist/OFFSET-0.9.0-windows.zip",
-    "bytes": 174356,
-    "sha256": "348fd6848f08dcca4612e3fe245b5458a53c5b265ca436fe7b3a2f766f56b4cf",
+    "bytes": 174359,
+    "sha256": "bfd36af9100ad8e93191bd0165da42cca1683e4fe0e9a75b71b6803fb11abdee",
     "entries": [
       "LICENSE",
       "OFFSET.exe",
@@ -625,7 +625,7 @@
     "loaders.inc": "e35cf14ec10d89ddb6bc2b7ec64e0e202628b641774e4ed0f19f974be51f76f0",
     "logo_data.inc": "be0a5c16ac0d8b38664fb7af6c5c821e2f9b7a3cd5d560cb3b9304020d4896af",
     "logs_ui.inc": "9c4adbc18937f44c7057a9db105bb69c67db3e418f1131f0f3c855d840fa9ea9",
-    "main.asm": "901957e06e44762280a7eee84fe4e256ada3966e5b64405307abf7cf8ff37648",
+    "main.asm": "43be16b8874f68964b655ee6fcb06fb1b9d7dd5032259fff4f55f4f9459e3c43",
     "mc_sources.inc": "29b7fa4cbba0bc9fcd2122f8ce07cc83fdbe3b89d680eb1572b36ab670beee07",
     "memory.inc": "795f2413534c0030277894c1b12f9737f4631a349f8600d6780b1c4e354979c4",
     "mod_profile.inc": "b6550108d082f5bb7f7caaac11349c583b80668581d9af3b9290b0c289f31607",
