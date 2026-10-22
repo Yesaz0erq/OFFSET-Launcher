@@ -9,6 +9,8 @@ include 'servers_types.inc'
 ; Sidebar entries are the primary pages. Personalization and logs remain
 ; available from Settings so the rail stays compact.
 NAV_COUNT = 7
+HEADER_FADE_OUT_END = 400
+HEADER_FADE_IN_START = 560
 WM_APP = 8000h
 OFFSET_I18N = 1
 OFFSET_VERSION_SETTINGS = 1
@@ -48,6 +50,7 @@ currentPage dd 0
 lastPage dd -1
 suppressPageHeader dd 0
 headerFadeAlpha dd 0
+headerDrawAlpha dd 256
 busy dd 0
 workerHandle dd 0
 workerCallback dd 0
@@ -690,6 +693,28 @@ endp
 ; The page header stays on the current canvas while the body cross-fades.
 ; This prevents the eyebrow, title and sheet marker from appearing to jump.
 proc PaintFixedHeader
+    cmp [transActive],0
+    je .opaque
+    mov eax,[transEase]
+    cmp eax,HEADER_FADE_IN_START
+    jb .hidden
+    sub eax,HEADER_FADE_IN_START
+    imul eax,256
+    mov ecx,1024-HEADER_FADE_IN_START
+    xor edx,edx
+    div ecx
+    cmp eax,256
+    jbe @f
+    mov eax,256
+@@:
+    mov [headerDrawAlpha],eax
+    jmp .draw
+.hidden:
+    mov [headerDrawAlpha],0
+    jmp .draw
+.opaque:
+    mov [headerDrawAlpha],256
+.draw:
     mov eax,[contentX]
     mov [gOffX],eax
     mov [gOffY],0
@@ -753,15 +778,14 @@ proc PaintHeaderFade uses ebx esi
     cmp [transActive],0
     je .done
     mov eax,[transEase]
-    shl eax,1
-    cmp eax,1024
-    jb @f
-    mov eax,1024
-@@:
-    neg eax
-    add eax,1024
+    cmp eax,HEADER_FADE_OUT_END
+    jae .done
+    mov ecx,HEADER_FADE_OUT_END
     imul eax,255
-    shr eax,10
+    xor edx,edx
+    div ecx
+    neg eax
+    add eax,255
     test eax,eax
     jz .done
     shl eax,16
@@ -1459,16 +1483,34 @@ proc Segmented uses ebx esi edi,x,y,w,h,count,slot,labels,selected,font
 endp
 
 ; Page header: mono eyebrow, title, sheet number and a dimension rule.
-proc PageHeader eyebrow,title,sheet
+proc PageHeader uses ebx esi edi,eyebrow,title,sheet
+    locals
+        muted dd ?
+        ink dd ?
+        hairline dd ?
+        cross dd ?
+    endl
     cmp [suppressPageHeader],0
     jne .done
-    stdcall Mono,[eyebrow],253,34,300,16,T_MUTED
-    stdcall Text,0,[title],252,52,640,44,[fHeading],T_INK
+    mov eax,[headerDrawAlpha]
+    stdcall Mix,T_CANVAS,T_MUTED,eax
+    mov [muted],eax
+    mov eax,[headerDrawAlpha]
+    stdcall Mix,T_CANVAS,T_INK,eax
+    mov [ink],eax
+    mov eax,[headerDrawAlpha]
+    stdcall Mix,T_CANVAS,A_HAIRLINE,eax
+    mov [hairline],eax
+    mov eax,[headerDrawAlpha]
+    stdcall Mix,T_CANVAS,A_CROSS,eax
+    mov [cross],eax
+    stdcall Mono,[eyebrow],253,34,300,16,[muted]
+    stdcall Text,0,[title],252,52,640,44,[fHeading],[ink]
     cinvoke wsprintfW,sheetText,sheetFmt,[sheet]
-    stdcall TextDraw,sheetText,888,34,200,16,[fMono],T_MUTED,DT_RIGHT,1
-    stdcall LineA,252,108,1088,108,A_HAIRLINE,10
-    stdcall LineA,252,104,252,112,A_CROSS,10
-    stdcall LineA,1088,104,1088,112,A_CROSS,10
+    stdcall TextDraw,sheetText,888,34,200,16,[fMono],[muted],DT_RIGHT,1
+    stdcall LineA,252,108,1088,108,[hairline],10
+    stdcall LineA,252,104,252,112,[cross],10
+    stdcall LineA,1088,104,1088,112,[cross],10
 .done:
     ret
 endp
@@ -2157,6 +2199,7 @@ proc PaintInterface uses ebx esi edi,w,h
     locals
         alpha dd ?
         cx0 dd ?
+        cw dd ?
     endl
     invoke BitBlt,[bbDC],0,0,[w],[h],[bgDC],0,0,SRCCOPY
     ; restart the hero drawing whenever Home comes into view
@@ -2262,7 +2305,12 @@ proc PaintInterface uses ebx esi edi,w,h
     mov [cx0],eax
     mov ecx,[w]
     sub ecx,eax
-    invoke AlphaBlend,[bbDC],eax,0,ecx,[h],[snapDC],eax,0,ecx,[h],[alpha]
+    mov [cw],ecx
+    stdcall Scale,124
+    mov edx,eax
+    mov ebx,[h]
+    sub ebx,eax
+    invoke AlphaBlend,[bbDC],[cx0],edx,[cw],ebx,[snapDC],[cx0],edx,[cw],ebx,[alpha]
 .fixedHeader:
     ; Keep the page heading on the destination canvas while the body fades.
     stdcall PaintFixedHeader
