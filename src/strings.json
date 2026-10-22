@@ -51,9 +51,9 @@
       "ja": "プレイの準備"
     },
     "sHeroTag": {
-      "zh": "Minecraft Java 版 · 原生汇编启动器",
-      "en": "Minecraft: Java Edition · native assembly launcher",
-      "ja": "Minecraft Java版 · ネイティブ アセンブリ ランチャー"
+      "zh": "Minecraft Java 版",
+      "en": "Minecraft: Java Edition",
+      "ja": "Minecraft Java版"
     },
     "sHeroVersion": {
       "zh": "当前版本",
@@ -181,14 +181,14 @@
       "ja": "Microsoft Client ID"
     },
     "sClientHelp": {
-      "zh": "填写自己的公开客户端 ID。",
-      "en": "Enter your own public-client Application ID.",
-      "ja": "ご自身のパブリック クライアント ID を入力してください。"
+      "zh": "默认使用 OFFSET 注册的应用。",
+      "en": "Uses the application registered for OFFSET by default.",
+      "ja": "既定では OFFSET 登録のアプリを使用します。"
     },
     "sClientHelp2": {
-      "zh": "需开通设备代码登录及 Minecraft API；登录仅本次有效。",
-      "en": "Requires device-code sign-in and Minecraft API access; sign-in lasts for this session only.",
-      "ja": "デバイス コード認証と Minecraft API の許可が必要です。サインインはこのセッションのみ有効です。"
+      "zh": "登录状态由 Windows 加密保存。",
+      "en": "Windows encrypts the saved sign-in session.",
+      "ja": "ログイン情報は Windows で暗号化して保存されます。"
     },
     "sSettingsHeading": {
       "zh": "设置",
@@ -301,9 +301,9 @@
       "ja": "キーワード"
     },
     "sModQueryCue": {
-      "zh": "搜索模组，留空查看热门",
-      "en": "Search mods, or leave empty for popular",
-      "ja": "Mod を検索（空欄で人気順）"
+      "zh": "搜索模组",
+      "en": "Search mods",
+      "ja": "Mod を検索"
     },
     "sModSearch": {
       "zh": "搜索  →",
@@ -786,9 +786,9 @@
       "ja": "メモリ（MiB、0は共通）"
     },
     "sVmIsolation": {
-      "zh": "游戏数据",
-      "en": "Data directory",
-      "ja": "ゲームデータ"
+      "zh": "版本隔离",
+      "en": "Version isolation",
+      "ja": "バージョン分離"
     },
     "sVmShared": {
       "zh": "共享",
@@ -1124,6 +1124,256 @@
       "ja": "リソース",
       "en": "Resources",
       "zh": "资源"
+    },
+    "sAccountSkin": {
+      "zh": "皮肤",
+      "en": "Skin",
+      "ja": "スキン"
+    },
+    "sAccountAdvanced": {
+      "zh": "高级",
+      "en": "Advanced",
+      "ja": "詳細"
+    },
+    "sAccountCode": {
+      "zh": "设备代码",
+      "en": "Device code",
+      "ja": "デバイスコード"
+    },
+    "sAccountCopy": {
+      "zh": "复制",
+      "en": "Copy",
+      "ja": "コピー"
+    },
+    "sAccountVerify": {
+      "zh": "打开验证",
+      "en": "Verify",
+      "ja": "認証ページ"
+    },
+    "sAccountCopied": {
+      "zh": "代码已复制。",
+      "en": "Code copied.",
+      "ja": "コードをコピーしました。"
+    },
+    "sAccountCopyFailed": {
+      "zh": "复制失败。",
+      "en": "Could not copy the code.",
+      "ja": "コピーできませんでした。"
+    },
+    "sSkinCurrent": {
+      "zh": "当前皮肤",
+      "en": "Current",
+      "ja": "現在のスキン"
+    },
+    "sSkinLocal": {
+      "zh": "本地预览",
+      "en": "Local preview",
+      "ja": "ローカル確認"
+    },
+    "sSkinChoose": {
+      "zh": "选择 PNG",
+      "en": "Choose PNG",
+      "ja": "PNG を選択"
+    },
+    "sSkinClassic": {
+      "zh": "经典",
+      "en": "Classic",
+      "ja": "クラシック"
+    },
+    "sSkinSlim": {
+      "zh": "纤细",
+      "en": "Slim",
+      "ja": "スリム"
+    },
+    "sSkinApply": {
+      "zh": "上传应用",
+      "en": "Upload",
+      "ja": "アップロード"
+    },
+    "sSkinReset": {
+      "zh": "恢复默认",
+      "en": "Reset skin",
+      "ja": "既定に戻す"
+    },
+    "sSkinExport": {
+      "zh": "导出当前",
+      "en": "Export current",
+      "ja": "現在のスキンを保存"
+    },
+    "sSkinEmpty": {
+      "zh": "暂无皮肤预览",
+      "en": "No skin preview",
+      "ja": "プレビューなし"
+    },
+    "sSkinNeedLogin": {
+      "zh": "请先登录正版账户。",
+      "en": "Sign in to your Minecraft account first.",
+      "ja": "Minecraft アカウントでログインしてください。"
+    },
+    "sSkinNeedLocal": {
+      "zh": "请选择本地 PNG。",
+      "en": "Choose a local PNG first.",
+      "ja": "ローカル PNG を選択してください。"
+    },
+    "sSkinLocalNote": {
+      "zh": "本地预览不会更换账户皮肤。",
+      "en": "Preview does not change your account skin.",
+      "ja": "確認だけではアカウントのスキンは変わりません。"
+    },
+    "sSkinFront": {
+      "zh": "正面",
+      "en": "Front",
+      "ja": "正面"
+    },
+    "sSkinBack": {
+      "zh": "背面",
+      "en": "Back",
+      "ja": "背面"
+    },
+    "sSkinExported": {
+      "zh": "皮肤已导出。",
+      "en": "Skin exported.",
+      "ja": "スキンを保存しました。"
+    },
+    "sSkinExportFailed": {
+      "zh": "皮肤导出失败。",
+      "en": "Could not export the skin.",
+      "ja": "スキンを保存できませんでした。"
+    },
+    "sSkinInvalid": {
+      "zh": "请选择 64×64 或 64×32 PNG。",
+      "en": "Choose a 64×64 or 64×32 PNG.",
+      "ja": "64×64 または 64×32 の PNG を選択してください。"
+    },
+    "sLcTab": {
+      "zh": "加载器",
+      "en": "Loader",
+      "ja": "ローダー"
+    },
+    "sLcTarget": {
+      "zh": "目标版本",
+      "en": "Target version",
+      "ja": "変更先のバージョン"
+    },
+    "sLcRefresh": {
+      "zh": "刷新版本",
+      "en": "Refresh versions",
+      "ja": "バージョン更新"
+    },
+    "sLcApply": {
+      "zh": "更换版本",
+      "en": "Change version",
+      "ja": "バージョンを変更"
+    },
+    "sLcUpgrade": {
+      "zh": "升级到所选版本",
+      "en": "Upgrade to selected",
+      "ja": "選択版へアップグレード"
+    },
+    "sLcDowngrade": {
+      "zh": "降级到所选版本",
+      "en": "Downgrade to selected",
+      "ja": "選択版へダウングレード"
+    },
+    "sLcInstalled": {
+      "zh": "当前版本",
+      "en": "Installed version",
+      "ja": "現在のバージョン"
+    },
+    "sLcRestore": {
+      "zh": "恢复上次加载器",
+      "en": "Restore previous loader",
+      "ja": "直前のローダーに戻す"
+    },
+    "sLcEmpty": {
+      "zh": "刷新以获取兼容版本",
+      "en": "Refresh to find compatible versions",
+      "ja": "更新して互換バージョンを取得"
+    },
+    "sLcUnsupported": {
+      "zh": "此版本暂不支持更换加载器",
+      "en": "Loader changes are unavailable for this profile",
+      "ja": "この構成のローダー変更には未対応です"
+    },
+    "sServersHeading": {
+      "zh": "服务器",
+      "en": "Servers",
+      "ja": "サーバー"
+    },
+    "sServersName": {
+      "zh": "名称",
+      "en": "Name",
+      "ja": "名前"
+    },
+    "sServersAddress": {
+      "zh": "地址",
+      "en": "Address",
+      "ja": "アドレス"
+    },
+    "sServersPlayers": {
+      "zh": "在线人数",
+      "en": "Players",
+      "ja": "プレイヤー"
+    },
+    "sServersRefresh": {
+      "zh": "刷新",
+      "en": "Refresh",
+      "ja": "更新"
+    },
+    "sServersCount": {
+      "zh": "%u 个服务器",
+      "en": "%u servers",
+      "ja": "%u サーバー"
+    },
+    "sServersPending": {
+      "zh": "未查询",
+      "en": "Not checked",
+      "ja": "未確認"
+    },
+    "sServersOffline": {
+      "zh": "离线",
+      "en": "Offline",
+      "ja": "オフライン"
+    },
+    "sServersLoading": {
+      "zh": "查询中…",
+      "en": "Checking…",
+      "ja": "確認中…"
+    },
+    "sServersInvalid": {
+      "zh": "地址无效",
+      "en": "Invalid address",
+      "ja": "無効なアドレス"
+    },
+    "sServersIncompatible": {
+      "zh": "无法查询",
+      "en": "Unavailable",
+      "ja": "取得できません"
+    },
+    "sServersCancelled": {
+      "zh": "已取消",
+      "en": "Cancelled",
+      "ja": "キャンセル済み"
+    },
+    "sServersEmpty": {
+      "zh": "没有已保存的服务器",
+      "en": "No saved servers",
+      "ja": "保存済みのサーバーはありません"
+    },
+    "sServersUnavailable": {
+      "zh": "无法读取服务器列表",
+      "en": "Could not read the server list",
+      "ja": "サーバー一覧を読み込めません"
+    },
+    "sServersReadFailed": {
+      "zh": "读取失败，保留上次结果。",
+      "en": "Could not read the server list. Previous results were kept.",
+      "ja": "読み込めませんでした。直前の結果を表示しています。"
+    },
+    "sDownloadBytes": {
+      "zh": "已下载 %u.%u MiB · %u 个文件",
+      "en": "Downloaded %u.%u MiB · %u files",
+      "ja": "受信 %u.%u MiB · %u ファイル"
     }
   },
   "status": {
@@ -1960,6 +2210,149 @@
       "zh": "整合包导出已取消。",
       "en": "Modpack export cancelled.",
       "ja": "Modパックの書き出しを中止しました。"
+    },
+    "skMsgRefreshA": {
+      "source": "zh",
+      "zh": "正在读取正版皮肤…",
+      "en": "Loading account skin…",
+      "ja": "アカウントのスキンを読み込み中…"
+    },
+    "skMsgReadyA": {
+      "source": "zh",
+      "zh": "皮肤已刷新。",
+      "en": "Skin refreshed.",
+      "ja": "スキンを更新しました。"
+    },
+    "skMsgLocalA": {
+      "source": "zh",
+      "zh": "皮肤已选择，尚未上传。",
+      "en": "Skin selected. Not uploaded yet.",
+      "ja": "スキンを選択しました。まだアップロードしていません。"
+    },
+    "skMsgInvalidA": {
+      "source": "zh",
+      "zh": "请选择不超过 1 MiB 的 64×64 或 64×32 PNG 皮肤。",
+      "en": "Choose a 64×64 or 64×32 PNG skin up to 1 MiB.",
+      "ja": "1 MiB 以下の 64×64 または 64×32 PNG スキンを選択してください。"
+    },
+    "skMsgSessionA": {
+      "source": "zh",
+      "zh": "请先登录正版账号。",
+      "en": "Sign in to a Minecraft account first.",
+      "ja": "先に Minecraft アカウントへサインインしてください。"
+    },
+    "skMsgUploadA": {
+      "source": "zh",
+      "zh": "正在上传皮肤…",
+      "en": "Uploading skin…",
+      "ja": "スキンをアップロード中…"
+    },
+    "skMsgUploadedA": {
+      "source": "zh",
+      "zh": "皮肤已上传。",
+      "en": "Skin uploaded.",
+      "ja": "スキンをアップロードしました。"
+    },
+    "skMsgResetA": {
+      "source": "zh",
+      "zh": "皮肤已重置。",
+      "en": "Skin reset.",
+      "ja": "スキンをリセットしました。"
+    },
+    "skMsgExportA": {
+      "source": "zh",
+      "zh": "皮肤已导出。",
+      "en": "Skin exported.",
+      "ja": "スキンを書き出しました。"
+    },
+    "skMsgFailedA": {
+      "source": "zh",
+      "zh": "皮肤操作失败，请稍后重试。",
+      "en": "Skin action failed. Try again later.",
+      "ja": "スキンの操作に失敗しました。後でもう一度お試しください。"
+    },
+    "skMsgPreviewA": {
+      "source": "zh",
+      "zh": "操作已完成，皮肤预览暂时无法刷新。",
+      "en": "Change saved. Skin preview could not be refreshed.",
+      "ja": "変更を保存しました。スキンのプレビューは更新できませんでした。"
+    },
+    "skMsgCancelA": {
+      "source": "zh",
+      "zh": "皮肤操作已取消。",
+      "en": "Skin action cancelled.",
+      "ja": "スキンの操作をキャンセルしました。"
+    },
+    "skMsgExpiredA": {
+      "source": "zh",
+      "zh": "登录已失效，请刷新登录后重试。",
+      "en": "Session expired. Refresh your sign-in and try again.",
+      "ja": "セッションが切れました。再認証してからお試しください。"
+    },
+    "lcMsgInvalid": {
+      "source": "en",
+      "zh": "此版本暂不支持安全更换加载器。",
+      "en": "This profile cannot change its loader safely.",
+      "ja": "この構成のローダーは安全に変更できません。"
+    },
+    "lcMsgPreparing": {
+      "source": "en",
+      "zh": "正在准备加载器…",
+      "en": "Preparing loader change...",
+      "ja": "ローダーの変更を準備中…"
+    },
+    "lcMsgChanged": {
+      "source": "en",
+      "zh": "加载器已更换。",
+      "en": "Loader changed.",
+      "ja": "ローダーを変更しました。"
+    },
+    "lcMsgRestored": {
+      "source": "en",
+      "zh": "已恢复上次加载器。",
+      "en": "Previous loader restored.",
+      "ja": "直前のローダーに戻しました。"
+    },
+    "lcMsgFailed": {
+      "source": "en",
+      "zh": "加载器更换失败，原版本已保留。",
+      "en": "Loader change failed. The original profile was preserved.",
+      "ja": "変更に失敗しました。元の構成は保持されています。"
+    },
+    "lcMsgCancelled": {
+      "source": "en",
+      "zh": "加载器更换已取消，原版本已保留。",
+      "en": "Loader change cancelled. The original profile was preserved.",
+      "ja": "変更を中止しました。元の構成は保持されています。"
+    },
+    "lcMsgConflict": {
+      "source": "en",
+      "zh": "支持库与校验值不符，原版本已保留。",
+      "en": "A shared library differs from the expected file. The original profile was preserved.",
+      "ja": "ライブラリが検証値と一致しません。元の構成は保持されています。"
+    },
+    "lcMsgBackup": {
+      "source": "en",
+      "zh": "无法恢复上次加载器。",
+      "en": "The previous loader could not be restored.",
+      "ja": "直前のローダーに戻せませんでした。"
+    },
+    "lcMsgListed": {
+      "source": "en",
+      "zh": "已获取加载器版本。",
+      "en": "Loader versions ready.",
+      "ja": "ローダーのバージョンを取得しました。"
+    },
+    "lcMsgNoVersions": {
+      "source": "en",
+      "zh": "暂无兼容的加载器版本。",
+      "en": "No compatible loader versions found.",
+      "ja": "互換性のあるローダーがありません。"
+    },
+    "eErrJavaVersion": {
+      "zh": "此 Minecraft 版本需要 Java %u 或更高版本，已打开官方下载页。",
+      "en": "This Minecraft version requires Java %u or newer. The official download page was opened.",
+      "ja": "この Minecraft には Java %u 以降が必要です。公式ダウンロードページを開きました。"
     }
   }
 }

@@ -75,6 +75,8 @@ peSkipAuth du 'auth.json',0
 peSkipCredentials du 'credentials.json',0
 peSkipSession du 'session.json',0
 peSkipCf du 'offset.cfkey',0
+peSkipAccount du 'offset.account',0
+peSkipAccountNew du 'offset.account.new',0
 peSkipSingleToken du 'token.json',0
 peSkipTokenText du 'token.txt',0
 peSkipAccess du 'accesstoken.json',0
@@ -83,6 +85,7 @@ peSkipEnv du '.env',0
 peSkipUserCache du 'usercache.json',0
 peSkipNames dd peSkipLogs,peSkipCrash,peSkipCache,peSkipCaches,peSkipDotCache,peSkipVersions,peSkipAssets,peSkipLibraries,peSkipScreenshots,peSkipDownloads,peSkipFabric,peSkipForge,peSkipQuilt,peSkipAccounts,peSkipLauncherAccounts,peSkipTokens,peSkipAuth,peSkipCredentials,peSkipSession,peSkipCf
  dd peSkipSingleToken,peSkipTokenText,peSkipAccess,peSkipRefresh,peSkipEnv,peSkipUserCache
+ dd peSkipAccount,peSkipAccountNew
 peSkipNamesEnd:
 peKeyLibraries db 'libraries',0
 peKeyName db 'name',0
@@ -225,6 +228,22 @@ proc PeSkipName uses ebx esi edi,nameW
  jmp .skip
 .offset db 'offset',0
 .names:
+ ; Account cache transactions are also private at every tree depth.
+ mov esi,[nameW]
+ mov edi,.account
+ mov ecx,14
+.accountPrefix:
+ lodsw
+ or ax,20h
+ test ah,ah
+ jnz .knownNames
+ cmp al,[edi]
+ jne .knownNames
+ inc edi
+ loop .accountPrefix
+ cmp word [esi],'.'
+ je .skip
+.knownNames:
  xor ebx,ebx
 .loop:
  cmp ebx,(peSkipNamesEnd-peSkipNames)/4
@@ -267,6 +286,7 @@ proc PeSkipName uses ebx esi edi,nameW
  ret
 .log du '.log',0
 .logGz du '.log.gz',0
+.account db 'offset.account',0
 endp
 
 proc PeLoadProfile uses ebx esi edi
@@ -316,6 +336,14 @@ proc PeLoadProfile uses ebx esi edi
  invoke lstrcmpA,peTextA,peVersionA
  test eax,eax
  jnz .done
+ if defined OFFSET_LOADER_CHANGE
+ ; Export the actual loader after an in-place change. Modern NeoForge may
+ ; identify its version only in official game arguments.
+ stdcall LcReadVersion,[ctx],peBaseA,peLoaderA,peLoaderKind
+ test eax,eax
+ jz .done
+ jmp .good
+ end if
  stdcall JsonGet,[ctx],[root],peKeyLibraries
  mov [list],eax
  stdcall JsonCount,[ctx],eax

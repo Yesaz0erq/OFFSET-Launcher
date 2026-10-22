@@ -10,12 +10,49 @@ J_SIZE = 20
 section '.cdata' data readable writeable
 httpStatus dd 0
 cSession dd 0
-cAgent du 'OFFSET/0.7.0',0
+cAgent du 'OFFSET/0.9.0',0
 cGet du 'GET',0
 cHex db '0123456789abcdef',0
 cPart du '.part',0
+cDownloadLock dd 0
+cDownloadBytes dq 0
+cDownloadFiles dd 0
 
 section '.ctext' code readable executable
+
+; Short critical section shared by download workers; no I/O or UI messages.
+proc DownloadCount,bytes,files
+.lock:
+    mov eax,1
+    xchg eax,[cDownloadLock]
+    test eax,eax
+    jnz .lock
+    mov eax,[bytes]
+    add dword [cDownloadBytes],eax
+    adc dword [cDownloadBytes+4],0
+    mov eax,[files]
+    add [cDownloadFiles],eax
+    mov [cDownloadLock],0
+    ret
+endp
+
+; Snapshot in KiB (up to 4 TiB) and successfully published network files.
+proc DownloadSnapshot,destination
+.lock:
+    mov eax,1
+    xchg eax,[cDownloadLock]
+    test eax,eax
+    jnz .lock
+    mov eax,dword [cDownloadBytes]
+    mov edx,dword [cDownloadBytes+4]
+    shrd eax,edx,10
+    mov edx,[destination]
+    mov [edx],eax
+    mov eax,[cDownloadFiles]
+    mov [edx+4],eax
+    mov [cDownloadLock],0
+    ret
+endp
 
 proc FreeMem p
     cmp [p],0
@@ -1278,6 +1315,7 @@ proc HttpDownload uses ebx esi edi,urlA,path,expected
     mov eax,[got]
     cmp eax,[written]
     jne .done
+    stdcall DownloadCount,[got],0
     jmp .read
 .complete:
     invoke CloseHandle,[fileHandle]
@@ -1306,6 +1344,7 @@ proc HttpDownload uses ebx esi edi,urlA,path,expected
     je .return
     invoke DeleteFileW,addr temp
 .return:
+    stdcall DownloadCount,0,[result]
     mov eax,[result]
     ret
 endp

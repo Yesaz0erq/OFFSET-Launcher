@@ -147,7 +147,10 @@ proc ShowPackControls
  je .export
  cmp [packTab],2
  je .import
+ cmp [busy],0
+ jne .showLocal
  stdcall PackScanLocal
+.showLocal:
  invoke ShowWindow,[hPackLocal],SW_SHOW
  ret
 .import:
@@ -174,6 +177,12 @@ proc PackClearResults
  ret
 endp
 proc PackBeginSearch
+ cmp [busy],0
+ jne .done
+ mov [packProvider],0
+if defined OFFSET_BROWSE_DEFAULTS
+ mov [packDefaultAttempted],1
+end if
  invoke GetWindowTextW,[hPackQuery],packUiWide,2048
  invoke WideCharToMultiByte,65001,0,packUiWide,-1,packQuery,512,0,0
  test eax,eax
@@ -801,9 +810,6 @@ proc PaintPacks,dc
  je .import
  cmp [packTab],0
  jne .local
- mov [segLabels],sModrinth
- mov [segLabels+4],sCurseForge
- stdcall Segmented,728,264,360,42,2,4,segLabels,[packProvider],[fBody]
  stdcall Card,252,185,836,72,18
  stdcall Text,[dc],sPackQueryCue,280,186,490,20,[fSmall],C_MUTED
  stdcall Text,[dc],sPackGameCue,810,186,244,20,[fSmall],C_MUTED
@@ -890,6 +896,14 @@ proc ClickPacks uses ebx,x,y
  jb .done
  cmp [y],166
  ja .busySearch
+ cmp [x],252
+ jb .done
+ cmp [x],702
+ jb .tabs
+ cmp [y],124
+ jb .done
+ cmp [y],166
+ ja .busySearch
  cmp [x],916
  jb .done
  cmp [x],1088
@@ -907,6 +921,10 @@ proc ClickPacks uses ebx,x,y
  cmp [x],432
  ja .done
 .cancel:
+if defined OFFSET_BROWSE_DEFAULTS
+ cmp [workerCallback],PackWorker
+ jne .done
+end if
  mov [modCancel],1
  mov [engineCancel],1
  ret
@@ -942,6 +960,8 @@ proc ClickPacks uses ebx,x,y
  stdcall PackExportUiChoose
  ret
 .body:
+ cmp [busy],0
+ jne .done
  cmp [packTab],3
  je .exportBody
  cmp [packTab],2
@@ -954,17 +974,8 @@ proc ClickPacks uses ebx,x,y
  ja .bottom
  cmp [x],432
  jbe .search
- cmp [x],728
- jb .done
- cmp [x],1088
+ cmp [x],432
  ja .done
- xor eax,eax
- cmp [x],908
- setae al
- mov [packProvider],eax
- mov [packOffset],0
- stdcall PackClearResults
- jmp .redraw
 .search:
  cmp [x],252
  jb .done

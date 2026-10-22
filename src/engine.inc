@@ -27,6 +27,9 @@ eAssetJobCount dd 0
 eAssetNext dd 0
 eAssetDone dd 0
 eAssetError dd 0
+eRequiredJavaMajor dd 0
+eSelectedJavaMajor dd 0
+eJavaBestMajor dd 0
 eAssetThreads dd 8 dup(0)
 eDigestLen dd 16
 eProvider dd 0
@@ -46,6 +49,13 @@ eSlash du '\',0
 eJavaEnv du 'JAVA_HOME',0
 eJavaBin du '\bin\javaw.exe',0
 eJavaName du 'javaw.exe',0
+eJavaRoot du 'C:\Program Files\Java\',0
+eJavaGlob du 'jdk-*',0
+eJavaPrefix du 'jdk-',0
+eJavaDownloadUrl du 'https://www.oracle.com/java/technologies/downloads/#jdk%u-windows',0
+eJavaDownloadBuffer rw 256
+eJavaCandidate rw 1024
+eOpenVerb du 'open',0
 eTarName du '\tar.exe',0
 eTarNative du '\Sysnative\tar.exe',0
 eQuoteW du '"',0
@@ -68,8 +78,12 @@ eKeyName db 'name',0
 eKeyArch db 'arch',0
 eKeyFeatures db 'features',0
 eKeyVersion db 'version',0
+eKeyJavaVersion db 'javaVersion',0
+eKeyMajorVersion db 'majorVersion',0
 eKeyInherits db 'inheritsFrom',0
 eKeyNormalized db 'offsetNormalized',0
+eKeyNativeDir db 'offsetNatives',0
+eNativeDirPrefix db 'offset-natives-',0
 eKeyArguments db 'arguments',0
 eKeyJvm db 'jvm',0
 eKeyGame db 'game',0
@@ -105,7 +119,7 @@ eSlashA db '\',0
 eSemi db ';',0
 eNewline db 13,10,0
 eLauncher db 'OFFSET',0
-eLauncherVersion db '0.7.0',0
+eLauncherVersion db '0.9.0',0
 eUserType db 'msa',0
 eOfflineToken db '0',0
 eUserProps db '{}',0
@@ -131,6 +145,7 @@ eErrInherited db 'This version inherits another profile. This build supports off
 eErrOld db 'This version uses legacy launch metadata. Choose vanilla Minecraft 1.13 or newer.',0
 eErrPath db 'A metadata path is invalid or too long.',0
 eErrJava db 'Java was not found. Set a full path to a suitable 64-bit javaw.exe.',0
+eErrJavaVersion db 'This Minecraft version requires Java %u or newer. Install it from the official download page.',0
 eErrName db 'Offline names must contain 3-16 ASCII letters, digits or underscores.',0
 eErrAuth db 'Sign in to Microsoft before launching in online mode.',0
 eErrStart db 'Windows could not start Java. Check Java path, game folder and memory setting.',0
@@ -168,6 +183,8 @@ ePath2 rw 2048
 eMetaPath rw 2048
 eClientPath rw 2048
 eNativePath rw 2048
+eNativeLeaf rb 128
+eNativeLeafW rw 128
 eArgPath rw 2048
 eRuntimeDirW rw 2048
 eTarPath rw 1024
@@ -444,12 +461,28 @@ proc ELoadMetadata
  mov [eMeta],eax
  stdcall JsonRoot,eax
  mov [eRoot],eax
+ mov [eRequiredJavaMajor],0
+ stdcall JsonGet,[eMeta],[eRoot],eKeyJavaVersion
+ test eax,eax
+ jz .javaVersionDone
+ stdcall JsonGet,[eMeta],eax,eKeyMajorVersion
+ stdcall JsonInt,[eMeta],eax
+ test eax,eax
+ js .javaVersionDone
+ cmp eax,100
+ jae .javaVersionDone
+ mov [eRequiredJavaMajor],eax
+.javaVersionDone:
+ mov eax,[eRoot]
  stdcall JsonGet,[eMeta],eax,eKeyInherits
  test eax,eax
  jnz .inherited
  stdcall JsonGet,[eMeta],[eRoot],eKeyArguments
  test eax,eax
  jz .old
+ stdcall ESelectNativePath
+ test eax,eax
+ jz .bad
  mov eax,1
  ret
  .inherited: stdcall SetStatusA,eErrInherited
@@ -461,6 +494,203 @@ proc ELoadMetadata
  jmp .fail
  .bad: stdcall SetStatusA,eErrMetadata
  .fail: xor eax,eax
+ ret
+endp
+
+; Return the first numeric component after a jdk-N prefix in a path.
+proc EJavaMajorFromPath uses esi, path
+ mov esi,[path]
+ invoke lstrlenW,esi
+ mov ecx,eax
+.scan:
+ cmp ecx,4
+ jb .none
+ cmp word [esi],'j'
+ jne .next
+ cmp word [esi+2],'d'
+ jne .next
+ cmp word [esi+4],'k'
+ jne .next
+ cmp word [esi+6],'-'
+ jne .next
+ add esi,8
+ sub ecx,4
+ xor eax,eax
+.digits:
+ cmp ecx,0
+ je .done
+ movzx edx,word [esi]
+ sub edx,'0'
+ cmp edx,9
+ ja .done
+ imul eax,10
+ add eax,edx
+ add esi,2
+ dec ecx
+ jmp .digits
+.done:
+ test eax,eax
+ jnz .return
+.none:
+ xor eax,eax
+.return:
+ ret
+.next:
+ add esi,2
+ sub ecx,1
+ jmp .scan
+endp
+
+; Select the highest installed JDK satisfying the version manifest requirement.
+; The effective path is restored by EngineLaunch after the process exits.
+proc EEnsureJavaVersion uses ebx esi edi
+ locals
+  handle dd ?
+  best dd ?
+ endl
+ mov eax,[eRequiredJavaMajor]
+ test eax,eax
+ jz .okay
+ stdcall EJavaMajorFromPath,javaPath
+ mov [eSelectedJavaMajor],eax
+ cmp eax,[eRequiredJavaMajor]
+ jae .okay
+ mov [best],0
+ mov [handle],0
+ invoke lstrcpyW,ePath,eJavaRoot
+ invoke lstrcatW,ePath,eJavaGlob
+ invoke FindFirstFileW,ePath,addr eFind
+ cmp eax,-1
+ je .missing
+ mov [handle],eax
+.loop:
+ test [eFind.dwFileAttributes],FILE_ATTRIBUTE_DIRECTORY
+ jz .advance
+ cmp word [eFind.cFileName],'.'
+ je .advance
+ stdcall EJavaMajorFromPath,eFind.cFileName
+ mov ebx,eax
+ cmp ebx,[eRequiredJavaMajor]
+ jb .advance
+ cmp ebx,[best]
+ jbe .advance
+ invoke lstrcpyW,ePath2,eJavaRoot
+ invoke lstrcatW,ePath2,eFind.cFileName
+ invoke lstrcatW,ePath2,eJavaBin
+ invoke GetFileAttributesW,ePath2
+ cmp eax,-1
+ je .advance
+ mov [best],ebx
+ invoke lstrcpyW,eJavaCandidate,ePath2
+.advance:
+ invoke FindNextFileW,[handle],addr eFind
+ test eax,eax
+ jnz .loop
+ invoke FindClose,[handle]
+ mov [handle],0
+ cmp [best],0
+ je .missing
+ invoke lstrcpyW,javaPath,eJavaCandidate
+ mov eax,[best]
+ mov [eSelectedJavaMajor],eax
+.okay:
+ mov eax,1
+ ret
+.missing:
+ cmp [handle],0
+ je @f
+ invoke FindClose,[handle]
+@@:
+ cinvoke wsprintfA,eScratch,eErrJavaVersion,[eRequiredJavaMajor]
+ stdcall SetStatusA,eScratch
+ cinvoke wsprintfW,eJavaDownloadBuffer,eJavaDownloadUrl,[eRequiredJavaMajor]
+ invoke ShellExecuteW,[hWnd],eOpenVerb,eJavaDownloadBuffer,0,0,SW_SHOWNORMAL
+ xor eax,eax
+ ret
+endp
+
+; Each loader transaction publishes its own complete native directory. A
+; metadata swap can therefore restore an earlier loader without mixing DLLs.
+proc ESelectNativePath uses ebx esi edi
+ invoke lstrcpyW,eNativePath,gameDir
+ invoke lstrcatW,eNativePath,eVersions
+ invoke lstrcatW,eNativePath,eVersionW
+ invoke lstrcatW,eNativePath,eNativesSuffix
+ stdcall JsonGet,[eMeta],[eRoot],eKeyNativeDir
+ test eax,eax
+ jz .okay
+ stdcall JsonString,[eMeta],eax,eNativeLeaf,128
+ test eax,eax
+ jz .bad
+ cmp eax,128
+ jae .bad
+ mov ebx,eax
+ invoke lstrlenA,eNativeLeaf
+ cmp eax,ebx
+ jne .bad
+ stdcall ENativeDirValid,eNativeLeaf
+ test eax,eax
+ jz .bad
+ invoke MultiByteToWideChar,65001,8,eNativeLeaf,-1,eNativeLeafW,128
+ test eax,eax
+ jz .bad
+ invoke lstrcpyW,eNativePath,gameDir
+ invoke lstrcatW,eNativePath,eVersions
+ invoke lstrcatW,eNativePath,eVersionW
+ invoke lstrcatW,eNativePath,eSlash
+ invoke lstrcatW,eNativePath,eNativeLeafW
+.okay:
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
+; Shared validation for transaction publication, restore and runtime loading.
+proc ENativeDirValid uses esi edi,leaf
+ mov esi,[leaf]
+ test esi,esi
+ jz .bad
+ mov edi,eNativeDirPrefix
+ xor ecx,ecx
+.prefix:
+ mov al,[edi]
+ test al,al
+ jz .suffix
+ cmp al,[esi]
+ jne .bad
+ inc esi
+ inc edi
+ inc ecx
+ jmp .prefix
+.suffix:
+ cmp byte [esi],0
+ je .bad
+.characters:
+ lodsb
+ test al,al
+ jz .okay
+ inc ecx
+ cmp ecx,128
+ jae .bad
+ cmp al,'-'
+ je .characters
+ cmp al,'0'
+ jb .bad
+ cmp al,'9'
+ jbe .characters
+ or al,20h
+ cmp al,'a'
+ jb .bad
+ cmp al,'z'
+ ja .bad
+ jmp .characters
+.okay:
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
  ret
 endp
 
@@ -1962,6 +2192,11 @@ proc EPrepareLaunch uses ebx esi edi
  stdcall EBuildClasspath
  test eax,eax
  jz .bad
+ if defined OFFSET_LOADER_CHANGE
+ stdcall LcVerifyRuntimeArtifacts,[eMeta],gameDir
+ test eax,eax
+ jz .loaderMissing
+ end if
  stdcall EnsureDirectory,eNativePath
  mov word [eGameUtf],'.'
  stdcall ERootRelative,eNativePath,eNativeUtf,8192
@@ -2055,6 +2290,10 @@ proc EPrepareLaunch uses ebx esi edi
  ret
  .java: stdcall SetStatusA,eErrJava
  jmp .bad
+ if defined OFFSET_LOADER_CHANGE
+ .loaderMissing: stdcall SetStatusA,eErrMissing
+ jmp .bad
+ end if
  .args: stdcall SetStatusA,eErrArgs
  .bad: xor eax,eax
  ret
@@ -2086,6 +2325,18 @@ proc EngineLaunch uses ebx esi edi, param
  end if
  end if
  mov [eResult],0
+ if defined OFFSET_ACCOUNT_SESSION
+ cmp [onlineMode],0
+ je .sessionReady
+ stdcall AuthEnsureSession
+ test eax,eax
+ jnz .sessionReady
+ if defined OFFSET_LAUNCH_LOG
+ mov [logReason],eErrAuth
+ end if
+ jmp .finished
+.sessionReady:
+ end if
  stdcall EValidateVersion
  test eax,eax
  jz .version
@@ -2095,6 +2346,9 @@ proc EngineLaunch uses ebx esi edi, param
  end if
  stdcall SetStatusA,eStatusScan
  stdcall ELoadMetadata
+ test eax,eax
+ jz .finished
+ stdcall EEnsureJavaVersion
  test eax,eax
  jz .finished
  if defined OFFSET_VERSION_SETTINGS

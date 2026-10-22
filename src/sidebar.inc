@@ -177,7 +177,7 @@ proc PaintSideTooltip uses ebx esi edi
     je .done
     sub eax,ecx
     jl .other
-    cmp eax,8
+    cmp eax,NAV_COUNT
     jae .other
     mov ecx,[navLabels+eax*4]
     imul eax,NAV_STEP

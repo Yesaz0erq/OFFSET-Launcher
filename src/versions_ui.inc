@@ -263,6 +263,8 @@ endp
 
 proc VersionFillInstalled uses esi
     local count:DWORD
+    cmp [busy],0
+    jne .done
     stdcall EngineScanVersions,[hVersion]
     invoke SetWindowTextA,[hVersion],selectedVersion
     invoke SendMessageW,[hVInstalled],LB_RESETCONTENT,0,0
@@ -660,6 +662,14 @@ proc ClickVersionManager uses ebx esi edi,x,y
     jb .done
     cmp [y],166
     ja .done
+    cmp [x],252
+    jb .done
+    cmp [x],702
+    jb .tabs
+    cmp [y],124
+    jb .done
+    cmp [y],166
+    ja .done
     cmp [x],916
     jb .done
     cmp [x],1088
@@ -701,6 +711,8 @@ proc ClickVersionManager uses ebx esi edi,x,y
     stdcall VersionFillQueue
     jmp .done
 .body:
+    cmp [busy],0
+    jne .done
     cmp [versionTab],1
     je .installed
     cmp [versionTab],2

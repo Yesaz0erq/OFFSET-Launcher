@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-20",
+  "binary": "backups/before-mods-0.1.0/OFFSET.exe",
+  "bytes": 47616,
+  "sha256": "b7c962575c505e81cdfec3f7535f1b7cd472d230df9bc410f7b34fb0aebefd56",
+  "language": "x86 FASM assembly",
+  "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome <JDK21>",
+  "tests": [
+    "common",
+    "auth_unit",
+    "auth_flow",
+    "engine-test",
+    "http",
+    "http-parallel",
+    "engine-probe"
+  ],
+  "tests_exit_code": 0,
+  "real_game": {
+    "version": "1.21.1",
+    "java": "21.0.12",
+    "mode": "offline",
+    "install": "full official client/libraries/assets, SHA1 verified",
+    "asset_references": 3911,
+    "rendering": "actual main menu observed with native computer-use",
+    "shutdown": "game menu Quit Game; engine reported normal exit",
+    "folder": "tests/out/vanilla-smoke",
+    "status": "tests/out/game-status.txt",
+    "log": "tests/out/vanilla-smoke/logs/latest.log"
+  },
+  "online": {
+    "implemented": true,
+    "fixture_tests_passed": true,
+    "actual_account_tested": false,
+    "requires": "User-owned Microsoft application ID, API approval and human device authorization"
+  },
+  "scope": "Official standalone vanilla metadata; inherited/modded profiles and Java8 unsupported"
+}

@@ -1,6 +1,7 @@
 ; OFFSET Launcher - original Win32/x86 assembly Microsoft authentication.
 ; Device grant -> Xbox Live -> XSTS -> Minecraft entitlement/profile.
-; Credentials are session-only. No borrowed client IDs or plaintext token files.
+; Only refresh credentials persist, protected by current-user Windows DPAPI.
+; Minecraft tokens remain in memory and are refreshed before expiry.
 
 section '.authd' data readable writeable
 authCancel       dd 0
@@ -12,6 +13,12 @@ authRootToken    dd 0
 authObject       dd 0
 authHttpCode     dd 0
 authResult       dd 0
+authHasRefresh   dd 0
+authCacheOkay    dd 0
+authCacheSerial  dd 0
+authSessionExpiry dq 0
+authNow          dq 0
+authExpiryPending dq 0
 authVerifyAllowed1 db 'https://microsoft.com/devicelogin',0
 authVerifyAllowed2 db 'https://www.microsoft.com/link',0
 authVerifyAllowed3 db 'https://microsoft.com/link',0
@@ -33,6 +40,7 @@ authKVerify      db 'verification_uri',0
 authKExpires     db 'expires_in',0
 authKInterval    db 'interval',0
 authKAccess      db 'access_token',0
+authKRefresh     db 'refresh_token',0
 authKToken       db 'Token',0
 authKClaims      db 'DisplayClaims',0
 authKXui         db 'xui',0
@@ -47,13 +55,22 @@ authPending      db 'authorization_pending',0
 authSlowDown     db 'slow_down',0
 authDeclined     db 'authorization_declined',0
 authExpired      db 'expired_token',0
+authInvalidGrant db 'invalid_grant',0
+authInteraction  db 'interaction_required',0
 authItemProduct  db 'product_minecraft',0
 authItemGame     db 'game_minecraft',0
 authHex          db '0123456789ABCDEF',0
 authDevicePrefix db 'client_id=',0
-authScope        db '&scope=XboxLive.signin',0
+authScope        db '&scope=XboxLive.signin%20offline_access',0
 authPollPrefix   db 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code&client_id=',0
 authPollDevice   db '&device_code=',0
+authRefreshPrefix db 'grant_type=refresh_token&client_id=',0
+authRefreshField db '&refresh_token=',0
+authCacheSuffix  du '\offset.account',0
+authCacheTempSuffix du '.part',0
+authCacheUniqueFormat du '.part-%08X-%08X-%08X',0
+authCacheEntropy db 'OFFSET-ACCOUNT-V1',0
+authCacheEntropyBlob dd 17,authCacheEntropy
 authXblPrefix    db '{"Properties":{"AuthMethod":"RPS","SiteName":"user.auth.xboxlive.com","RpsTicket":"d=',0
 authXblSuffix    db '"},"RelyingParty":"http://auth.xboxlive.com","TokenType":"JWT"}',0
 authXstsPrefix   db '{"Properties":{"SandboxId":"RETAIL","UserTokens":["',0
@@ -84,10 +101,23 @@ authMsgMcFail    db 'Minecraft authentication failed. Your application may requi
 authMsgOwnFail   db 'This account has no active Minecraft Java entitlement. Check ownership or Game Pass status.',0
 authMsgProfile   db 'This account has no usable Minecraft Java profile. Complete profile setup first.',0
 authMsgLogout    db 'Signed out. Session credentials have been cleared from memory.',0
+authMsgRestore   db 'Restoring your protected Microsoft account session...',0
+authMsgNeedLogin db 'Sign in to your Microsoft account on the Account page before using online features.',0
+authMsgReauth    db 'Microsoft authorization expired or was revoked. Sign in again on the Account page.',0
+authMsgApproval  db 'Minecraft Services denied this Application ID (HTTP 403). Confirm Minecraft API approval for your own client ID.',0
+authMsgUnauthorized db 'Your online session was rejected or expired (HTTP 401). Sign in again on the Account page.',0
+authMsgCacheSave db 'Signed in. The account could not be saved securely; this session will last until the launcher closes.',0
+authMsgCacheDelete db 'Signed out of memory, but the protected account file could not be removed. Check folder permissions before restarting.',0
 
 ; Trailing uninitialized storage adds virtual memory, never zero-filled file bytes.
 authDisplay      rb 256
 authXuid         rb 64
+authRefreshToken rb 16384
+authRefreshClient rb 128
+authSessionClient rb 128
+authCachePath    rw 1024
+authCacheTemporary rw 1100
+authCachePlain   rb 16429
 authMsToken      rb 16384
 authXblToken     rb 16384
 authXstsToken    rb 16384
@@ -107,6 +137,8 @@ authHeaderA      rb 8300
 authVerification rb 512
 authVerifyUri    rw 512
 authXuidCandidate rb 64
+authNewRefresh   rb 16384
+authFormRefresh  rb 49152
 authSecretsEnd:
 
 section '.authc' code readable executable
@@ -142,6 +174,32 @@ proc AuthEqual uses esi edi, pLeft,pRight
     mov eax,1
     ret
   .no:
+    xor eax,eax
+    ret
+endp
+
+; Application GUIDs are case-insensitive. Never apply this comparison to tokens.
+proc AuthSameClient uses esi edi ecx, pLeft,pRight
+    mov esi,[pLeft]
+    mov edi,[pRight]
+    mov ecx,36
+  .next:
+    mov al,[esi]
+    mov dl,[edi]
+    or al,32
+    or dl,32
+    cmp al,dl
+    jne .bad
+    inc esi
+    inc edi
+    loop .next
+    cmp byte [esi],0
+    jne .bad
+    cmp byte [edi],0
+    jne .bad
+    mov eax,1
+    ret
+  .bad:
     xor eax,eax
     ret
 endp
@@ -284,6 +342,10 @@ proc AuthReadString uses ebx, context,object,key,destination,capacity
     jz .bad
     cmp eax,[capacity]
     jae .bad
+    mov ebx,eax
+    invoke lstrlenA,[destination]
+    cmp eax,ebx
+    jne .bad ; embedded JSON \u0000 must not become a truncated credential
     mov eax,1
     ret
   .bad:
@@ -540,8 +602,378 @@ proc AuthWipeSecrets uses edi ecx eax
     ret
 endp
 
+proc AuthWipeRefresh uses edi ecx eax
+    mov [authHasRefresh],0
+    xor eax,eax
+    mov edi,authRefreshToken
+    mov ecx,16384
+    rep stosb
+    mov edi,authRefreshClient
+    mov ecx,128
+    rep stosb
+    ret
+endp
+
+proc AuthCachePaths uses esi edi
+    cmp word [authCachePath],0
+    jne .temporary
+    invoke GetModuleFileNameW,0,authCachePath,1024
+    test eax,eax
+    jz .bad
+    cmp eax,980
+    jae .bad
+    mov esi,authCachePath
+    mov edi,esi
+  .walk:
+    mov ax,[esi]
+    test ax,ax
+    jz .cut
+    cmp ax,92
+    jne .advance
+    mov edi,esi
+  .advance:
+    add esi,2
+    jmp .walk
+  .cut:
+    cmp edi,authCachePath
+    je .bad
+    mov word [edi],0
+    invoke lstrcatW,authCachePath,authCacheSuffix
+  .temporary:
+    invoke lstrlenW,authCachePath
+    cmp eax,1023
+    jae .bad
+    invoke lstrcpyW,authCacheTemporary,authCachePath
+    invoke lstrcatW,authCacheTemporary,authCacheTempSuffix
+    mov eax,1
+    ret
+  .bad:
+    xor eax,eax
+    ret
+endp
+
+proc AuthDeleteCache
+    stdcall AuthCachePaths
+    test eax,eax
+    jz .done
+    ; A previous .part file is not owned by this operation. Never remove it.
+    stdcall AuthCacheTargetSafe,1
+    test eax,eax
+    jz .done
+    invoke GetFileAttributesW,authCachePath
+    cmp eax,-1
+    je .missing
+    invoke DeleteFileW,authCachePath
+    ret
+  .missing:
+    mov eax,1
+  .done:
+    ret
+endp
+
+; Inspect the final cache entry itself, without following a symbolic link.
+; A cache must be a regular, singly-linked file; a missing entry is optional.
+proc AuthCacheTargetSafe uses ebx,allowMissing
+    locals
+        information rd 13
+        handle dd ?
+    endl
+    invoke CreateFileW,authCachePath,080h,7,0,OPEN_EXISTING,00200080h,0
+    cmp eax,-1
+    jne .opened
+    cmp [allowMissing],0
+    je .bad
+    invoke GetLastError
+    cmp eax,2
+    je .okay
+    cmp eax,3
+    je .okay
+    jmp .bad
+  .opened:
+    mov [handle],eax
+    invoke GetFileInformationByHandle,eax,addr information
+    mov ebx,eax
+    invoke CloseHandle,[handle]
+    test ebx,ebx
+    jz .bad
+    test dword [information],0410h ; directory or reparse point
+    jnz .bad
+    cmp dword [information+40],1
+    jne .bad
+  .okay:
+    mov eax,1
+    ret
+  .bad:
+    xor eax,eax
+    ret
+endp
+
+; CREATE_NEW is the ownership boundary: collisions never overwrite/truncate an
+; existing object, including hard links. A bounded retry gets a different name.
+proc AuthCreateCacheTemporary uses ebx esi
+    locals
+        suffix rw 64
+        pid dd ?
+        tick dd ?
+        attempts dd ?
+    endl
+    invoke GetCurrentProcessId
+    mov [pid],eax
+    invoke GetTickCount
+    mov [tick],eax
+    mov [attempts],32
+  .attempt:
+    inc [authCacheSerial]
+    cinvoke wsprintfW,addr suffix,authCacheUniqueFormat,[pid],[tick],[authCacheSerial]
+    invoke lstrcpyW,authCacheTemporary,authCachePath
+    invoke lstrcatW,authCacheTemporary,addr suffix
+    invoke CreateFileW,authCacheTemporary,GENERIC_WRITE,0,0,CREATE_NEW,00200080h,0
+    cmp eax,-1
+    jne .done
+    invoke GetLastError
+    cmp eax,80
+    je .collision
+    cmp eax,183
+    jne .bad
+  .collision:
+    dec [attempts]
+    jnz .attempt
+  .bad:
+    mov eax,-1
+  .done:
+    ret
+endp
+
+; Writes a short versioned record containing client ID + refresh token only.
+; DPAPI uses the current Windows user (never CRYPTPROTECT_LOCAL_MACHINE).
+proc AuthSaveCache uses ebx esi edi
+    locals
+        inputBlob rd 2
+        outputBlob rd 2
+        fileHandle dd ?
+        written dd ?
+        okay dd ?
+        owned dd ?
+    endl
+    mov [okay],0
+    mov [owned],0
+    mov dword [outputBlob],0
+    mov dword [outputBlob+4],0
+    cmp [authHasRefresh],1
+    jne .finish
+    stdcall AuthCachePaths
+    test eax,eax
+    jz .finish
+    stdcall AuthCacheTargetSafe,1
+    test eax,eax
+    jz .finish
+    stdcall AuthSameClient,clientId,authRefreshClient
+    test eax,eax
+    jz .finish
+    invoke lstrlenA,authRefreshToken
+    cmp eax,1
+    jb .finish
+    cmp eax,16384
+    jae .finish
+    inc eax
+    mov dword [authCachePlain],3141464Fh ; OFA1
+    mov dword [authCachePlain+4],eax
+    add eax,45
+    mov [inputBlob],eax
+    mov dword [inputBlob+4],authCachePlain
+    invoke lstrcpyA,authCachePlain+8,authRefreshClient
+    invoke lstrcpyA,authCachePlain+45,authRefreshToken
+    invoke CryptProtectData,addr inputBlob,0,authCacheEntropyBlob,0,0,1,addr outputBlob
+    test eax,eax
+    jz .finish
+    cmp dword [outputBlob],65536
+    ja .release
+    stdcall AuthCreateCacheTemporary
+    cmp eax,-1
+    je .release
+    mov [fileHandle],eax
+    mov [owned],1
+    invoke WriteFile,eax,[outputBlob+4],[outputBlob],addr written,0
+    mov ebx,eax
+    invoke CloseHandle,[fileHandle]
+    test ebx,ebx
+    jz .remove_temporary
+    mov eax,[written]
+    cmp eax,[outputBlob]
+    jne .remove_temporary
+    stdcall AuthCacheTargetSafe,1
+    test eax,eax
+    jz .remove_temporary
+    invoke MoveFileExW,authCacheTemporary,authCachePath,9
+    mov [okay],eax
+    test eax,eax
+    jz .remove_temporary
+    mov [owned],0
+  .remove_temporary:
+    cmp [owned],0
+    je .release
+    invoke DeleteFileW,authCacheTemporary
+  .release:
+    mov edi,[outputBlob+4]
+    test edi,edi
+    jz .finish
+    mov ecx,[outputBlob]
+    xor eax,eax
+    rep stosb
+    invoke LocalFree,[outputBlob+4]
+  .finish:
+    mov edi,authCachePlain
+    mov ecx,16429
+    xor eax,eax
+    rep stosb
+    mov eax,[okay]
+    mov [authCacheOkay],eax
+    ret
+endp
+
+proc AuthReadCache uses ebx esi edi
+    locals
+        inputBlob rd 2
+        outputBlob rd 2
+        fileHandle dd ?
+        cipher dd ?
+        size dd ?
+        readCount dd ?
+        okay dd ?
+        information rd 13
+    endl
+    mov [okay],0
+    mov [cipher],0
+    mov dword [outputBlob],0
+    mov dword [outputBlob+4],0
+    stdcall AuthWipeRefresh
+    stdcall AuthValidateClient
+    test eax,eax
+    jz .finish
+    stdcall AuthCachePaths
+    test eax,eax
+    jz .finish
+    invoke CreateFileW,authCachePath,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,00200080h,0
+    cmp eax,-1
+    je .finish
+    mov [fileHandle],eax
+    invoke GetFileInformationByHandle,eax,addr information
+    test eax,eax
+    jz .close
+    test dword [information],0410h
+    jnz .close
+    cmp dword [information+40],1
+    jne .close
+    mov eax,[fileHandle]
+    invoke GetFileSize,eax,0
+    cmp eax,1
+    jb .close
+    cmp eax,65536
+    ja .close
+    mov [size],eax
+    invoke GetProcessHeap
+    invoke HeapAlloc,eax,8,[size]
+    test eax,eax
+    jz .close
+    mov [cipher],eax
+    invoke ReadFile,[fileHandle],eax,[size],addr readCount,0
+    test eax,eax
+    jz .close
+    mov eax,[readCount]
+    cmp eax,[size]
+    jne .close
+    invoke CloseHandle,[fileHandle]
+    mov [fileHandle],-1
+    mov eax,[size]
+    mov [inputBlob],eax
+    mov eax,[cipher]
+    mov [inputBlob+4],eax
+    invoke CryptUnprotectData,addr inputBlob,0,authCacheEntropyBlob,0,0,1,addr outputBlob
+    test eax,eax
+    jz .release
+    cmp dword [outputBlob],46
+    jb .release
+    cmp dword [outputBlob],16429
+    ja .release
+    mov esi,[outputBlob+4]
+    cmp dword [esi],3141464Fh
+    jne .release
+    mov ebx,[esi+4]
+    cmp ebx,2
+    jb .release
+    cmp ebx,16384
+    ja .release
+    lea eax,[ebx+45]
+    cmp eax,[outputBlob]
+    jne .release
+    cmp byte [esi+44],0
+    jne .release
+    lea eax,[esi+8]
+    stdcall AuthSameClient,eax,clientId
+    test eax,eax
+    jz .release
+    cmp byte [esi+ebx+44],0
+    jne .release
+    lea eax,[esi+45]
+    invoke lstrlenA,eax
+    inc eax
+    cmp eax,ebx
+    jne .release
+    lea eax,[esi+45]
+    invoke lstrcpyA,authRefreshToken,eax
+    invoke lstrcpyA,authRefreshClient,clientId
+    mov [authHasRefresh],1
+    mov [okay],1
+    jmp .release
+  .close:
+    invoke CloseHandle,[fileHandle]
+  .release:
+    mov edi,[outputBlob+4]
+    test edi,edi
+    jz .cipher
+    mov ecx,[outputBlob]
+    xor eax,eax
+    rep stosb
+    invoke LocalFree,[outputBlob+4]
+  .cipher:
+    cmp [cipher],0
+    je .finish
+    stdcall FreeMem,[cipher]
+  .finish:
+    mov eax,[okay]
+    ret
+endp
+
+; FILETIME deadline is based on expires_in, never by decoding opaque tokens.
+proc AuthSetExpiry
+    stdcall JsonGet,[authContext],[authRootToken],authKExpires
+    test eax,eax
+    jz .bad
+    stdcall JsonInt,[authContext],eax
+    cmp eax,1
+    jb .bad
+    cmp eax,604800
+    ja .bad
+    mov ecx,10000000
+    mul ecx
+    mov dword [authExpiryPending],eax
+    mov dword [authExpiryPending+4],edx
+    invoke GetSystemTimeAsFileTime,authNow
+    mov eax,dword [authNow]
+    mov edx,dword [authNow+4]
+    add dword [authExpiryPending],eax
+    adc dword [authExpiryPending+4],edx
+    mov eax,1
+    ret
+  .bad:
+    xor eax,eax
+    ret
+endp
+
 proc AuthClearIdentity uses edi ecx eax
     mov [authReady],0
+    mov dword [authSessionExpiry],0
+    mov dword [authSessionExpiry+4],0
     xor eax,eax
     mov edi,authToken
     mov ecx,8192
@@ -555,28 +987,127 @@ proc AuthClearIdentity uses edi ecx eax
     mov edi,authXuid
     mov ecx,64
     rep stosb
+    mov edi,authSessionClient
+    mov ecx,128
+    rep stosb
     ret
 endp
 
 proc AuthLoad
     stdcall AuthClearIdentity
     mov byte [authDisplay],0
+    stdcall AuthReadCache
     ret
 endp
 
 proc AuthLogout
     mov [authCancel],1
     stdcall AuthClearIdentity
+    stdcall AuthWipeRefresh
+    stdcall AuthWipeSecrets
     mov byte [authDisplay],0
+    stdcall AuthDeleteCache
+    test eax,eax
+    jz .delete_failed
     stdcall SetStatusA,authMsgLogout
+    ret
+  .delete_failed:
+    stdcall SetStatusA,authMsgCacheDelete
     ret
 endp
 
-proc AuthLogin uses ebx esi edi, parameter
+; Noninteractive entry used by launch and skin workers. No browser or completion
+; message is emitted; the caller owns its worker lifecycle.
+proc AuthEnsureSession uses ebx
+    cmp [authCancel],0
+    jne .cancel
+    stdcall AuthValidateClient
+    test eax,eax
+    jz .client
+    cmp [authReady],1
+    jne .refresh
+    cmp byte [authToken],0
+    je .refresh
+    cmp byte [authName],0
+    je .refresh
+    cmp byte [authUuid],0
+    je .refresh
+    stdcall AuthSameClient,authSessionClient,clientId
+    test eax,eax
+    jz .refresh
+    invoke GetSystemTimeAsFileTime,authNow
+    mov eax,dword [authNow]
+    mov edx,dword [authNow+4]
+    add eax,600000000 ; refresh at least 60 seconds before expiry
+    adc edx,0
+    cmp edx,dword [authSessionExpiry+4]
+    ja .refresh
+    jb .valid
+    cmp eax,dword [authSessionExpiry]
+    jae .refresh
+  .valid:
+    mov eax,1
+    ret
+  .refresh:
+    stdcall AuthClearIdentity
+    cmp [authHasRefresh],1
+    jne .need_login
+    cmp byte [authRefreshToken],0
+    je .need_login
+    stdcall AuthSameClient,authRefreshClient,clientId
+    test eax,eax
+    jz .need_login
+    stdcall AuthRun,0,1
+    ret
+  .client:
+    stdcall AuthClearIdentity
+    stdcall SetStatusA,authMsgInvalidId
+    xor eax,eax
+    ret
+  .cancel:
+    stdcall AuthClearIdentity
+    stdcall SetStatusA,authMsgCancel
+    xor eax,eax
+    ret
+  .need_login:
+    stdcall SetStatusA,authMsgNeedLogin
+    xor eax,eax
+    ret
+endp
+
+proc AuthInvalidateSession
+    stdcall AuthClearIdentity
+    ret
+endp
+
+proc AuthLoginQuiet, parameter
+    stdcall AuthRun,[parameter],0
+    test eax,eax
+    jnz .done
+    ; A cancelled/failed account switch never destroys the previous encrypted
+    ; credential. Keep it recoverable without claiming the failed login worked.
+    stdcall AuthReadCache
+    xor eax,eax
+  .done:
+    ret
+endp
+
+proc AuthLogin, parameter
+    stdcall AuthLoginQuiet,[parameter]
+    push eax
+    invoke PostMessageW,[hWnd],08002h,0,0
+    pop eax
+    ret
+endp
+
+; Shared authentication chain. Microsoft device and refresh grants converge
+; before Xbox/XSTS/Minecraft; only successful profile+ownership commits ready=1.
+proc AuthRun uses ebx esi edi, parameter,useRefresh
     mov [authResult],0
     stdcall AuthClearIdentity
     stdcall AuthWipeSecrets
     mov byte [authDisplay],0
+    mov [authCacheOkay],1
     cmp [authCancel],0
     jne .cancel_failure
     cmp byte [clientId],0
@@ -584,6 +1115,8 @@ proc AuthLogin uses ebx esi edi, parameter
     stdcall AuthValidateClient
     test eax,eax
     jz .invalid_client
+    cmp [useRefresh],0
+    jne .refresh_start
     stdcall SetStatusA,authMsgStart
     stdcall AuthFormEncode,clientId,authFormClient,512
     test eax,eax
@@ -682,10 +1215,67 @@ end if
     test eax,eax
     jnz .expired_failure
     jmp .token_failure
+  .refresh_start:
+    stdcall SetStatusA,authMsgRestore
+    stdcall AuthFormEncode,clientId,authFormClient,512
+    test eax,eax
+    jz .format_failure
+    stdcall AuthFormEncode,authRefreshToken,authFormRefresh,49152
+    test eax,eax
+    jz .format_failure
+    mov byte [authBody],0
+    stdcall AuthAppend,authBody,authRefreshPrefix
+    stdcall AuthAppend,authBody,authFormClient
+    stdcall AuthAppend,authBody,authRefreshField
+    stdcall AuthAppend,authBody,authFormRefresh
+    stdcall AuthAppend,authBody,authScope
+    stdcall AuthRequest,authTokenUrl,authPost,authFormHeader,authBody
+    test eax,eax
+    jz .network_failure
+    cmp [authHttpCode],200
+    je .microsoft_authorized
+    cmp [authHttpCode],401
+    je .refresh_invalid
+    stdcall AuthReadString,[authContext],[authRootToken],authKError,authError,256
+    test eax,eax
+    jz .token_failure
+    stdcall AuthEqual,authError,authInvalidGrant
+    test eax,eax
+    jnz .refresh_invalid
+    stdcall AuthEqual,authError,authInteraction
+    test eax,eax
+    jnz .refresh_invalid
+    jmp .token_failure
+  .refresh_invalid:
+    stdcall AuthWipeRefresh
+    stdcall AuthDeleteCache
+    stdcall SetStatusA,authMsgReauth
+    jmp .done
   .microsoft_authorized:
     stdcall AuthReadString,[authContext],[authRootToken],authKAccess,authMsToken,16384
     test eax,eax
     jz .format_failure
+    ; Refresh token is opaque and optional on rotation; keep the previous one
+    ; when a successful refresh response does not issue a replacement.
+    stdcall JsonGet,[authContext],[authRootToken],authKRefresh
+    test eax,eax
+    jz .refresh_field_done
+    stdcall AuthReadString,[authContext],[authRootToken],authKRefresh,authNewRefresh,16384
+    test eax,eax
+    jz .format_failure
+  .refresh_field_done:
+    cmp [useRefresh],0
+    je .rotation_done
+    cmp byte [authNewRefresh],0
+    je .rotation_done
+    ; A valid refresh response rotates the same account's credential. Save it
+    ; even if a later Xbox/Minecraft request temporarily fails.
+    stdcall AuthWipeRefresh
+    invoke lstrcpyA,authRefreshToken,authNewRefresh
+    invoke lstrcpyA,authRefreshClient,clientId
+    mov [authHasRefresh],1
+    stdcall AuthSaveCache
+  .rotation_done:
     stdcall SetStatusA,authMsgXbox
     stdcall AuthJsonEscape,authMsToken,authEscaped,49152
     test eax,eax
@@ -753,6 +1343,9 @@ end if
     stdcall AuthReadString,[authContext],[authRootToken],authKAccess,authMcToken,8192
     test eax,eax
     jz .format_failure
+    stdcall AuthSetExpiry
+    test eax,eax
+    jz .format_failure
     stdcall AuthSafeBearer,authMcToken
     test eax,eax
     jz .format_failure
@@ -815,6 +1408,31 @@ end if
     invoke lstrcpyA,authToken,authMcToken
     invoke lstrcpyA,authName,authProfileName
     invoke lstrcpyA,authUuid,authProfileUuid
+    invoke lstrcpyA,authSessionClient,clientId
+    mov eax,dword [authExpiryPending]
+    mov edx,dword [authExpiryPending+4]
+    mov dword [authSessionExpiry],eax
+    mov dword [authSessionExpiry+4],edx
+    cmp byte [authNewRefresh],0
+    jne .new_refresh
+    cmp [useRefresh],0
+    jne .refresh_commit_done
+    ; A different interactive account must never inherit an old account's
+    ; refresh token when the server has not granted offline access.
+    stdcall AuthWipeRefresh
+    stdcall AuthDeleteCache
+    mov [authCacheOkay],0
+    jmp .refresh_commit_done
+  .new_refresh:
+    stdcall AuthWipeRefresh
+    invoke lstrcpyA,authRefreshToken,authNewRefresh
+    invoke lstrcpyA,authRefreshClient,clientId
+    mov [authHasRefresh],1
+  .refresh_commit_done:
+    cmp [authHasRefresh],1
+    jne .session_only
+    stdcall AuthSaveCache
+  .session_only:
     mov [authReady],1
     mov [authResult],1
     mov byte [authDisplay],0
@@ -825,6 +1443,9 @@ else
 end if
     stdcall AuthAppend,authDisplay,authName
     stdcall SetStatusA,authDisplay
+    cmp [authCacheOkay],0
+    jne .done
+    stdcall SetStatusA,authMsgCacheSave
     jmp .done
   .need_client:
     stdcall SetStatusA,authMsgClient
@@ -859,13 +1480,27 @@ end if
     stdcall SetStatusA,authMsgXstsFail
     jmp .done
   .minecraft_failure:
+    cmp [authHttpCode],403
+    je .approval_failure
+    cmp [authHttpCode],401
+    je .unauthorized_failure
     stdcall SetStatusA,authMsgMcFail
     jmp .done
   .ownership_failure:
+    cmp [authHttpCode],401
+    je .unauthorized_failure
     stdcall SetStatusA,authMsgOwnFail
     jmp .done
   .profile_failure:
+    cmp [authHttpCode],401
+    je .unauthorized_failure
     stdcall SetStatusA,authMsgProfile
+    jmp .done
+  .approval_failure:
+    stdcall SetStatusA,authMsgApproval
+    jmp .done
+  .unauthorized_failure:
+    stdcall SetStatusA,authMsgUnauthorized
     jmp .done
   .cancel_failure:
     stdcall SetStatusA,authMsgCancel
@@ -873,10 +1508,9 @@ end if
     stdcall AuthRelease
     stdcall AuthWipeSecrets
     cmp [authResult],0
-    jne .notify
+    jne .return_result
     stdcall AuthClearIdentity
-  .notify:
-    invoke PostMessageW,[hWnd],08002h,0,0
+  .return_result:
     mov eax,[authResult]
     ret
 endp

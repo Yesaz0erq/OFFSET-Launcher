@@ -5,10 +5,15 @@ entry start
 include 'win32ax.inc'
 include 'mod_types.inc'
 include 'version_types.inc'
+include 'servers_types.inc'
+NAV_COUNT = 9
 WM_APP = 8000h
 OFFSET_I18N = 1
 OFFSET_VERSION_SETTINGS = 1
 OFFSET_LAUNCH_LOG = 1
+OFFSET_ACCOUNT_SESSION = 1
+OFFSET_LOADER_CHANGE = 1
+OFFSET_BROWSE_DEFAULTS = 1
 
 WM_STATUS = WM_APP+1
 WM_FINISHED = WM_APP+2
@@ -41,6 +46,7 @@ currentPage dd 0
 lastPage dd -1
 busy dd 0
 workerHandle dd 0
+workerCallback dd 0
 dpi dd 96
 paintDC dd 0
 hVersion dd 0
@@ -67,6 +73,7 @@ mouseTracking dd 0
 tickCount dd 0
 defaultPlayer db 'Player',0
 defaultVersion db '1.21.1',0
+defaultClientId db '54048348-72bb-4ed2-a8a4-c72423265e94',0
 className du 'OffsetLauncherWindow',0
 editClass du 'EDIT',0
 comboClass du 'COMBOBOX',0
@@ -90,13 +97,15 @@ eyebrowVersions du '02 / VERSIONS',0
 eyebrowAccount du '03 / ACCOUNT',0
 eyebrowSettings du '04 / SETTINGS',0
 eyebrowMods du '05 / MODS',0
-sheetFmt du 'SHEET %u / 08',0
+sheetFmt du 'SHEET %u / 09',0
 monoWorkspace du 'WORKSPACE',0
 monoTagline du 'MINECRAFT LAUNCHER',0
-monoBuild du 'x86 / WIN32 / 0.7.0',0
-monoDrawing du 'DWG OFFSET-001    SCALE 1:1    REV 0.7',0
+monoBuild du 'x86 / WIN32 / 0.9.0',0
+monoDrawing du 'DWG OFFSET-001    SCALE 1:1    REV 0.9',0
 monoFigure du 'FIG. 01',0
 monoRadius du 'R 66',0
+downloadUiStats rd 2
+downloadUiText rw 128
 monoAuth du 'AUTH / DEVICE CODE',0
 monoSelected du 'SELECTED BUILD',0
 monoProfile du 'A',0
@@ -104,8 +113,8 @@ monoSession du 'B',0
 eyebrowPacks du '06 / MODPACKS',0
 eyebrowPersonal du '07 / PERSONALIZE',0
 eyebrowDetails du 'PROJECT / DETAILS',0
-navKeys du '1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0,'8',0
-navLabels dd sHome,sVersions,sAccount,sSettings,sMods,sPacks,sPersonalHeading,sLogsHeading
+navKeys du '1',0,'2',0,'3',0,'4',0,'5',0,'6',0,'7',0,'8',0,'9',0
+navLabels dd sHome,sVersions,sAccount,sSettings,sMods,sPacks,sPersonalHeading,sLogsHeading,sServersHeading
 segLabels dd 4 dup(0)
 createControls dd 0
 modTab dd 0
@@ -222,6 +231,9 @@ start:
     invoke DwmSetWindowAttribute,eax,33,roundCorners,4
     invoke ShowWindow,[hWnd],SW_SHOWNORMAL
     invoke UpdateWindow,[hWnd]
+    cmp [authHasRefresh],1
+    jne .loop
+    stdcall StartWorker,AccountRestoreWorker
 .loop:
     ; While the interface animates, drain input and render one frame per
     ; display refresh (DwmFlush); otherwise block in GetMessage as before.
@@ -249,7 +261,20 @@ start:
     stdcall PumpMessage
     jmp .loop
 .exit:
+    ; The bitmap is detached from its source file. Dispose it before GDI+.
+    stdcall AccountUiReleaseImage
+    cmp [workerHandle],0
+    je .cleanAccount
+    invoke WaitForSingleObject,[workerHandle],0
+    test eax,eax
+    jnz .processExit
+.cleanAccount:
+    stdcall SkinClear
+    stdcall AuthInvalidateSession
+    stdcall AuthWipeSecrets
+    stdcall AuthWipeRefresh
     invoke GdiplusShutdown,[gdipToken]
+.processExit:
     invoke ExitProcess,[msg.wParam]
 .failed:
     invoke ExitProcess,1
@@ -304,15 +329,8 @@ proc AnimFrame
     invoke InvalidateRect,[hWnd],0,0
     ret
 .animating:
-    ; busy-only indicators run at a calmer rate on the timer
+    ; Busy indicators use the same compositor-paced frames as navigation.
     inc [tickCount]
-    cmp eax,2
-    jne .moving
-    mov [animVsync],0
-    test [tickCount],3
-    jnz .done
-    invoke InvalidateRect,[hWnd],0,0
-    ret
 .moving:
     mov [animVsync],1
     invoke InvalidateRect,[hWnd],0,0
@@ -444,6 +462,8 @@ proc CreateControls
     cinvoke wsprintfW,ramText,fmtNum,[memoryMb]
     invoke SetWindowTextW,[hMemory],ramText
     stdcall CreateModControls
+    stdcall CreateAccountControls
+    stdcall ServersUiCreate
     stdcall CreateLogControls
     stdcall CreateVersionControls
     stdcall CreateVersionPageControls
@@ -493,6 +513,8 @@ proc SyncPage
     stdcall HideDetailControls
     stdcall HidePersonalizationControls
     stdcall HideLogControls
+    stdcall HideAccountControls
+    stdcall ServersUiHide
     cmp [transActive],0
     jne .done
     cmp [splashActive],0
@@ -507,6 +529,8 @@ proc SyncPage
     je .personal
     cmp [currentPage],7
     je .logs
+    cmp [currentPage],8
+    je .servers
     cmp [currentPage],0
     je .home
     cmp [currentPage],1
@@ -533,21 +557,26 @@ proc SyncPage
     stdcall ShowVersionPageControls
     jmp .done
 .account:
-    invoke ShowWindow,[hClient],SW_SHOW
+    stdcall ShowAccountControls
     jmp .done
 .mods:
     cmp [detailActive],0
     jne .detail
     stdcall ShowModControls
+    stdcall ModBrowseDefault
     jmp .done
 .packs:
     stdcall ShowPackControls
+    stdcall PackBrowseDefault
     jmp .done
 .personal:
     stdcall ShowPersonalizationControls
     jmp .done
 .logs:
     stdcall ShowLogControls
+    jmp .done
+.servers:
+    stdcall ServersUiShow
     jmp .done
 .detail:
     stdcall ShowDetailControls
@@ -558,7 +587,15 @@ endp
 
 ; Animated navigation between pages (or tabs when page is unchanged).
 proc GoPage page
+    ; Workers temporarily own selectedVersion/gameDir and engine scratch data.
+    cmp [busy],0
+    jne .navigate
     stdcall PullSettings
+.navigate:
+    cmp [page],8
+    jne @f
+    stdcall ServersUiInvalidate
+@@:
     mov [detailActive],0
     cmp [page],1
     je .keepVersionPage
@@ -643,6 +680,10 @@ proc LoadSettings
 .client:
     invoke GetPrivateProfileStringW,sectionName,kClient,emptyW,textBuffer,256,iniPath
     invoke WideCharToMultiByte,65001,0,textBuffer,-1,clientId,128,0,0
+    cmp byte [clientId],0
+    jne .clientReady
+    invoke lstrcpyA,clientId,defaultClientId
+.clientReady:
     invoke GetPrivateProfileIntW,sectionName,kMemory,4096,iniPath
     cmp eax,512
     jb .mode
@@ -728,7 +769,19 @@ proc KeyInput key
     ret
 .idle:
     cmp [busy],0
-    jne .unhandled
+    je .idleActions
+    ; Page/rail shortcuts remain available; task-changing shortcuts stay locked.
+    invoke GetKeyState,VK_CONTROL
+    test ax,8000h
+    jz .unhandled
+    cmp [key],'B'
+    je .ctrlKeys
+    mov eax,[key]
+    sub eax,'1'
+    cmp eax,NAV_COUNT-1
+    ja .unhandled
+    jmp .ctrlKeys
+.idleActions:
     cmp [key],VK_F5
     je .launch
     cmp [key],VK_F6
@@ -788,7 +841,7 @@ proc KeyInput key
 @@:
     mov eax,[key]
     sub eax,'1'
-    cmp eax,7
+    cmp eax,NAV_COUNT-1
     ja .unhandled
     cmp eax,[currentPage]
     je .samePage
@@ -911,6 +964,16 @@ proc StartWorker uses ebx,callback
     je .settings
     mov [vmModsAction],0
 .settings:
+    cmp [callback],ServersUiWorker
+    je .workerReady
+    cmp [callback],VmLoaderWorker
+    je .workerReady
+    cmp [callback],AccountRestoreWorker
+    je .workerReady
+    cmp [callback],AccountSkinWorker
+    je .workerReady
+    cmp [callback],AccountLoginWorker
+    je .accountClient
     cmp [callback],PackWorker
     jne .saveWorkerSettings
     cmp [packUiAction],5
@@ -919,11 +982,33 @@ proc StartWorker uses ebx,callback
     je .workerReady
     cmp [packUiAction],7
     je .workerReady
+    jmp .saveWorkerSettings
+.accountClient:
+    invoke GetWindowTextA,[hClient],clientId,128
+    cmp byte [clientId],0
+    jne .accountClientReady
+    invoke lstrcpyA,clientId,defaultClientId
+    invoke SetWindowTextA,[hClient],clientId
+.accountClientReady:
+    stdcall AuthValidateClient
+    test eax,eax
+    jz .accountClientBad
+    invoke MultiByteToWideChar,65001,0,clientId,-1,textBuffer,2048
+    invoke WritePrivateProfileStringW,sectionName,kClient,textBuffer,iniPath
+    jmp .workerReady
+.accountClientBad:
+    stdcall SetStatusA,authMsgInvalidId
+    jmp .reject
 .saveWorkerSettings:
     stdcall SaveSettings
     test eax,eax
     jz .reject
 .workerReady:
+    mov eax,[callback]
+    mov [workerCallback],eax
+    mov dword [cDownloadBytes],0
+    mov dword [cDownloadBytes+4],0
+    mov [cDownloadFiles],0
     mov [busy],1
     mov [engineCancel],0
     mov [authCancel],0
@@ -939,6 +1024,22 @@ proc StartWorker uses ebx,callback
     stdcall EnableVersionPageControls,0
     stdcall EnablePackControls,0
     stdcall EnablePersonalizationControls,0
+    stdcall EnableAccountControls,0
+    stdcall ServersUiEnable,0
+    ; Browsing controls do not mutate engine inputs or start a second worker.
+    ; Keep the active catalogue worker's own result controls locked.
+    cmp [callback],ModWorker
+    je .browsePacks
+    stdcall EnableModControls,1
+.browsePacks:
+    cmp [callback],PackWorker
+    je .browseCommon
+    stdcall EnablePackControls,1
+.browseCommon:
+    invoke EnableWindow,[hVInstalled],1
+    invoke EnableWindow,[hVQueue],1
+    stdcall EnablePersonalizationControls,1
+    stdcall ServersUiEnable,1
     invoke lstrcpyW,statusText,sWorking
     stdcall StatusChanged
     invoke CreateThread,0,0,[callback],0,0,0
@@ -959,6 +1060,39 @@ proc StartWorker uses ebx,callback
 endp
 
 ; ---------------------------------------------------------------- drawing kit
+; Account workers finish only after the profile/skin read has completed.
+proc AccountLoginWorker,parameter
+    stdcall SkinClear
+    stdcall AuthLoginQuiet,[parameter]
+    cmp [authReady],1
+    jne .finish
+    stdcall AccountRefreshSkin
+.finish:
+    invoke PostMessageW,[hWnd],WM_FINISHED,0,0
+    mov eax,[authReady]
+    ret
+endp
+proc AccountRestoreWorker,parameter
+    stdcall AuthEnsureSession
+    test eax,eax
+    jz .finish
+    stdcall AccountRefreshSkin
+.finish:
+    invoke PostMessageW,[hWnd],WM_FINISHED,0,0
+    mov eax,[authReady]
+    ret
+endp
+proc AccountRefreshSkin
+    stdcall SkinRefresh
+    cmp [authReady],1
+    jne .done
+    cmp [authCacheOkay],0
+    jne .done
+    stdcall SetStatusA,authMsgCacheSave
+.done:
+    ret
+endp
+
 proc CR2ARGB color
     mov eax,[color]
     bswap eax
@@ -1263,6 +1397,27 @@ endp
 proc BusyBar uses ebx esi,x,y,w
     cmp [busy],0
     je .done
+    stdcall DownloadSnapshot,downloadUiStats
+    cmp [downloadUiStats],0
+    je .bar
+    mov eax,[downloadUiStats]
+    xor edx,edx
+    mov ecx,1024
+    div ecx
+    mov ebx,eax
+    imul eax,edx,10
+    xor edx,edx
+    div ecx
+    cinvoke wsprintfW,downloadUiText,sDownloadBytes,ebx,eax,[downloadUiStats+4]
+    mov eax,[y]
+    add eax,48
+    cmp [y],628
+    jne @f
+    mov eax,[y]
+    add eax,7
+@@:
+    stdcall Text,0,downloadUiText,[x],eax,[w],20,[fSmall],C_MUTED
+.bar:
     stdcall FillRR,[x],[y],[w],3,1,A_TRACK
     stdcall NowMs
     xor edx,edx
@@ -1316,6 +1471,8 @@ proc NavIcon uses ebx esi edi,kind,x,y,argb
     je .settings
     cmp eax,7
     je .logs
+    cmp eax,8
+    je .servers
     ; play: ring + triangle
     stdcall ArcA,esi,edi,8,0,360,[argb],14,0
     lea eax,[esi-2]
@@ -1330,6 +1487,20 @@ proc NavIcon uses ebx esi edi,kind,x,y,argb
     lea ecx,[edi-4]
     lea edx,[edi+4]
     stdcall LineA,eax,ecx,eax,edx,[argb],14
+    ret
+.servers:
+    lea eax,[esi-8]
+    lea ecx,[edi-8]
+    stdcall StrokeRR,eax,ecx,16,7,2,[argb],14
+    lea eax,[esi-8]
+    lea ecx,[edi+2]
+    stdcall StrokeRR,eax,ecx,16,7,2,[argb],14
+    lea eax,[esi-4]
+    lea ecx,[edi-4]
+    stdcall FillCircle,eax,ecx,1,[argb]
+    lea eax,[esi-4]
+    lea ecx,[edi+5]
+    stdcall FillCircle,eax,ecx,1,[argb]
     ret
 .logs:
     lea eax,[esi-6]
@@ -1524,7 +1695,7 @@ proc PaintSidebar uses ebx esi edi
     stdcall Text,0,ecx,52,[iy],140,NAV_H,ebx,edi
 .nextItem:
     inc [i]
-    cmp [i],8
+    cmp [i],NAV_COUNT
     jb .nav
     ; footer: game folder, language, build tag
     mov eax,[sw]
@@ -1632,8 +1803,8 @@ proc PaintHero uses ebx esi edi
     stdcall GfxUnclip
     stdcall HeroTextColor,0D9C2A6h
     mov ebx,eax
-    stdcall TextDraw,monoFigure,980,136,90,14,[fMonoSmall],ebx,DT_RIGHT,1
-    stdcall TextDraw,monoRadius,1000,262,70,14,[fMonoSmall],ebx,DT_RIGHT,1
+    stdcall TextDraw,monoFigure,1000,136,68,18,[fMonoSmall],ebx,DT_LEFT,0
+    stdcall TextDraw,monoRadius,1000,258,68,18,[fMonoSmall],ebx,DT_LEFT,0
     ; left: current version
     stdcall HeroTextColor,0E8D6C2h
     stdcall Text,0,sHeroVersion,284,146,520,20,[fSmall],eax
@@ -1718,86 +1889,7 @@ proc PaintVersions dc
     ret
 endp
 
-; ---------------------------------------------------------------- account
-proc AccountChoice uses ebx esi,x,y,w,h,title,desc,level
-    ; level 0..256 = how selected this card is (spring driven)
-    stdcall HotAdd,[x],[y],[w],[h]
-    stdcall HoverLevel,eax
-    mov esi,eax
-    stdcall Card,[x],[y],[w],[h],18
-    stdcall Mix,A_HAIRLINE,[themeAccentARGB],[level]
-    stdcall StrokeRR,[x],[y],[w],[h],18,eax,15
-    test esi,esi
-    jz @f
-    shr esi,5
-    stdcall WithAlpha,[themeAccentARGB],esi
-    stdcall FillRR,[x],[y],[w],[h],18,eax
-@@:
-    ; radio
-    mov ebx,[x]
-    add ebx,34
-    mov esi,[y]
-    add esi,40
-    stdcall ArcA,ebx,esi,9,0,360,A_FIELDLINE,15,0
-    mov eax,[level]
-    imul eax,6
-    shr eax,8
-    test eax,eax
-    jz @f
-    stdcall FillCircle,ebx,esi,eax,[themeAccentARGB]
-@@:
-    mov eax,[x]
-    add eax,56
-    mov ecx,[y]
-    add ecx,26
-    stdcall Text,0,[title],eax,ecx,320,28,[fMedium],T_INK
-    mov eax,[x]
-    add eax,56
-    mov ecx,[y]
-    add ecx,56
-    stdcall Text,0,[desc],eax,ecx,320,24,[fSmall],T_SECOND
-    ret
-endp
 
-proc PaintAccount uses ebx
-    stdcall PageHeader,eyebrowAccount,sAccountHeading,3
-    ; signed-in state chip
-    cmp [authReady],0
-    je .anon
-    stdcall Dot,260,140,A_GREEN
-    invoke MultiByteToWideChar,65001,0,authName,-1,accountText,256
-    stdcall Text,0,accountText,272,128,500,24,[fBody],T_INK
-    jmp .choices
-.anon:
-    stdcall Dot,260,140,A_ORANGE
-    stdcall Text,0,sNoAccount,272,128,500,24,[fBody],T_SECOND
-.choices:
-    stdcall TextDraw,monoAuth,688,134,400,16,[fMonoSmall],T_MUTED,DT_RIGHT,1
-    mov eax,[onlineMode]
-    shl eax,8
-    stdcall AnimSet,6,eax,0
-    stdcall AnimGet,6
-    mov ebx,eax
-    mov eax,256
-    sub eax,ebx
-    stdcall AccountChoice,252,171,406,110,sAccountOffline,sAccountOfflineDesc,eax
-    stdcall AccountChoice,678,171,410,110,sAccountOnline,sAccountOnlineDesc,ebx
-    stdcall Card,252,302,836,184,18
-    stdcall CornerTicks,252,302,836,184,A_CROSS
-    stdcall Text,0,sClientLabel,280,320,600,28,[fMedium],T_INK
-    stdcall Text,0,sClientHelp,280,350,760,22,[fSmall],T_SECOND
-    stdcall Text,0,sClientHelp2,280,374,780,22,[fSmall],T_SECOND
-    stdcall Field,278,420,768,42,[hClient]
-    mov eax,sLogin
-    cmp [busy],0
-    je .loginButton
-    mov eax,sCancelLogin
-.loginButton:
-    stdcall Button,0,eax,252,510,280,48,1
-    stdcall Button,0,sLogout,550,510,200,48,0
-    stdcall StatusLine,254,676,830,32
-    ret
-endp
 
 ; ---------------------------------------------------------------- settings
 proc PaintSettings
@@ -1941,6 +2033,8 @@ proc PaintInterface uses ebx esi edi,w,h
     je .personal
     cmp [currentPage],7
     je .logs
+    cmp [currentPage],8
+    je .servers
     stdcall PaintSettings
     jmp .content
 .home:
@@ -1955,7 +2049,7 @@ proc PaintInterface uses ebx esi edi,w,h
     stdcall PaintVersionPage,0
     jmp .content
 .account:
-    stdcall PaintAccount
+    stdcall PaintAccount,0
     jmp .content
 .mods:
     stdcall PaintMods,0
@@ -1968,6 +2062,9 @@ proc PaintInterface uses ebx esi edi,w,h
     jmp .content
 .logs:
     stdcall PaintLogs,0
+    jmp .content
+.servers:
+    stdcall ServersUiPaint,0
 .content:
     stdcall GfxEnd
     mov [gOffY],0
@@ -2127,8 +2224,6 @@ proc Click uses ebx esi edi,x,y
     stdcall LangSet,eax
     jmp .done
 .navArea:
-    cmp [busy],0
-    jne .done
     cmp [y],608
     jae .folder
     mov eax,[y]
@@ -2139,13 +2234,15 @@ proc Click uses ebx esi edi,x,y
     div ecx
     cmp edx,NAV_H
     jae .done
-    cmp eax,7
+    cmp eax,NAV_COUNT-1
     ja .done
     cmp eax,[currentPage]
     je .done
     stdcall GoPage,eax
     jmp .done
 .folder:
+    cmp [busy],0
+    jne .done
     cmp [y],642
     ja .done
     stdcall EnsureDirectory,gameDir
@@ -2174,35 +2271,29 @@ proc Click uses ebx esi edi,x,y
 .personalContent:
     cmp [currentPage],7
     je .logs
+    cmp [currentPage],8
+    je .servers
     cmp [currentPage],6
     jne .regularContent
-    cmp [busy],0
-    jne .done
     stdcall ClickPersonalization,[x],[y]
     jmp .done
 .logs:
     stdcall ClickLogs,[x],[y]
     jmp .done
-.regularContent:
-    cmp [busy],0
-    je .idle
-    cmp [currentPage],2
-    jne .done
-    cmp [y],510
-    jb .done
-    cmp [y],558
-    ja .done
-    cmp [x],252
-    jb .done
-    cmp [x],532
-    ja .done
-    mov [authCancel],1
+.servers:
+    stdcall ServersUiClick,[x],[y]
     jmp .done
+.regularContent:
+    cmp [currentPage],2
+    jne .regularBusy
+    stdcall ClickAccount,[x],[y]
+    jmp .done
+.regularBusy:
+    cmp [busy],0
+    jne .done
 .idle:
     cmp [currentPage],0
     je .home
-    cmp [currentPage],2
-    je .account
     ; settings: language segmented control
     cmp [y],402
     jb .saveButton
@@ -2271,34 +2362,6 @@ proc Click uses ebx esi edi,x,y
     ja .done
     stdcall StartWorker,EngineLaunch
     jmp .done
-.account:
-    cmp [y],171
-    jb .done
-    cmp [y],281
-    ja .accountButtons
-    xor eax,eax
-    cmp [x],668
-    setae al
-    mov [onlineMode],eax
-    jmp .redraw
-.accountButtons:
-    cmp [y],510
-    jb .done
-    cmp [y],558
-    ja .done
-    cmp [x],252
-    jb .done
-    cmp [x],532
-    ja .logout
-    mov [onlineMode],1
-    stdcall StartWorker,AuthLogin
-    jmp .done
-.logout:
-    cmp [x],550
-    jb .done
-    cmp [x],750
-    ja .done
-    stdcall AuthLogout
 .redraw:
     invoke InvalidateRect,[hWnd],0,0
 .done:
@@ -2475,6 +2538,8 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     stdcall VersionPageCommand,[wparam]
     stdcall PackCommand,[wparam]
     stdcall PersonalizationCommand,[wparam]
+    stdcall AccountCommand,[wparam]
+    stdcall ServersUiCommand,[wparam]
     ; focus rings and the hero version follow their controls
     mov eax,[wparam]
     shr eax,16
@@ -2575,6 +2640,7 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     ret
 .finished:
     mov [busy],0
+    mov [workerCallback],0
     invoke EnableWindow,[hVersion],1
     invoke EnableWindow,[hPlayer],1
     invoke EnableWindow,[hClient],1
@@ -2586,6 +2652,8 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     stdcall EnableVersionPageControls,1
     stdcall EnablePackControls,1
     stdcall EnablePersonalizationControls,1
+    stdcall EnableAccountControls,1
+    stdcall ServersUiEnable,1
     cmp [workerHandle],0
     je .finishedPaint
     invoke CloseHandle,[workerHandle]
@@ -2595,6 +2663,8 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     stdcall PackFinishUI
     stdcall DetailFinishUI
     stdcall VersionPageFinishUI
+    stdcall AccountFinishUI
+    stdcall ServersUiFinish
     ; Disabling the focused edit/list during a worker clears keyboard focus.
     ; Restore it so shortcuts and Tab continue working after completion.
     invoke SetFocus,[window]
@@ -2603,6 +2673,8 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     stdcall VersionFinishUI
     stdcall RefreshHomeVersionSettings
     stdcall LogFinishUI
+    ; Refresh deferred page scans now that worker-owned buffers are released.
+    stdcall SyncPage
     invoke InvalidateRect,[window],0,0
     xor eax,eax
     ret
@@ -2623,6 +2695,7 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
 endp
 
 include 'ui_gfx.inc'
+include 'browse_defaults.inc'
 include 'splash.inc'
 include 'sidebar.inc'
 include 'personalize.inc'
@@ -2636,12 +2709,19 @@ include 'version_settings.inc'
 include 'mc_sources.inc'
 include 'profiles.inc'
 include 'loaders.inc'
+include 'loader_change.inc'
 include 'versions.inc'
 include 'versions_ui.inc'
 include 'version_page.inc'
+include 'loader_change_ui.inc'
+include 'servers_nbt.inc'
+include 'servers_net.inc'
+include 'servers_ui.inc'
 include 'version_actions.inc'
 include 'version_mods.inc'
 include 'auth.inc'
+include 'skin.inc'
+include 'account_ui.inc'
 include 'mods_ui.inc'
 include 'mod_profile.inc'
 include 'mods.inc'
@@ -2664,9 +2744,9 @@ resource manifestDirectory,1,LANG_NEUTRAL,manifestData
 icon mainIcon,icon16,'icons\offset-16.ico',icon24,'icons\offset-24.ico',icon32,'icons\offset-32.ico',icon48,'icons\offset-48.ico',icon64,'icons\offset-64.ico',icon256,'icons\offset-256.ico'
 versioninfo versionData,VOS__WINDOWS32,VFT_APP,VFT2_UNKNOWN,LANG_ENGLISH+SUBLANG_DEFAULT,0,\
  'FileDescription','OFFSET Minecraft Launcher',\
- 'FileVersion','0.7.0',\
+ 'FileVersion','0.9.0',\
  'ProductName','OFFSET',\
- 'ProductVersion','0.7.0',\
+ 'ProductVersion','0.9.0',\
  'OriginalFilename','OFFSET.exe'
 resdata manifestData
 file 'app.manifest'

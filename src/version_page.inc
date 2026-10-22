@@ -35,6 +35,9 @@ proc CreateVersionPageControls
  mov [hVmMemory],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,10,0
  stdcall CreateVmModsControls
+ if defined OFFSET_LOADER_CHANGE
+ stdcall VmLoaderCreate
+ end if
  ret
 endp
 
@@ -43,6 +46,9 @@ proc HideVersionPageControls
  invoke ShowWindow,[hVmJava],SW_HIDE
  invoke ShowWindow,[hVmMemory],SW_HIDE
  stdcall VmModsHide
+ if defined OFFSET_LOADER_CHANGE
+ stdcall VmLoaderHide
+ end if
  ret
 endp
 
@@ -51,6 +57,9 @@ proc EnableVersionPageControls,enabled
  invoke EnableWindow,[hVmJava],[enabled]
  invoke EnableWindow,[hVmMemory],[enabled]
  stdcall VmModsEnable,[enabled]
+ if defined OFFSET_LOADER_CHANGE
+ stdcall VmLoaderEnable,[enabled]
+ end if
  ret
 endp
 
@@ -136,7 +145,14 @@ proc ShowVersionPageControls
  cmp [vmTab],1
  je .settings
  cmp [vmTab],2
+ je .mods
+ if defined OFFSET_LOADER_CHANGE
+ cmp [vmTab],3
  jne .done
+ stdcall VmLoaderShow
+ end if
+ ret
+.mods:
  stdcall VmModsShow
  ret
 .settings:
@@ -149,6 +165,9 @@ endp
 
 proc VersionPageFinishUI
  stdcall VmModsFinishUI
+ if defined OFFSET_LOADER_CHANGE
+ stdcall VmLoaderFinish
+ end if
  ret
 endp
 
@@ -266,6 +285,13 @@ proc VersionPageCommand,wparam
  stdcall OpenInstalledVersionPage
  ret
 .mods:
+ if defined OFFSET_LOADER_CHANGE
+ cmp [vmTab],3
+ jne @f
+ stdcall VmLoaderCommand,[wparam]
+ ret
+@@:
+ end if
  cmp [vmTab],2
  jne .done
  stdcall VmModsCommand,[wparam]
@@ -278,13 +304,25 @@ proc PaintVersionPage uses ebx,dc
  mov [segLabels],sVmOverview
  mov [segLabels+4],sVmSettings
  mov [segLabels+8],sVmMods
+ if defined OFFSET_LOADER_CHANGE
+ mov [segLabels+12],sLcTab
+ stdcall Segmented,252,124,600,42,4,2,segLabels,[vmTab],[fBody]
+ else
  stdcall Segmented,252,124,450,42,3,2,segLabels,[vmTab],[fBody]
+ end if
  mov eax,sVmBack
  cmp [busy],0
  je @f
  mov eax,sModCancel
 @@:
  stdcall Button,[dc],eax,916,124,172,42,0
+ if defined OFFSET_LOADER_CHANGE
+ cmp [vmTab],3
+ jne @f
+ stdcall VmLoaderPaint,[dc]
+ ret
+@@:
+ end if
  cmp [vmTab],1
  je .settings
  cmp [vmTab],2
@@ -385,7 +423,11 @@ proc ClickVersionPage uses ebx,x,y
  jne .done
  cmp [x],252
  jb .done
+ if defined OFFSET_LOADER_CHANGE
+ cmp [x],852
+ else
  cmp [x],702
+ end if
  jae .done
  mov eax,[x]
  sub eax,252
@@ -401,6 +443,13 @@ proc ClickVersionPage uses ebx,x,y
 .body:
  cmp [busy],0
  jne .done
+ if defined OFFSET_LOADER_CHANGE
+ cmp [vmTab],3
+ jne @f
+ stdcall VmLoaderClick,[x],[y]
+ ret
+@@:
+ end if
  cmp [vmTab],2
  jne .notMods
  stdcall VmModsClick,[x],[y]

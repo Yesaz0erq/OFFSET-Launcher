@@ -68,6 +68,10 @@ endp
 
 proc ShowModControls
     stdcall ModSyncSelectedProfile
+    cmp [modTab],1
+    jbe .tabValid
+    mov [modTab],0
+.tabValid:
     cmp [modTab],0
     je .discover
     cmp [modTab],1
@@ -82,8 +86,11 @@ proc ShowModControls
     invoke ShowWindow,[hModFiles],SW_SHOW
     ret
 .local:
+    cmp [busy],0
+    jne .showLocal
     stdcall ModsScan
     stdcall RefreshLocalList
+.showLocal:
     invoke ShowWindow,[hModLocal],SW_SHOW
     ret
 endp
@@ -149,6 +156,11 @@ proc ReadModInputs uses esi
 endp
 
 proc BeginModSearch
+    cmp [busy],0
+    jne .done
+if defined OFFSET_BROWSE_DEFAULTS
+    mov [modDefaultAttempted],1
+end if
     stdcall ReadModInputs
     test eax,eax
     jz .done
@@ -178,20 +190,10 @@ proc ModWorker uses ebx,param
     stdcall ModsInstall,[modSelectedFile]
     jmp .finish
 .search:
-    cmp [modProvider],0
-    jne .curseSearch
     stdcall ModrinthSearch
     jmp .finish
-.curseSearch:
-    stdcall CurseSearch
-    jmp .finish
 .versions:
-    cmp [modProvider],0
-    jne .curseVersions
     stdcall ModrinthVersions
-    jmp .finish
-.curseVersions:
-    stdcall CurseVersions
 .finish:
     invoke PostMessageW,[hWnd],WM_FINISHED,0,0
     ret
@@ -415,8 +417,7 @@ proc PaintMods uses ebx esi,dc
     stdcall PageHeader,eyebrowMods,sModHeading,5
     mov [segLabels],sModDiscover
     mov [segLabels+4],sModLocal
-    mov [segLabels+8],sModApi
-    stdcall Segmented,252,124,450,42,3,3,segLabels,[modTab],[fBody]
+    stdcall Segmented,252,124,450,42,2,3,segLabels,[modTab],[fBody]
     cmp [modTab],0
     je .discover
     cmp [modTab],1
@@ -424,9 +425,6 @@ proc PaintMods uses ebx esi,dc
     stdcall PaintModApi,[dc]
     jmp .footer
 .discover:
-    mov [segLabels],sModrinth
-    mov [segLabels+4],sCurseForge
-    stdcall Segmented,828,124,260,42,2,4,segLabels,[modProvider],[fBody]
     stdcall Card,252,185,836,123,18
     stdcall Text,[dc],sModGame,280,195,150,26,[fSmall],C_MUTED
     stdcall Text,[dc],sModLoader,440,195,160,26,[fSmall],C_MUTED
@@ -558,6 +556,20 @@ proc ClickMods uses ebx esi edi,x,y
 .normal:
     cmp [busy],0
     je .tabs
+    cmp [y],124
+    jb .done
+    cmp [y],166
+    ja .busyCancel
+    cmp [x],252
+    jb .done
+    cmp [x],702
+    jbe .tabs
+    jmp .done
+.busyCancel:
+if defined OFFSET_BROWSE_DEFAULTS
+    cmp [workerCallback],ModWorker
+    jne .done
+end if
     cmp [y],223
     jb .done
     cmp [y],265
@@ -572,13 +584,13 @@ proc ClickMods uses ebx esi edi,x,y
     cmp [y],166
     ja .body
     cmp [x],702
-    ja .provider
+    ja .done
     cmp [x],252
     jb .done
     mov eax,[x]
     sub eax,252
     xor edx,edx
-    mov ecx,150
+    mov ecx,225
     div ecx
     cmp eax,[modTab]
     je .redraw
@@ -586,19 +598,9 @@ proc ClickMods uses ebx esi edi,x,y
     stdcall StartTransition
     stdcall SyncPage
     jmp .redraw
-.provider:
-    cmp [modTab],0
-    jne .done
-    cmp [x],828
-    jb .done
-    xor eax,eax
-    cmp [x],958
-    setae al
-    mov [modProvider],eax
-    mov [modOffset],0
-    stdcall ClearModResults
-    jmp .done
 .body:
+    cmp [busy],0
+    jne .done
     cmp [modTab],0
     je .discover
     cmp [modTab],1

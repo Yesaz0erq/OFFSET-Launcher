@@ -1,0 +1,160 @@
+{
+  "date": "2026-10-20",
+  "version": "0.6.0",
+  "binary": "dist/OFFSET.exe",
+  "bytes": 224768,
+  "sha256": "92295ba4032c837856b55b1dca352f82433e95249883b46fb96d83417d077184",
+  "language": "original x86 FASM assembly",
+  "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome <JDK21>",
+  "tests": [
+    "common",
+    "memory",
+    "auth_unit",
+    "auth_flow",
+    "engine-test",
+    "mc-sources",
+    "profile-merge",
+    "loaders",
+    "versions",
+    "version-ui",
+    "mod-profile",
+    "version-settings",
+    "version-page",
+    "version-mods",
+    "version-actions",
+    "mods-local",
+    "modrinth",
+    "curseforge",
+    "personalize",
+    "catalog",
+    "project-details",
+    "packs",
+    "packs-ui",
+    "http",
+    "http-parallel",
+    "mc-sources-live",
+    "modrinth-live",
+    "catalog-live",
+    "engine-probe",
+    "version-launch"
+  ],
+  "tests_exit_code": 0,
+  "final_native_regression_suites": 23,
+  "final_native_exit_code": 0,
+  "test_log": "tests/out/validation-0.6.log",
+  "final_native_log": "tests/out/validation-0.6-final-native.log",
+  "previous_feature_validation": "docs/validation-0.5.0.json",
+  "per_version_management": {
+    "entry_points": [
+      "Home Manage",
+      "Installed Manage",
+      "Installed double click"
+    ],
+    "tabs": [
+      "Overview",
+      "Settings",
+      "Mods"
+    ],
+    "open_does_not_select": true,
+    "explicit_use_and_launch_select": true,
+    "repair_restores_current_selection": true,
+    "independent_settings": [
+      "Display name",
+      "Java",
+      "MemoryMiB",
+      "Data isolation"
+    ],
+    "profile_file": "versions/<id>/.offset-profile.ini",
+    "settings_keyed_by": "game root and version ID",
+    "blank_java_inherits_global": true,
+    "memory_zero_inherits_global": true,
+    "memory_range": "512 MiB through detected total physical RAM",
+    "default_data": "shared game root",
+    "isolated_data": "versions/<id>/game",
+    "shared_caches": [
+      "libraries",
+      "assets",
+      "client and natives"
+    ],
+    "auto_migration": false,
+    "native_coverage": [
+      "Unicode and emoji",
+      "unknown INI fields preserved",
+      "invalid settings rejected without modifying file",
+      "independent roots and IDs",
+      "page drafts preserved",
+      "failed save rolls back model",
+      "success failure and cancellation restore runtime globals",
+      "mod install cache scan toggle trash use correct data directory",
+      "repair context restored on success and failure"
+    ],
+    "gui": {
+      "test_directory": "tests/out/version-management-live",
+      "opening_noncurrent_profile_does_not_select": true,
+      "independent_memory_and_directory": true,
+      "persisted_after_restart": true,
+      "mod_toggle_disable_and_enable": true,
+      "shared_mod_directory_untouched": true,
+      "overview_and_home_effective_memory": true,
+      "languages": [
+        "zh",
+        "en",
+        "ja"
+      ],
+      "language_switch_refreshes_mod_rows": true,
+      "previews": [
+        "docs/version-management-overview-0.6.jpg",
+        "docs/version-management-settings-0.6.jpg",
+        "docs/version-management-mods-0.6.jpg"
+      ]
+    },
+    "actual_jvm": {
+      "shared_memory_mib": 768,
+      "isolated_memory_mib": 1024,
+      "version_java_overrides_missing_global_java": true,
+      "actual_working_directory_checked": true,
+      "unicode_paths": true,
+      "shared_library_class_loaded": true,
+      "shared_asset_read": true,
+      "natives_directory_checked": true,
+      "global_restore_on": [
+        "success",
+        "cancellation",
+        "CreateProcess failure"
+      ]
+    },
+    "minecraft": {
+      "version": "1.21.1",
+      "java": "21.0.12",
+      "loader": "Fabric 0.19.5",
+      "mod": "Fabric API 0.116.12+1.21.1",
+      "isolated_data": "tests/out/version-management-live/versions/fabric-loader-0.19.5-1.21.1/game",
+      "actual_main_menu": true,
+      "normal_exit": true,
+      "max_heap_bytes": 2147483648,
+      "max_heap_verified_by": "jcmd VM.flags",
+      "global_memory_remained_mib": 4096,
+      "log": "tests/out/version-management-live/versions/fabric-loader-0.19.5-1.21.1/game/logs/latest.log",
+      "screenshot": "docs/version-isolated-runtime-0.6.jpg"
+    }
+  },
+  "original_settings_preserved_byte_for_byte": true,
+  "original_settings_sha256": "bcc72765ce4aa0d1396c5af57afd1debd31b870689dc9dcbe814b0687dd6f3ca",
+  "package": {
+    "path": "dist/OFFSET-0.6.0-windows.zip",
+    "bytes": 124538,
+    "entries": [
+      "OFFSET.exe",
+      "README.md",
+      "LICENSE",
+      "THIRD_PARTY.md"
+    ],
+    "embedded_exe_sha256": "92295ba4032c837856b55b1dca352f82433e95249883b46fb96d83417d077184",
+    "verified_equal_to_dist": true
+  },
+  "limitations": [
+    "Directory isolation does not move existing saves mods or configuration.",
+    "Game compatibility outside the documented modern metadata scope was not expanded.",
+    "Historical Microsoft account and valid CurseForge API-key live-test limitations remain in the prior record."
+  ]
+}

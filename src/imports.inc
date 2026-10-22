@@ -1,9 +1,12 @@
 section '.idata' import data readable writeable
-library kernel32,'KERNEL32.DLL',gdiplus,'GDIPLUS.DLL',msimg32,'MSIMG32.DLL',user32,'USER32.DLL',gdi32,'GDI32.DLL',shell32,'SHELL32.DLL',advapi32,'ADVAPI32.DLL',winhttp,'WINHTTP.DLL',comctl32,'COMCTL32.DLL',dwmapi,'DWMAPI.DLL',crypt32,'CRYPT32.DLL',comdlg32,'COMDLG32.DLL'
+library kernel32,'KERNEL32.DLL',gdiplus,'GDIPLUS.DLL',msimg32,'MSIMG32.DLL',user32,'USER32.DLL',gdi32,'GDI32.DLL',shell32,'SHELL32.DLL',advapi32,'ADVAPI32.DLL',winhttp,'WINHTTP.DLL',comctl32,'COMCTL32.DLL',dwmapi,'DWMAPI.DLL',crypt32,'CRYPT32.DLL',comdlg32,'COMDLG32.DLL',ws2_32,'WS2_32.DLL',dnsapi,'DNSAPI.DLL'
+import ws2_32,WSAStartup,'WSAStartup',WSACleanup,'WSACleanup',socket,'socket',closesocket,'closesocket',ioctlsocket,'ioctlsocket',connect,'connect',send,'send',recv,'recv',select,'select',getsockopt,'getsockopt',WSAGetLastError,'WSAGetLastError',GetAddrInfoExW,'GetAddrInfoExW',FreeAddrInfoExW,'FreeAddrInfoExW'
+import dnsapi,DnsQuery_W,'DnsQuery_W',DnsRecordListFree,'DnsRecordListFree'
 import comdlg32,GetOpenFileNameW,'GetOpenFileNameW',GetSaveFileNameW,'GetSaveFileNameW'
 import kernel32,\
  GetModuleHandleW,'GetModuleHandleW',ExitProcess,'ExitProcess',GetModuleFileNameW,'GetModuleFileNameW',GetStdHandle,'GetStdHandle',\
  GetFullPathNameW,'GetFullPathNameW',LocalFree,'LocalFree',lstrcmpiW,'lstrcmpiW',GlobalMemoryStatusEx,'GlobalMemoryStatusEx',\
+ GetTempPathW,'GetTempPathW',GetCurrentProcessId,'GetCurrentProcessId',GlobalAlloc,'GlobalAlloc',GlobalLock,'GlobalLock',GlobalUnlock,'GlobalUnlock',GlobalFree,'GlobalFree',\
  GetEnvironmentVariableW,'GetEnvironmentVariableW',SearchPathW,'SearchPathW',GetFileAttributesW,'GetFileAttributesW',\
  FindFirstFileW,'FindFirstFileW',FindNextFileW,'FindNextFileW',FindClose,'FindClose',\
  GetProcessHeap,'GetProcessHeap',HeapAlloc,'HeapAlloc',HeapReAlloc,'HeapReAlloc',HeapFree,'HeapFree',\
@@ -16,7 +19,7 @@ import kernel32,\
  GetExitCodeProcess,'GetExitCodeProcess',GetSystemDirectoryW,'GetSystemDirectoryW',GetWindowsDirectoryW,'GetWindowsDirectoryW',\
  MultiByteToWideChar,'MultiByteToWideChar',WideCharToMultiByte,'WideCharToMultiByte',\
  lstrcpyW,'lstrcpyW',lstrcatW,'lstrcatW',lstrlenW,'lstrlenW',lstrlenA,'lstrlenA',lstrcpyA,'lstrcpyA',\
- lstrcatA,'lstrcatA',lstrcmpA,'lstrcmpA',GetLastError,'GetLastError',\
+ lstrcatA,'lstrcatA',lstrcmpA,'lstrcmpA',lstrcmpiA,'lstrcmpiA',GetLastError,'GetLastError',\
  CreateDirectoryW,'CreateDirectoryW',DeleteFileW,'DeleteFileW',MoveFileExW,'MoveFileExW',CreateHardLinkW,'CreateHardLinkW',CopyFileW,'CopyFileW',TerminateProcess,'TerminateProcess',\
  CreateThread,'CreateThread',GetTickCount,'GetTickCount',Sleep,'Sleep',MulDiv,'MulDiv',\
  GetPrivateProfileStringW,'GetPrivateProfileStringW',WritePrivateProfileStringW,'WritePrivateProfileStringW',GetPrivateProfileIntW,'GetPrivateProfileIntW',\
@@ -34,6 +37,7 @@ import user32,\
  wsprintfA,'wsprintfA',wsprintfW,'wsprintfW',SetCursor,'SetCursor',GetSysColorBrush,'GetSysColorBrush',\
  MessageBoxW,'MessageBoxW',DestroyWindow,'DestroyWindow',SetWindowLongW,'SetWindowLongW',\
  GetKeyState,'GetKeyState',GetFocus,'GetFocus',\
+ OpenClipboard,'OpenClipboard',EmptyClipboard,'EmptyClipboard',SetClipboardData,'SetClipboardData',CloseClipboard,'CloseClipboard',\
  TrackMouseEvent,'TrackMouseEvent',GetSystemMetrics,'GetSystemMetrics',IsDialogMessageW,'IsDialogMessageW',\
  EnumChildWindows,'EnumChildWindows',GetParent,'GetParent',IsIconic,'IsIconic',GetForegroundWindow,'GetForegroundWindow'
 import gdi32,\
@@ -51,7 +55,9 @@ import gdiplus,\
  GdipFillPath,'GdipFillPath',GdipDrawPath,'GdipDrawPath',GdipCreatePen1,'GdipCreatePen1',GdipDeletePen,'GdipDeletePen',\
  GdipSetPenLineCap197819,'GdipSetPenLineCap197819',GdipSetPenLineJoin,'GdipSetPenLineJoin',GdipSetPenDashArray,'GdipSetPenDashArray',GdipDrawLine,'GdipDrawLine',\
  GdipFillEllipse,'GdipFillEllipse',GdipDrawArc,'GdipDrawArc',GdipSetClipPath,'GdipSetClipPath',GdipResetClip,'GdipResetClip',\
- GdipGetDC,'GdipGetDC',GdipReleaseDC,'GdipReleaseDC'
+ GdipGetDC,'GdipGetDC',GdipReleaseDC,'GdipReleaseDC',\
+ GdipLoadImageFromFile,'GdipLoadImageFromFile',GdipCreateBitmapFromFile,'GdipCreateBitmapFromFile',GdipGetImageWidth,'GdipGetImageWidth',GdipGetImageHeight,'GdipGetImageHeight',\
+ GdipCloneBitmapAreaI,'GdipCloneBitmapAreaI',GdipDrawImagePointsRectI,'GdipDrawImagePointsRectI',GdipSetInterpolationMode,'GdipSetInterpolationMode',GdipImageRotateFlip,'GdipImageRotateFlip'
 import msimg32,AlphaBlend,'AlphaBlend'
 import shell32,ShellExecuteW,'ShellExecuteW'
 import advapi32,\

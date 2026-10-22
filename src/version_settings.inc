@@ -534,6 +534,17 @@ proc VsMetadata uses ebx esi edi,record
  mov eax,3
 .loader:
  mov [ebx+VS_LOADER],eax
+ if defined OFFSET_LOADER_CHANGE
+ ; Modern NeoForge can identify itself in game arguments rather than a core
+ ; Maven library. Share the transaction's strict metadata detector.
+ lea eax,[ebx+VS_BASE]
+ stdcall LcReadVersion,[ctx],eax,addr value,addr flags
+ test eax,eax
+ jz @f
+ mov eax,[flags]
+ mov [ebx+VS_LOADER],eax
+@@:
+ end if
  stdcall JsonFree,[ctx]
  stdcall FreeMem,[response]
  mov eax,1

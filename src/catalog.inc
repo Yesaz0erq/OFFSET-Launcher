@@ -205,6 +205,7 @@ endp
 
 proc PackSearch uses ebx esi edi
  local result:DWORD, list:DWORD, count:DWORD, index:DWORD, item:DWORD, record:DWORD
+ mov [packProvider],0
  mov [result],0
  mov [packProjectCount],0
  mov [packFileCount],0

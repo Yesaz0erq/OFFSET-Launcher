@@ -1,0 +1,262 @@
+{
+  "date": "2026-10-20",
+  "version": "0.5.0",
+  "binary": "dist/OFFSET.exe",
+  "bytes": 208384,
+  "sha256": "faa90356e0126e5f7cb164f9d15aff7e13e409a21dc417b9813e31c31f3dbf5b",
+  "language": "x86 FASM assembly",
+  "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome <JDK21>",
+  "tests": [
+    "common",
+    "memory",
+    "auth_unit",
+    "auth_flow",
+    "engine-test",
+    "mc-sources",
+    "profile-merge",
+    "loaders",
+    "versions",
+    "version-ui",
+    "mod-profile",
+    "mods-local",
+    "modrinth",
+    "curseforge",
+    "personalize",
+    "catalog",
+    "project-details",
+    "packs",
+    "packs-ui",
+    "http",
+    "http-parallel",
+    "mc-sources-live",
+    "modrinth-live",
+    "catalog-live",
+    "engine-probe"
+  ],
+  "tests_exit_code": 0,
+  "vanilla_download_sources": {
+    "reference": "PCL-CE 1a7653127d578efdb2a9388999a3fdc67d9e49d5 public Mojang/BMCLAPI URL layouts",
+    "strategy": "BMCLAPI mirror first, then original official URL",
+    "manifest_format": "version_manifest_v2.json with SHA1",
+    "library_mirror_paths": [
+      "/maven/",
+      "/libraries/"
+    ],
+    "asset_mirror_path": "/assets/",
+    "unit_checks_passed": 48,
+    "invalid_or_stale_manifest_falls_back": true,
+    "download_or_hash_failure_falls_back": true,
+    "cancellation_checked_between_sources": true,
+    "native_live_files_sha1_passed": [
+      "version JSON",
+      "client JAR",
+      "library JAR",
+      "asset index",
+      "asset object"
+    ],
+    "client_download_bytes": 26836906,
+    "isolated_test_cache": "tests/out/mc-sources-live",
+    "live_source_per_file_instrumented": false,
+    "full_test_suite_passed_after_change": true
+  },
+  "minimal_ui": {
+    "build_passed": true,
+    "marketing_and_decorative_text_removed": true,
+    "unused_string_entries_removed": 35,
+    "native_ui_pages_inspected": [
+      "home",
+      "versions",
+      "settings"
+    ],
+    "native_home_online_offline_toggle_passed": true,
+    "home_input_and_click_positions_reviewed": true,
+    "preview": "docs/minimal-preview.jpg",
+    "core_tests": "Full suite passed after source routing change"
+  },
+  "memory": {
+    "source": "GlobalMemoryStatusEx ullTotalPhys, floor bytes to MiB",
+    "detected_limit_mib": 16115,
+    "native_ui_limit_accepted": true,
+    "native_ui_limit_plus_one_rejected": true,
+    "invalid_input_preserves_saved_value": true,
+    "setting_restored_mib": 4096,
+    "large_physical_memory_and_uint32_boundaries_tested": true,
+    "engine_uses_detected_limit": true
+  },
+  "modrinth": {
+    "real_search": true,
+    "real_version_list": true,
+    "real_download": true,
+    "file": "fabric-api-0.116.17+1.21.1.jar",
+    "bytes": 2452735,
+    "sha1": "810b2b0195371a012906241d8b85a32a1d6de53c",
+    "native_ui_download": true,
+    "unicode_paths": true,
+    "disable_enable_roundtrip": true
+  },
+  "curseforge": {
+    "implemented": true,
+    "fixture_tests_passed": true,
+    "real_no_key_http_status": 403,
+    "authenticated_live_tested": false,
+    "requires": "Own valid CurseForge API key",
+    "key_storage": "Windows user-scope DPAPI; only explicit Save Key persists"
+  },
+  "local_management": {
+    "collision_preserves_old_files": true,
+    "recoverable_trash": true,
+    "bad_hash_rejected": true,
+    "non_jar_rejected": true,
+    "encrypted_key_roundtrip": true
+  },
+  "game_regression": {
+    "version": "1.21.1",
+    "java": "21.0.12",
+    "actual_main_menu": true,
+    "normal_exit": true,
+    "renderer_log": "tests/out/vanilla-smoke/logs/latest.log",
+    "modded_game_tested": true
+  },
+  "multiple_versions": {
+    "catalog": [
+      "release",
+      "snapshot"
+    ],
+    "filter": "type and version ID",
+    "queue_capacity": 64,
+    "queue_storage": "in-memory; verified game cache retained",
+    "failure_continues": true,
+    "cancel_retry": true,
+    "gui_batch": [
+      "1.21.1",
+      "24w33a"
+    ],
+    "gui_batch_completed": 2,
+    "gui_batch_failed": 0,
+    "snapshot_actual_main_menu": true,
+    "snapshot_normal_exit": true,
+    "cache": "tests/out/version-ui-live",
+    "preview": "docs/version-queue-0.3.jpg",
+    "original_game_cache_unchanged": true,
+    "capacity_preflight_atomic": true,
+    "register_preservation_regression": true,
+    "browser_preview": "docs/versions-preview-0.3.jpg",
+    "snapshot_screenshot": "docs/snapshot-runtime-0.3.jpg"
+  },
+  "loaders": {
+    "minecraft": "1.21.1",
+    "java": "21.0.12",
+    "actual_main_menu_and_normal_exit": [
+      {
+        "loader": "Fabric",
+        "version": "0.19.5",
+        "profile": "fabric-loader-0.19.5-1.21.1",
+        "screenshot": "docs/fabric-runtime-0.3.jpg"
+      },
+      {
+        "loader": "Forge",
+        "version": "52.1.20",
+        "profile": "1.21.1-forge-52.1.20",
+        "screenshot": "docs/forge-runtime-0.3.jpg"
+      },
+      {
+        "loader": "NeoForge",
+        "version": "21.1.264",
+        "profile": "neoforge-21.1.264",
+        "screenshot": "docs/neoforge-runtime-0.3.jpg"
+      },
+      {
+        "loader": "Quilt",
+        "version": "0.30.1",
+        "profile": "quilt-loader-0.30.1-1.21.1",
+        "screenshot": "docs/quilt-runtime-0.3.jpg"
+      }
+    ],
+    "cache": "tests/out/loader-runtime-live",
+    "official_installer_evidence": "tests/out/loader-runtime-live/verification.json",
+    "profile_backup_preserved": true,
+    "modulepath_classpath_collision_regression": true,
+    "mod_filters_sync_unit_tested": true,
+    "gui_download": {
+      "loader": "Fabric",
+      "version": "0.20.1",
+      "minecraft": "1.21.1",
+      "completed": 1,
+      "failed": 0,
+      "normalized": true,
+      "preview": "docs/loader-queue-0.3.jpg"
+    },
+    "gui_mod_filter_sync_verified": true
+  },
+  "limitations": [
+    "Java must match the game and pack",
+    "CurseForge authenticated live and real Microsoft login untested",
+    "Only documented modern pack formats; no MultiMC/Prism/custom-script packs",
+    "ZIP64/encryption/links/alternate Unicode paths unsupported",
+    "Introductions are native plain text; rich media remains on source website"
+  ],
+  "original_settings_restored": true,
+  "modpacks": {
+    "providers": [
+      "Modrinth",
+      "CurseForge"
+    ],
+    "formats": [
+      "Modrinth formatVersion1 mrpack",
+      "CurseForge minecraftModpack manifestVersion1 ZIP"
+    ],
+    "instance_storage": "EXE/instances",
+    "existing_instances_preserved": true,
+    "archive_path_validation": true,
+    "case_duplicate_symlink_reparse_and_alt_name_rejected": true,
+    "atomic_stage_publish": true,
+    "resume_archive_sha1_ownership": true,
+    "max_zip_mib": 128,
+    "max_entries": 4096,
+    "real_pack": "Fabulously Optimized 6.5.0",
+    "minecraft": "1.21.1",
+    "loader": "Fabric 0.19.3",
+    "client_files_hash_verified": 50,
+    "override_files_verified": 63,
+    "real_menu": true,
+    "normal_exit": true,
+    "loaded_mods_in_log": 151,
+    "runtime_image": "docs/modpack-runtime-0.5.jpg",
+    "file_verification": "tests/out/pack-real-verification.json",
+    "cache": "tests/out/pack-real-fo",
+    "curseforge_authenticated_live": false,
+    "gui_download_install_verified": true,
+    "gui_test_directory": "tests/out/ui-feature-live",
+    "browser_preview": "docs/modpacks-preview-0.5.jpg",
+    "gui_instance_activation_verified": true,
+    "cached_stage_resume_verified": true
+  },
+  "project_details": {
+    "native_scrollable_text": true,
+    "html_and_markdown_to_text": true,
+    "no_active_content": true,
+    "real_modrinth_projects": [
+      "Fabric API",
+      "Fabulously Optimized"
+    ],
+    "mcmod_search": "https://search.mcmod.cn/s?key=<encoded project name>",
+    "exact_mcmod_page_mapping_claimed": false,
+    "gui_pack_details_verified": true,
+    "gui_mod_details_verified": true,
+    "preview": "docs/mod-details-0.5.jpg",
+    "gui_mcmod_browser_opened": true
+  },
+  "personalization": {
+    "presets": 6,
+    "custom_hex": true,
+    "title_and_sidebar_name": true,
+    "motion_toggle": true,
+    "white_text_min_contrast": 4.5,
+    "unicode_ini_roundtrip": true,
+    "native_live_color_change": true,
+    "restart_color_name_persisted": true,
+    "existing_ui_style_preserved": true,
+    "preview": "docs/custom-theme-0.5.jpg",
+    "test_prefs_restored": true
+  }
+}

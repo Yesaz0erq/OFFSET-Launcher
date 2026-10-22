@@ -430,8 +430,6 @@ endp
 
 proc PersonalizationCommand,wparam
     local parsed:DWORD
-    cmp [busy],0
-    jne .done
     cmp [themeControlLock],0
     jne .done
     mov eax,[wparam]
@@ -502,8 +500,6 @@ endp
 
 proc ClickPersonalization uses ebx esi,x,y
     local parsed:DWORD
-    cmp [busy],0
-    jne .done
     cmp [y],182
     jb .actions
     cmp [y],242

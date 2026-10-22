@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-20",
+  "version": "0.2.0",
+  "binary": "dist/OFFSET.exe",
+  "bytes": 74240,
+  "sha256": "6626342e6f0b584d44b1c006a1433718d35cdac45cf861af4e4119a578d3e2ed",
+  "language": "x86 FASM assembly",
+  "test_command": ".\\test.ps1 -Network -JavaProbe -JavaHome <JDK21>",
+  "after_memory_change_test_command": ".\\test.ps1 -JavaProbe -JavaHome <JDK21>",
+  "tests": [
+    "common",
+    "memory",
+    "auth_unit",
+    "auth_flow",
+    "engine-test",
+    "mc-sources",
+    "mods-local",
+    "modrinth",
+    "curseforge",
+    "http",
+    "http-parallel",
+    "mc-sources-live",
+    "modrinth-live",
+    "engine-probe"
+  ],
+  "tests_exit_code": 0,
+  "vanilla_download_sources": {
+    "reference": "PCL-CE 1a7653127d578efdb2a9388999a3fdc67d9e49d5 public Mojang/BMCLAPI URL layouts",
+    "strategy": "BMCLAPI mirror first, then original official URL",
+    "manifest_format": "version_manifest_v2.json with SHA1",
+    "library_mirror_paths": ["/maven/", "/libraries/"],
+    "asset_mirror_path": "/assets/",
+    "unit_checks_passed": 48,
+    "invalid_or_stale_manifest_falls_back": true,
+    "download_or_hash_failure_falls_back": true,
+    "cancellation_checked_between_sources": true,
+    "native_live_files_sha1_passed": ["version JSON", "client JAR", "library JAR", "asset index", "asset object"],
+    "client_download_bytes": 26836906,
+    "isolated_test_cache": "tests/out/mc-sources-live",
+    "live_source_per_file_instrumented": false,
+    "full_test_suite_passed_after_change": true
+  },
+  "minimal_ui": {
+    "build_passed": true,
+    "marketing_and_decorative_text_removed": true,
+    "unused_string_entries_removed": 35,
+    "native_ui_pages_inspected": ["home", "versions", "settings"],
+    "native_home_online_offline_toggle_passed": true,
+    "home_input_and_click_positions_reviewed": true,
+    "preview": "docs/minimal-preview.jpg",
+    "core_tests": "Full suite passed after source routing change"
+  },
+  "memory": {
+    "source": "GlobalMemoryStatusEx ullTotalPhys, floor bytes to MiB",
+    "detected_limit_mib": 16115,
+    "native_ui_limit_accepted": true,
+    "native_ui_limit_plus_one_rejected": true,
+    "invalid_input_preserves_saved_value": true,
+    "setting_restored_mib": 4096,
+    "large_physical_memory_and_uint32_boundaries_tested": true,
+    "engine_uses_detected_limit": true
+  },
+  "modrinth": {
+    "real_search": true,
+    "real_version_list": true,
+    "real_download": true,
+    "file": "fabric-api-0.116.17+1.21.1.jar",
+    "bytes": 2452735,
+    "sha1": "810b2b0195371a012906241d8b85a32a1d6de53c",
+    "native_ui_download": true,
+    "unicode_paths": true,
+    "disable_enable_roundtrip": true
+  },
+  "curseforge": {
+    "implemented": true,
+    "fixture_tests_passed": true,
+    "real_no_key_http_status": 403,
+    "authenticated_live_tested": false,
+    "requires": "Own valid CurseForge API key",
+    "key_storage": "Windows user-scope DPAPI; only explicit Save Key persists"
+  },
+  "local_management": {
+    "collision_preserves_old_files": true,
+    "recoverable_trash": true,
+    "bad_hash_rejected": true,
+    "non_jar_rejected": true,
+    "encrypted_key_roundtrip": true
+  },
+  "game_regression": {
+    "version": "1.21.1",
+    "java": "21.0.12",
+    "actual_main_menu": true,
+    "normal_exit": true,
+    "renderer_log": "tests/out/vanilla-smoke/logs/latest.log",
+    "modded_game_tested": false
+  },
+  "limitation": "Mod loader installation and inherited/modded profile launch remain unsupported"
+}
