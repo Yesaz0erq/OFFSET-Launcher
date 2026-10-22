@@ -46,6 +46,7 @@ authReady dd 0
 statusLock dd 0
 currentPage dd 0
 lastPage dd -1
+suppressPageHeader dd 0
 busy dd 0
 workerHandle dd 0
 workerCallback dd 0
@@ -1426,6 +1427,8 @@ endp
 
 ; Page header: mono eyebrow, title, sheet number and a dimension rule.
 proc PageHeader eyebrow,title,sheet
+    cmp [suppressPageHeader],0
+    jne .done
     stdcall Mono,[eyebrow],253,34,300,16,T_MUTED
     stdcall Text,0,[title],252,52,640,44,[fHeading],T_INK
     cinvoke wsprintfW,sheetText,sheetFmt,[sheet]
@@ -1433,6 +1436,7 @@ proc PageHeader eyebrow,title,sheet
     stdcall LineA,252,108,1088,108,A_HAIRLINE,10
     stdcall LineA,252,104,252,112,A_CROSS,10
     stdcall LineA,1088,104,1088,112,A_CROSS,10
+.done:
     ret
 endp
 
@@ -2147,6 +2151,9 @@ proc PaintInterface uses ebx esi edi,w,h
     stdcall SidebarSync
     mov eax,[contentX]
     mov [gOffX],eax
+    ; Draw the moving page body without its header. The header is composited
+    ; once below, at a fixed offset, to avoid doubled anti-aliased glyphs.
+    mov [suppressPageHeader],1
     stdcall GfxBegin,[bbDC]
     stdcall HotReset
     cmp [currentPage],0
@@ -2197,6 +2204,7 @@ proc PaintInterface uses ebx esi edi,w,h
     stdcall ServersUiPaint,0
 .content:
     stdcall GfxEnd
+    mov [suppressPageHeader],0
     mov [gOffY],0
     mov [gOffX],0
     ; cross-fade the previous page out
