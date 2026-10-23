@@ -109,8 +109,8 @@ eyebrowMods du '05 / MODS',0
 sheetFmt du 'SHEET %u / 09',0
 monoWorkspace du 'WORKSPACE',0
 monoTagline du 'MINECRAFT LAUNCHER',0
-monoBuild du 'x86 / WIN32 / 0.9.0',0
-monoDrawing du 'DWG OFFSET-001    SCALE 1:1    REV 0.9',0
+monoBuild du 'x86 / WIN32 / 1.0.0',0
+monoDrawing du 'DWG OFFSET-001    SCALE 1:1    REV 1.0',0
 monoFigure du 'FIG. 01',0
 monoRadius du 'R 66',0
 downloadUiStats rd 2
@@ -2991,9 +2991,9 @@ resource manifestDirectory,1,LANG_NEUTRAL,manifestData
 icon mainIcon,icon16,'icons\offset-16.ico',icon24,'icons\offset-24.ico',icon32,'icons\offset-32.ico',icon48,'icons\offset-48.ico',icon64,'icons\offset-64.ico',icon256,'icons\offset-256.ico'
 versioninfo versionData,VOS__WINDOWS32,VFT_APP,VFT2_UNKNOWN,LANG_ENGLISH+SUBLANG_DEFAULT,0,\
  'FileDescription','OFFSET Minecraft Launcher',\
- 'FileVersion','0.9.0',\
+ 'FileVersion','1.0.0',\
  'ProductName','OFFSET',\
- 'ProductVersion','0.9.0',\
+ 'ProductVersion','1.0.0',\
  'OriginalFilename','OFFSET.exe'
 resdata manifestData
 file 'app.manifest'

@@ -10,7 +10,7 @@ J_SIZE = 20
 section '.cdata' data readable writeable
 httpStatus dd 0
 cSession dd 0
-cAgent du 'OFFSET/0.9.0',0
+cAgent du 'OFFSET/1.0.0',0
 cGet du 'GET',0
 cHex db '0123456789abcdef',0
 cPart du '.part',0

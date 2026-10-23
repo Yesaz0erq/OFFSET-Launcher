@@ -22,7 +22,7 @@ skLocalData dd 0
 skLocalBytes dd 0
 skResponseBytes dd 0
 skTempSerial dd 0
-skAgentW du 'OFFSET/0.9.0',0
+skAgentW du 'OFFSET/1.0.0',0
 skApiHostW du 'api.minecraftservices.com',0
 skTextureHostW du 'textures.minecraft.net',0
 skProfileW du '/minecraft/profile',0

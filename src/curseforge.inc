@@ -14,7 +14,7 @@ cfGameFilter db '&gameVersion=',0
 cfFilePath db '/files?gameVersion=',0
 cfLoaderFilter db '&modLoaderType=',0
 cfFileLimit db '&pageSize=50&index=0',0
-cfHeaderPrefix db 'Accept: application/json',13,10,'User-Agent: OFFSET/0.9.0 (native Minecraft mod browser)',13,10,'x-api-key: ',0
+cfHeaderPrefix db 'Accept: application/json',13,10,'User-Agent: OFFSET/1.0.0 (native Minecraft mod browser)',13,10,'x-api-key: ',0
 cfCrLf db 13,10,0
 cfFormat db '%u',0
 cfWebsitePrefix db 'https://www.curseforge.com/minecraft/mc-mods/',0

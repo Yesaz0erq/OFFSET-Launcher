@@ -5,7 +5,7 @@ mrResponse dd 0
 mrContext dd 0
 mrRoot dd 0
 mrResult dd 0
-mrHeader du 'Accept: application/json',13,10,'User-Agent: OFFSET/0.9.0 (native Minecraft launcher; Modrinth integration)',13,10,0
+mrHeader du 'Accept: application/json',13,10,'User-Agent: OFFSET/1.0.0 (native Minecraft launcher; Modrinth integration)',13,10,0
 mrSearchBase db 'https://api.modrinth.com/v2/search?limit=20&query=',0
 mrFacetParam db '&facets=',0
 mrOffsetParam db '&offset=',0

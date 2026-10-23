@@ -119,7 +119,7 @@ eSlashA db '\',0
 eSemi db ';',0
 eNewline db 13,10,0
 eLauncher db 'OFFSET',0
-eLauncherVersion db '0.9.0',0
+eLauncherVersion db '1.0.0',0
 eUserType db 'msa',0
 eOfflineToken db '0',0
 eUserProps db '{}',0

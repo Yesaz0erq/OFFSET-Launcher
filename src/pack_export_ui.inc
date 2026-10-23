@@ -61,7 +61,7 @@ proc CreatePackExportControls
  mov [hPeUiAuthor],eax
  mov [peUiControls+12],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,80,0
- stdcall NewControl,editClass,ES_MULTILINE+ES_AUTOVSCROLL+ES_READONLY+WS_VSCROLL,415,280,500,782,56
+ stdcall NewControl,editClass,ES_MULTILINE+ES_AUTOVSCROLL+ES_READONLY,415,280,500,782,56
  mov [hPeUiPreview],eax
  mov [peUiControls+16],eax
  invoke SendMessageW,eax,EM_SETLIMITTEXT,32767,0
@@ -248,29 +248,60 @@ proc ShowPackExportControls uses esi
  ret
 endp
 
+; First visible row of the 3-row source list, keeping the selection in view.
+proc PackExportListTop
+    invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
+    mov ecx,eax
+    sub ecx,3
+    jge @f
+    xor ecx,ecx
+@@:
+    push ecx
+    invoke SendMessageA,[hPeUiSource],CB_GETCURSEL,0,0
+    pop ecx
+    dec eax
+    jge @f
+    xor eax,eax
+@@:
+    cmp eax,ecx
+    jle @f
+    mov eax,ecx
+@@:
+    ret
+endp
+
 proc PaintPackExportVersionList uses ebx esi edi,dc
+    local top:DWORD,count:DWORD
     stdcall FillRR,440,202,624,72,7,A_FIELD
+    stdcall PackExportListTop
+    mov [top],eax
+    invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
+    mov [count],eax
     invoke SendMessageA,[hPeUiSource],CB_GETCURSEL,0,0
     mov edi,eax
     xor esi,esi
 .row:
     cmp esi,3
     jae .done
-    invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
-    cmp esi,eax
-    jae .done
-    invoke SendMessageA,[hPeUiSource],CB_GETLBTEXT,esi,peUiListA
-    invoke MultiByteToWideChar,65001,0,peUiListA,-1,peUiListW,128
     mov eax,esi
-    imul eax,24
-    add eax,204
-    cmp esi,edi
+    add eax,[top]
+    cmp eax,[count]
+    jae .done
+    invoke SendMessageA,[hPeUiSource],CB_GETLBTEXT,eax,peUiListA
+    invoke MultiByteToWideChar,65001,0,peUiListA,-1,peUiListW,128
+    ; row y lives in ebx: FillRR returns a value in eax
+    mov ebx,esi
+    imul ebx,24
+    add ebx,204
+    mov eax,esi
+    add eax,[top]
+    cmp eax,edi
     jne .plain
-    stdcall FillRR,444,eax,616,22,4,[themeAccentARGB]
-    stdcall Text,0,peUiListW,452,eax,596,22,[fBody],T_WHITE
+    stdcall FillRR,444,ebx,616,22,4,[themeAccentARGB]
+    stdcall Text,0,peUiListW,452,ebx,596,22,[fBody],T_WHITE
     jmp .next
 .plain:
-    stdcall Text,0,peUiListW,452,eax,596,22,[fBody],T_INK
+    stdcall Text,0,peUiListW,452,ebx,596,22,[fBody],T_INK
 .next:
     inc esi
     jmp .row
@@ -645,6 +676,8 @@ proc ClickPackExport uses ebx,x,y
  cmp eax,3
  jae .done
  mov ebx,eax
+ stdcall PackExportListTop
+ add ebx,eax
  invoke SendMessageA,[hPeUiSource],CB_GETCOUNT,0,0
  cmp ebx,eax
  jae .done
