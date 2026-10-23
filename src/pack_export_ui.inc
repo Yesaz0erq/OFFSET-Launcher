@@ -14,6 +14,7 @@ peUiSaves dd 0
 peUiMods dd 1
 peUiConfig dd 1
 peUiResources dd 1
+peUiServers dd 0
 peUiFiles dd 0
 peUiBytes dd 0
 peUiExported dd 0
@@ -24,6 +25,7 @@ peUiMrExt du 'mrpack',0
 peUiZipExt du 'zip',0
 peUiMrSuffix du '.mrpack',0
 peUiZipSuffix du '.zip',0
+peUiBadChars du '\/:*?"<>|',0
 peUiMrFilter du 'Modrinth (*.mrpack)',0,'*.mrpack',0,0
 peUiZipFilter du 'Minecraft modpacks (*.zip)',0,'*.zip',0,0
 peUiSave OPENFILENAME
@@ -345,6 +347,8 @@ proc PackExportUiPreview
  mov [peIncludeConfig],eax
  mov eax,[peUiResources]
  mov [peIncludeResources],eax
+ mov eax,[peUiServers]
+ mov [peIncludeServers],eax
  mov [packUiResult],0
  mov [packUiAction],6
  stdcall StartWorker,PackWorker
@@ -382,6 +386,15 @@ proc PackExportUiFinish
  cmp [packUiResult],1
  jne .show
  mov [peUiExported],1
+ invoke MultiByteToWideChar,65001,8,peSummaryA,-1,peUiSummaryW,32768
+ test eax,eax
+ jz .show
+ invoke SetWindowTextW,[hPeUiPreview],peUiSummaryW
+ mov eax,[peFileCount]
+ mov [peUiFiles],eax
+ mov eax,[peTotalBytes]
+ mov [peUiBytes],eax
+ mov [peUiReady],1
 .show:
  cmp [currentPage],5
  jne .done
@@ -425,20 +438,54 @@ proc PackExportUiTarget,path
  xor eax,eax
  ret
 endp
-proc PackExportUiChoose uses edi
+; Returns 1 when a new, valid target was chosen.
+proc PackExportUiChoose uses esi edi
  cmp [busy],0
- jne .done
- cmp [peUiReady],1
- jne .preview
+ jne .no
+ cmp word [peUiDestW],0
+ je .suggest
+ invoke lstrcpyW,peUiPickW,peUiDestW
+ jmp .dialog
+.suggest:
+ ; Suggest "<pack name>.mrpack|.zip" with characters Windows forbids replaced.
+ invoke GetWindowTextW,[hPeUiName],peUiPickW,200
+ mov esi,peUiPickW
+.clean:
+ mov ax,[esi]
+ test ax,ax
+ jz .named
+ cmp ax,32
+ jb .replace
+ mov edi,peUiBadChars
+.bad:
+ cmp word [edi],0
+ je .nextChar
+ cmp ax,[edi]
+ je .replace
+ add edi,2
+ jmp .bad
+.replace:
+ mov word [esi],'-'
+.nextChar:
+ add esi,2
+ jmp .clean
+.named:
+ cmp word [peUiPickW],0
+ jne .suffix
  mov eax,peUiDefaultZip
  cmp [peUiFormat],1
  jne @f
  mov eax,peUiDefaultMr
 @@:
  invoke lstrcpyW,peUiPickW,eax
- cmp word [peUiDestW],0
- je .dialog
- invoke lstrcpyW,peUiPickW,peUiDestW
+ jmp .dialog
+.suffix:
+ mov eax,peUiZipSuffix
+ cmp [peUiFormat],1
+ jne @f
+ mov eax,peUiMrSuffix
+@@:
+ invoke lstrcatW,peUiPickW,eax
 .dialog:
  mov edi,peUiSave
  xor eax,eax
@@ -461,22 +508,20 @@ proc PackExportUiChoose uses edi
  mov [peUiSave.Flags],OFN_PATHMUSTEXIST+OFN_NOCHANGEDIR+OFN_EXPLORER
  invoke GetSaveFileNameW,peUiSave
  test eax,eax
- jz .done
+ jz .no
  stdcall PackExportUiTarget,peUiPickW
  test eax,eax
  jz .invalid
  invoke lstrcpyW,peUiDestW,peUiScratchW
  mov [peUiExported],0
  invoke InvalidateRect,[hWnd],0,0
+ mov eax,1
  ret
-.preview:
- invoke lstrcpyW,statusText,sPackExportNeedPreview
- jmp .redraw
 .invalid:
  invoke lstrcpyW,statusText,sPackExportDestinationBad
-.redraw:
  invoke InvalidateRect,[hWnd],0,0
-.done:
+.no:
+ xor eax,eax
  ret
 endp
 proc PackExportUiClean uses esi,text,allowEmpty
@@ -536,49 +581,45 @@ endp
 proc PackExportUiStart
  cmp [busy],0
  jne .done
- cmp [peUiReady],1
- jne .preview
- cmp [peReady],1
- jne .preview
- invoke lstrcmpiW,peUiRootW,peRootW
- test eax,eax
- jnz .preview
- invoke lstrcmpA,peUiVersionA,peVersionA
- test eax,eax
- jnz .preview
- mov eax,[peUiSaves]
- cmp eax,[peIncludeSaves]
- jne .preview
- mov eax,[peUiMods]
- cmp eax,[peIncludeMods]
- jne .preview
- mov eax,[peUiConfig]
- cmp eax,[peIncludeConfig]
- jne .preview
- mov eax,[peUiResources]
- cmp eax,[peIncludeResources]
- jne .preview
+ cmp byte [peUiVersionA],0
+ je .missing
  cmp word [peUiDestW],0
- je .destination
+ je .choose
+ ; A previously chosen file may exist now (for example an earlier export).
  stdcall PackExportUiTarget,peUiDestW
  test eax,eax
- jz .destination
+ jnz .go
+ mov word [peUiDestW],0
+.choose:
+ stdcall PackExportUiChoose
+ test eax,eax
+ jz .done
+.go:
  stdcall PackExportUiMetadata
  test eax,eax
  jz .invalid
  mov eax,[peUiFormat]
  mov [peFormat],eax
  invoke lstrcpyW,peDestW,peUiDestW
+ invoke lstrcpyW,peRootW,peUiRootW
+ invoke lstrcpyA,peVersionA,peUiVersionA
+ mov eax,[peUiSaves]
+ mov [peIncludeSaves],eax
+ mov eax,[peUiMods]
+ mov [peIncludeMods],eax
+ mov eax,[peUiConfig]
+ mov [peIncludeConfig],eax
+ mov eax,[peUiResources]
+ mov [peIncludeResources],eax
+ mov eax,[peUiServers]
+ mov [peIncludeServers],eax
  mov [peUiExported],0
  mov [packUiResult],0
  mov [packUiAction],7
  stdcall StartWorker,PackWorker
  ret
-.preview:
- invoke lstrcpyW,statusText,sPackExportNeedPreview
- jmp .redraw
-.destination:
- invoke lstrcpyW,statusText,sPackExportPickOutput
+.missing:
+ invoke lstrcpyW,statusText,sVChooseVersion
  jmp .redraw
 .invalid:
  invoke lstrcpyW,statusText,sPackExportInvalid
@@ -634,10 +675,11 @@ proc PaintPackExport,dc
  dec eax
  stdcall Segmented,440,396,624,40,3,4,segLabels,eax,[fBody]
  stdcall Text,[dc],sPackExportContents,280,464,154,26,[fSmall],C_MUTED
- stdcall Button,[dc],sPackExportMods,440,456,144,40,[peUiMods]
- stdcall Button,[dc],sPackExportConfig,596,456,144,40,[peUiConfig]
- stdcall Button,[dc],sPackExportResources,752,456,144,40,[peUiResources]
- stdcall Button,[dc],sPackExportSaves,908,456,156,40,[peUiSaves]
+ stdcall Button,[dc],sPackExportMods,440,456,116,40,[peUiMods]
+ stdcall Button,[dc],sPackExportConfig,567,456,116,40,[peUiConfig]
+ stdcall Button,[dc],sPackExportResources,694,456,116,40,[peUiResources]
+ stdcall Button,[dc],sPackExportSaves,821,456,116,40,[peUiSaves]
+ stdcall Button,[dc],sPackExportServers,948,456,116,40,[peUiServers]
  mov eax,[peUiBytes]
  add eax,1048575
  shr eax,20
@@ -690,9 +732,9 @@ proc ClickPackExport uses ebx,x,y
  stdcall VsResolveData,peUiRootW,peUiVersionA,peUiDataDirW,2048
  jmp .redraw
 .format:
- cmp [y],364
- jb .saves
- cmp [y],404
+ cmp [y],396
+ jb .done
+ cmp [y],436
  ja .saves
  cmp [x],440
  jb .done
@@ -711,8 +753,8 @@ proc ClickPackExport uses ebx,x,y
  mov [peUiExported],0
  jmp .redraw
 .saves:
- cmp [y],414
- jb .buttons
+ cmp [y],456
+ jb .done
  cmp [y],496
  ja .buttons
  cmp [x],440
@@ -722,17 +764,22 @@ proc ClickPackExport uses ebx,x,y
  mov eax,[x]
  sub eax,440
  xor edx,edx
- mov ecx,156
+ mov ecx,127
  div ecx
+ cmp edx,116
+ jae .done
+ cmp eax,4
+ je .serverMode
  cmp eax,3
  je .saveMode
- cmp edx,144
- jae .done
  cmp eax,0
  je .mods
  cmp eax,1
  je .config
  xor [peUiResources],1
+ jmp .invalidate
+.serverMode:
+ xor [peUiServers],1
  jmp .invalidate
 .mods:
  xor [peUiMods],1

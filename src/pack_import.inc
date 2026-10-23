@@ -10,6 +10,7 @@ packInspectBytes dd 0
 pkManifestIndex dd 0
 pkCaptureSize dd 0
 pkEmbeddedCount dd 0
+pkSelfCheck dd 0
 piSecurity dd 12,0,1
 pkMmcManifest db 'mmc-pack.json',0
 pkInstanceCfg db 'instance.cfg',0
@@ -251,6 +252,22 @@ proc PkCaptureEntry uses ebx esi edi,index
  test eax,eax
  jz .done
  mov [text],eax
+ cmp [pkSelfCheck],1
+ jne .tarPath
+ stdcall PkSelfEntry,ebx,[text],[limit]
+ test eax,eax
+ jz .done
+ mov eax,[limit]
+ mov [pkCaptureSize],eax
+ mov esi,[text]
+ mov byte [esi+eax],0
+ invoke lstrlenA,esi
+ cmp eax,[limit]
+ jne .done
+ mov [result],esi
+ mov [text],0
+ jmp .done
+.tarPath:
  invoke GetWindowsDirectoryW,eTarPath,990
  invoke lstrcatW,eTarPath,pkTarNative
  invoke GetFileAttributesW,eTarPath

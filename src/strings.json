@@ -1080,6 +1080,11 @@
       "en": "Worlds",
       "ja": "ワールド"
     },
+    "sPackExportServers": {
+      "zh": "服务器",
+      "en": "Servers",
+      "ja": "サーバー"
+    },
     "sPackExportSource": {
       "zh": "来源版本",
       "en": "Source version",

@@ -14,6 +14,7 @@ peIncludeSaves dd 0
 peIncludeMods dd 1
 peIncludeConfig dd 1
 peIncludeResources dd 1
+peIncludeServers dd 0
 peLoaderKind dd 0
 peManifestBytes dd 0
 peCfgBytes dd 0
@@ -529,6 +530,14 @@ proc PeWalk uses ebx esi edi,relativeW,depth
  inc [index]
  jmp .dirAllow
 .rootFile:
+ ; servers.dat has its own content switch; other root files follow Config.
+ invoke lstrcmpiW,addr find.cFileName,peFileServers
+ test eax,eax
+ jnz .rootConfig
+ cmp [peIncludeServers],1
+ jne .next
+ jmp .included
+.rootConfig:
  cmp [peIncludeConfig],1
  jne .next
  mov [index],0
@@ -1120,7 +1129,11 @@ proc PackExportBuild uses ebx esi edi
  jz .failed
  ; Validate our complete ZIP and manifest using the real import preflight
  ; before publishing anything at the requested path.
+ ; The self-check reads our own manifest from memory, so it does not depend
+ ; on tar.exe; ZIP structure and payload paths are still fully validated.
+ mov [pkSelfCheck],1
  stdcall PackInspect,peTempW
+ mov [pkSelfCheck],0
  test eax,eax
  jz .failed
  cmp [engineCancel],0
@@ -1156,6 +1169,44 @@ proc PackExportBuild uses ebx esi edi
  stdcall SetStatusA,peMsgCancel
 .return:
  mov eax,[result]
+ ret
+endp
+
+; PkCaptureEntry hook for the export self-check: the archive's root manifest
+; (and Prism instance.cfg) must be byte-for-byte the text this export wrote.
+proc PkSelfEntry uses ebx esi edi,record,dest,size
+ local nameA[512]:BYTE
+ invoke WideCharToMultiByte,65001,0,[record],-1,addr nameA,512,0,0
+ test eax,eax
+ jz .bad
+ lea ebx,[nameA]
+ invoke lstrcmpA,ebx,peMrName
+ test eax,eax
+ jz .manifest
+ invoke lstrcmpA,ebx,peCfName
+ test eax,eax
+ jz .manifest
+ invoke lstrcmpA,ebx,peMmcName
+ test eax,eax
+ jz .manifest
+ invoke lstrcmpA,ebx,peCfgName
+ test eax,eax
+ jnz .bad
+ mov esi,peCfgA
+ mov ecx,[peCfgBytes]
+ jmp .copy
+.manifest:
+ mov esi,peManifestA
+ mov ecx,[peManifestBytes]
+.copy:
+ cmp ecx,[size]
+ jne .bad
+ mov edi,[dest]
+ rep movsb
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
  ret
 endp
 
