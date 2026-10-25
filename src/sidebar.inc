@@ -209,13 +209,13 @@ proc PaintSideTooltip uses ebx esi edi
     stdcall TextWidth,esi,[fSmall]
     add eax,26
     mov [tipW],eax
-    ; tooltip pill: ink at hover alpha, white text
+    ; tooltip pill: ink at hover alpha, canvas-coloured text
     mov eax,ebx
     imul eax,0E6h
     shr eax,8
     stdcall WithAlpha,A_INK,eax
     stdcall FillRR,SIDEBAR_RAIL+6,edi,[tipW],NAV_H,9,eax
-    stdcall Mix,01F1D1Dh,T_WHITE,ebx
+    stdcall Mix,T_INK,T_TIPTEXT,ebx
     stdcall TextC,0,esi,SIDEBAR_RAIL+6,edi,[tipW],NAV_H,[fSmall],eax
 .done:
     ret

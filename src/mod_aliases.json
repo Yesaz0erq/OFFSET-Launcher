@@ -1,0 +1,1929 @@
+[
+  {
+    "slug": "sodium",
+    "name": "钠",
+    "query": "Sodium",
+    "aliases": [
+      "钠",
+      "钠优化",
+      "Sodium"
+    ],
+    "id": "AANobbMI"
+  },
+  {
+    "slug": "lithium",
+    "name": "锂",
+    "query": "Lithium",
+    "aliases": [
+      "锂",
+      "锂优化",
+      "Lithium"
+    ],
+    "id": "gvQqBUqZ"
+  },
+  {
+    "slug": "phosphor",
+    "name": "磷",
+    "query": "Phosphor",
+    "aliases": [
+      "磷",
+      "磷优化",
+      "Phosphor"
+    ],
+    "id": "hEOCdOgW"
+  },
+  {
+    "slug": "iris",
+    "name": "Iris 光影",
+    "query": "Iris",
+    "aliases": [
+      "Iris光影",
+      "鸢尾",
+      "虹膜",
+      "Iris"
+    ],
+    "id": "YL57xq9U"
+  },
+  {
+    "slug": "indium",
+    "name": "铟",
+    "query": "Indium",
+    "aliases": [
+      "铟",
+      "Indium"
+    ],
+    "id": "Orvt0mRa"
+  },
+  {
+    "slug": "ferrite-core",
+    "name": "铁氧体磁芯",
+    "query": "FerriteCore",
+    "aliases": [
+      "铁氧体磁芯",
+      "铁氧体",
+      "FerriteCore"
+    ],
+    "id": "uXXizFIs"
+  },
+  {
+    "slug": "modernfix",
+    "name": "现代化修复",
+    "query": "ModernFix",
+    "aliases": [
+      "现代化修复",
+      "现代修复",
+      "ModernFix"
+    ],
+    "id": "nmDcB62a"
+  },
+  {
+    "slug": "immediatelyfast",
+    "name": "立即优化",
+    "query": "ImmediatelyFast",
+    "aliases": [
+      "立即优化",
+      "即时优化",
+      "ImmediatelyFast"
+    ],
+    "id": "5ZwdcRci"
+  },
+  {
+    "slug": "entityculling",
+    "name": "实体渲染机制优化",
+    "query": "Entity Culling",
+    "aliases": [
+      "实体渲染机制优化",
+      "实体剔除",
+      "EntityCulling"
+    ],
+    "id": "NNAgCjsB"
+  },
+  {
+    "slug": "moreculling",
+    "name": "更多剔除",
+    "query": "More Culling",
+    "aliases": [
+      "更多剔除",
+      "更多渲染剔除",
+      "MoreCulling"
+    ],
+    "id": "51shyZVL"
+  },
+  {
+    "slug": "dynamic-fps",
+    "name": "动态 FPS",
+    "query": "Dynamic FPS",
+    "aliases": [
+      "动态帧率",
+      "动态FPS",
+      "DynamicFPS"
+    ],
+    "id": "LQ3K71Q1"
+  },
+  {
+    "slug": "c2me-fabric",
+    "name": "并行区块管理引擎",
+    "query": "C2ME",
+    "aliases": [
+      "并行区块管理引擎",
+      "区块多线程",
+      "C2ME"
+    ],
+    "id": "VSNURh3q"
+  },
+  {
+    "slug": "noisium",
+    "name": "噪声优化",
+    "query": "Noisium",
+    "aliases": [
+      "噪声优化",
+      "Noisium"
+    ],
+    "id": "KuNKN7d2"
+  },
+  {
+    "slug": "starlight",
+    "name": "星光",
+    "query": "Starlight",
+    "aliases": [
+      "星光",
+      "星光照明优化",
+      "Starlight"
+    ],
+    "id": "H8CaAYZC"
+  },
+  {
+    "slug": "krypton",
+    "name": "氪",
+    "query": "Krypton",
+    "aliases": [
+      "氪",
+      "氪优化",
+      "Krypton"
+    ],
+    "id": "fQEb0iXm"
+  },
+  {
+    "slug": "debugify",
+    "name": "调试工具",
+    "query": "Debugify",
+    "aliases": [
+      "调试工具",
+      "原版漏洞修复",
+      "Debugify"
+    ],
+    "id": "QwxR6Gcd"
+  },
+  {
+    "slug": "memoryleakfix",
+    "name": "内存泄漏修复",
+    "query": "Memory Leak Fix",
+    "aliases": [
+      "内存泄漏修复",
+      "内存泄露修复",
+      "MemoryLeakFix"
+    ],
+    "id": "NRjRiSSD"
+  },
+  {
+    "slug": "create",
+    "name": "机械动力",
+    "query": "Create",
+    "aliases": [
+      "机械动力",
+      "机械动力本体",
+      "Create"
+    ],
+    "id": "LNytGWDc"
+  },
+  {
+    "slug": "create-fabric",
+    "name": "机械动力 Fabric",
+    "query": "Create Fabric",
+    "aliases": [
+      "机械动力Fabric",
+      "CreateFabric"
+    ],
+    "id": "Xbc0uyRg"
+  },
+  {
+    "slug": "createaddition",
+    "name": "机械动力：工艺与动力",
+    "query": "Create Crafts Additions",
+    "aliases": [
+      "机械动力工艺与动力",
+      "工艺与动力",
+      "CreateAddition"
+    ],
+    "id": "kU1G12Nn"
+  },
+  {
+    "slug": "create-steam-n-rails",
+    "name": "机械动力：汽鸣铁道",
+    "query": "Steam Rails",
+    "aliases": [
+      "汽鸣铁道",
+      "机械动力汽鸣铁道",
+      "SteamRails"
+    ],
+    "id": "ZzjhlDgM"
+  },
+  {
+    "slug": "create-enchantment-industry",
+    "name": "机械动力：附魔工业",
+    "query": "Create Enchantment Industry",
+    "aliases": [
+      "附魔工业",
+      "机械动力附魔工业"
+    ],
+    "id": "JWGBpFUP"
+  },
+  {
+    "slug": "create-new-age",
+    "name": "机械动力：新生代",
+    "query": "Create New Age",
+    "aliases": [
+      "机械动力新生代",
+      "新生代"
+    ],
+    "id": "FTeXqI9v"
+  },
+  {
+    "slug": "create-deco",
+    "name": "机械动力：装饰",
+    "query": "Create Deco",
+    "aliases": [
+      "机械动力装饰",
+      "CreateDeco"
+    ],
+    "id": "sMvUb4Rb"
+  },
+  {
+    "slug": "jei",
+    "name": "JEI 物品管理器",
+    "query": "JEI",
+    "aliases": [
+      "JEI物品管理器",
+      "JEI",
+      "物品管理器",
+      "物品合成表"
+    ],
+    "id": "u6dRKJwZ"
+  },
+  {
+    "slug": "rei",
+    "name": "REI 物品管理器",
+    "query": "Roughly Enough Items",
+    "aliases": [
+      "REI物品管理器",
+      "REI",
+      "RoughlyEnoughItems"
+    ],
+    "id": "nfn13YXA"
+  },
+  {
+    "slug": "emi",
+    "name": "EMI 物品管理器",
+    "query": "EMI",
+    "aliases": [
+      "EMI物品管理器",
+      "EMI"
+    ],
+    "id": "fRiHVvU7"
+  },
+  {
+    "slug": "jade",
+    "name": "玉",
+    "query": "Jade",
+    "aliases": [
+      "玉",
+      "玉信息显示",
+      "Jade"
+    ],
+    "id": "nvQzSEkH"
+  },
+  {
+    "slug": "wthit",
+    "name": "这是什么",
+    "query": "WTHIT",
+    "aliases": [
+      "这是什么",
+      "WTHIT"
+    ],
+    "id": "6AQIaxuO"
+  },
+  {
+    "slug": "the-one-probe",
+    "name": "探知之眼",
+    "query": "The One Probe",
+    "aliases": [
+      "探知之眼",
+      "TheOneProbe",
+      "TOP"
+    ],
+    "id": "Eyw0UxEx"
+  },
+  {
+    "slug": "appleskin",
+    "name": "苹果皮",
+    "query": "AppleSkin",
+    "aliases": [
+      "苹果皮",
+      "饱食度显示",
+      "AppleSkin"
+    ],
+    "id": "EsAfCjCV"
+  },
+  {
+    "slug": "modmenu",
+    "name": "模组菜单",
+    "query": "Mod Menu",
+    "aliases": [
+      "模组菜单",
+      "MOD菜单",
+      "ModMenu"
+    ],
+    "id": "mOgUt4GM"
+  },
+  {
+    "slug": "cloth-config",
+    "name": "Cloth 配置",
+    "query": "Cloth Config",
+    "aliases": [
+      "Cloth配置",
+      "ClothConfig",
+      "布料配置"
+    ],
+    "id": "9s6osm5g"
+  },
+  {
+    "slug": "fabric-api",
+    "name": "Fabric API",
+    "query": "Fabric API",
+    "aliases": [
+      "Fabric前置",
+      "Fabric接口",
+      "FabricAPI"
+    ],
+    "id": "P7dR8mSH"
+  },
+  {
+    "slug": "fabric-language-kotlin",
+    "name": "Fabric Kotlin",
+    "query": "Fabric Language Kotlin",
+    "aliases": [
+      "Fabric语言Kotlin",
+      "FabricKotlin"
+    ],
+    "id": "Ha28R6CL"
+  },
+  {
+    "slug": "architectury-api",
+    "name": "Architectury API",
+    "query": "Architectury API",
+    "aliases": [
+      "建筑师API",
+      "架构API",
+      "Architectury"
+    ],
+    "id": "lhGA9TYQ"
+  },
+  {
+    "slug": "geckolib",
+    "name": "GeckoLib 动画库",
+    "query": "GeckoLib",
+    "aliases": [
+      "壁虎动画库",
+      "壁虎库",
+      "GeckoLib"
+    ],
+    "id": "8BmcQJ2H"
+  },
+  {
+    "slug": "balm",
+    "name": "Balm",
+    "query": "Balm",
+    "aliases": [
+      "香膏",
+      "Balm前置",
+      "Balm"
+    ],
+    "id": "MBAkmtvl"
+  },
+  {
+    "slug": "bookshelf-lib",
+    "name": "书架",
+    "query": "Bookshelf",
+    "aliases": [
+      "书架",
+      "Bookshelf"
+    ],
+    "id": "uy4Cnpcm"
+  },
+  {
+    "slug": "puzzles-lib",
+    "name": "Puzzles Lib",
+    "query": "Puzzles Lib",
+    "aliases": [
+      "谜题库",
+      "PuzzlesLib"
+    ],
+    "id": "QAGBst4M"
+  },
+  {
+    "slug": "patchouli",
+    "name": "帕秋莉手册",
+    "query": "Patchouli",
+    "aliases": [
+      "帕秋莉手册",
+      "帕秋莉",
+      "Patchouli"
+    ],
+    "id": "nU0bVIaL"
+  },
+  {
+    "slug": "curios",
+    "name": "Curios 饰品栏",
+    "query": "Curios",
+    "aliases": [
+      "饰品栏",
+      "Curios饰品栏",
+      "Curios"
+    ],
+    "id": "vvuO3ImH"
+  },
+  {
+    "slug": "trinkets",
+    "name": "Trinkets 饰品栏",
+    "query": "Trinkets",
+    "aliases": [
+      "Trinkets饰品栏",
+      "Trinkets"
+    ],
+    "id": "5aaWibi9"
+  },
+  {
+    "slug": "accessories",
+    "name": "配饰",
+    "query": "Accessories",
+    "aliases": [
+      "配饰",
+      "配饰栏",
+      "Accessories"
+    ],
+    "id": "jtmvUHXj"
+  },
+  {
+    "slug": "ae2",
+    "name": "应用能源 2",
+    "query": "Applied Energistics 2",
+    "aliases": [
+      "应用能源",
+      "应用能源2",
+      "AE2",
+      "应用能源二"
+    ],
+    "id": "XxWD5pD3"
+  },
+  {
+    "slug": "mekanism",
+    "name": "通用机械",
+    "query": "Mekanism",
+    "aliases": [
+      "通用机械",
+      "通用机械本体",
+      "Mekanism",
+      "MEK"
+    ],
+    "id": "Ce6I4WUE"
+  },
+  {
+    "slug": "mekanism-generators",
+    "name": "通用机械：发电机",
+    "query": "Mekanism Generators",
+    "aliases": [
+      "通用机械发电机",
+      "通用机械发电",
+      "Mek发电机"
+    ],
+    "id": "OFVYKsAk"
+  },
+  {
+    "slug": "mekanism-tools",
+    "name": "通用机械：工具",
+    "query": "Mekanism Tools",
+    "aliases": [
+      "通用机械工具",
+      "Mek工具"
+    ],
+    "id": "tqQpq1lt"
+  },
+  {
+    "slug": "immersiveengineering",
+    "name": "沉浸工程",
+    "query": "Immersive Engineering",
+    "aliases": [
+      "沉浸工程",
+      "IE",
+      "ImmersiveEngineering"
+    ],
+    "id": "tIm2nV03"
+  },
+  {
+    "slug": "refined-storage",
+    "name": "精致存储",
+    "query": "Refined Storage",
+    "aliases": [
+      "精致存储",
+      "精致储存",
+      "RS",
+      "RefinedStorage"
+    ],
+    "id": "KDvYkUg3"
+  },
+  {
+    "slug": "powah",
+    "name": "Powah 能源",
+    "query": "Powah",
+    "aliases": [
+      "能源至上",
+      "Powah能源",
+      "Powah"
+    ],
+    "id": "KZO4S4DO"
+  },
+  {
+    "slug": "botania",
+    "name": "植物魔法",
+    "query": "Botania",
+    "aliases": [
+      "植物魔法",
+      "Botania"
+    ],
+    "id": "pfjLUfGv"
+  },
+  {
+    "slug": "ars-nouveau",
+    "name": "新生魔艺",
+    "query": "Ars Nouveau",
+    "aliases": [
+      "新生魔艺",
+      "ArsNouveau"
+    ],
+    "id": "TKB6INcv"
+  },
+  {
+    "slug": "occultism",
+    "name": "神秘学",
+    "query": "Occultism",
+    "aliases": [
+      "神秘学",
+      "Occultism"
+    ],
+    "id": "sbJh4AZw"
+  },
+  {
+    "slug": "blood-magic",
+    "name": "血魔法",
+    "query": "Blood Magic",
+    "aliases": [
+      "血魔法",
+      "BloodMagic"
+    ],
+    "id": "PbNc6qBY"
+  },
+  {
+    "slug": "hex-casting",
+    "name": "咒法学",
+    "query": "Hex Casting",
+    "aliases": [
+      "咒法学",
+      "咒术学",
+      "HexCasting"
+    ],
+    "id": "nTW3yKrm"
+  },
+  {
+    "slug": "spectrum",
+    "name": "缤纷彩云",
+    "query": "Spectrum",
+    "aliases": [
+      "缤纷彩云",
+      "Spectrum"
+    ],
+    "id": "3rc31Hgo"
+  },
+  {
+    "slug": "bewitchment",
+    "name": "巫师之路",
+    "query": "Bewitchment",
+    "aliases": [
+      "巫师之路",
+      "Bewitchment"
+    ],
+    "id": "AKbBSvuC"
+  },
+  {
+    "slug": "iron-spells-n-spellbooks",
+    "name": "铁魔法与魔法书",
+    "query": "Iron Spells Spellbooks",
+    "aliases": [
+      "铁魔法",
+      "铁魔法与魔法书",
+      "钢铁魔法"
+    ]
+  },
+  {
+    "slug": "twilightforest",
+    "name": "暮色森林",
+    "query": "Twilight Forest",
+    "aliases": [
+      "暮色森林",
+      "暮色",
+      "TwilightForest"
+    ]
+  },
+  {
+    "slug": "aether",
+    "name": "天境",
+    "query": "The Aether",
+    "aliases": [
+      "天境",
+      "以太",
+      "以太天堂",
+      "Aether"
+    ],
+    "id": "YhmgMVyu"
+  },
+  {
+    "slug": "blue-skies",
+    "name": "蔚蓝浩空",
+    "query": "Blue Skies",
+    "aliases": [
+      "蔚蓝浩空",
+      "BlueSkies"
+    ],
+    "id": "DOSy3C4M"
+  },
+  {
+    "slug": "the-bumblezone",
+    "name": "蜜蜂领域",
+    "query": "Bumblezone",
+    "aliases": [
+      "蜜蜂领域",
+      "蜂巢维度",
+      "Bumblezone"
+    ],
+    "id": "38tpSycf"
+  },
+  {
+    "slug": "deeperdarker",
+    "name": "深入黑暗",
+    "query": "Deeper Darker",
+    "aliases": [
+      "深入黑暗",
+      "更深更暗",
+      "DeeperDarker"
+    ],
+    "id": "fnAffV0n"
+  },
+  {
+    "slug": "ad-astra",
+    "name": "星系：传说",
+    "query": "Ad Astra",
+    "aliases": [
+      "星系传说",
+      "飞向群星",
+      "AdAstra"
+    ],
+    "id": "3ufwT9JF"
+  },
+  {
+    "slug": "alexs-mobs",
+    "name": "Alex 的生物",
+    "query": "Alex Mobs",
+    "aliases": [
+      "Alex的生物",
+      "Alex生物",
+      "AlexsMobs"
+    ],
+    "id": "2cMuAZAp"
+  },
+  {
+    "slug": "alexs-caves",
+    "name": "Alex 的洞穴",
+    "query": "Alex Caves",
+    "aliases": [
+      "Alex的洞穴",
+      "Alex洞穴",
+      "AlexsCaves"
+    ],
+    "id": "U6GY0xp0"
+  },
+  {
+    "slug": "ice-and-fire-dragons",
+    "name": "冰火传说",
+    "query": "Ice Fire Dragons",
+    "aliases": [
+      "冰火传说",
+      "冰与火之歌",
+      "IceAndFire"
+    ],
+    "id": "LVnvHVBp"
+  },
+  {
+    "slug": "l_enders-cataclysm",
+    "name": "灾变",
+    "query": "Cataclysm",
+    "aliases": [
+      "灾变",
+      "L灾变",
+      "Cataclysm"
+    ],
+    "id": "46KJle7n"
+  },
+  {
+    "slug": "mowzies-mobs",
+    "name": "Mowzie 的生物",
+    "query": "Mowzie Mobs",
+    "aliases": [
+      "Mowzie的生物",
+      "Mowzie生物",
+      "MowziesMobs"
+    ],
+    "id": "BFbX9xcm"
+  },
+  {
+    "slug": "naturalist",
+    "name": "自然主义",
+    "query": "Naturalist",
+    "aliases": [
+      "自然主义",
+      "Naturalist"
+    ],
+    "id": "F8BQNPWX"
+  },
+  {
+    "slug": "cobblemon",
+    "name": "方可梦",
+    "query": "Cobblemon",
+    "aliases": [
+      "方可梦",
+      "宝可梦",
+      "Cobblemon"
+    ],
+    "id": "MdwFAVRL"
+  },
+  {
+    "slug": "friends-and-foes",
+    "name": "朋友与敌人",
+    "query": "Friends Foes",
+    "aliases": [
+      "朋友与敌人",
+      "FriendsAndFoes"
+    ],
+    "id": "POQ2i9zu"
+  },
+  {
+    "slug": "farmers-delight",
+    "name": "农夫乐事",
+    "query": "Farmer Delight",
+    "aliases": [
+      "农夫乐事",
+      "农夫",
+      "FarmersDelight"
+    ],
+    "id": "R2OftAxM"
+  },
+  {
+    "slug": "farmers-delight-refabricated",
+    "name": "农夫乐事再织",
+    "query": "Farmers Delight Refabricated",
+    "aliases": [
+      "农夫乐事再织",
+      "农夫乐事Fabric"
+    ],
+    "id": "7vxePowz"
+  },
+  {
+    "slug": "farmers-respite",
+    "name": "农夫闲事",
+    "query": "Farmer Respite",
+    "aliases": [
+      "农夫闲事",
+      "FarmersRespite"
+    ],
+    "id": "fasdaXH5"
+  },
+  {
+    "slug": "cooking-for-blockheads",
+    "name": "懒人厨房",
+    "query": "Cooking Blockheads",
+    "aliases": [
+      "懒人厨房",
+      "CookingForBlockheads"
+    ],
+    "id": "vJnhuDde"
+  },
+  {
+    "slug": "croptopia",
+    "name": "丰容",
+    "query": "Croptopia",
+    "aliases": [
+      "丰容",
+      "Croptopia"
+    ]
+  },
+  {
+    "slug": "lets-do-vinery",
+    "name": "葡园酒香",
+    "query": "Vinery",
+    "aliases": [
+      "葡园酒香",
+      "葡萄酒",
+      "Vinery"
+    ],
+    "id": "1DWmBJVA"
+  },
+  {
+    "slug": "bakery",
+    "name": "烘焙房",
+    "query": "Bakery",
+    "aliases": [
+      "烘焙房",
+      "面包房",
+      "Bakery"
+    ],
+    "id": "cHI7YWzc"
+  },
+  {
+    "slug": "supplementaries",
+    "name": "锦致装饰",
+    "query": "Supplementaries",
+    "aliases": [
+      "锦致装饰",
+      "Supplementaries"
+    ],
+    "id": "fFEIiSDQ"
+  },
+  {
+    "slug": "amendments",
+    "name": "修正",
+    "query": "Amendments",
+    "aliases": [
+      "修正",
+      "Amendments"
+    ],
+    "id": "6iTJugQR"
+  },
+  {
+    "slug": "quark",
+    "name": "夸克",
+    "query": "Quark",
+    "aliases": [
+      "夸克",
+      "Quark"
+    ],
+    "id": "qnQsVE2z"
+  },
+  {
+    "slug": "chipped",
+    "name": "方块小镇",
+    "query": "Chipped",
+    "aliases": [
+      "方块小镇",
+      "Chipped"
+    ],
+    "id": "BAscRYKm"
+  },
+  {
+    "slug": "rechiseled",
+    "name": "重新雕刻",
+    "query": "Rechiseled",
+    "aliases": [
+      "重新雕刻",
+      "重铸凿子",
+      "Rechiseled"
+    ],
+    "id": "B0g2vT6l"
+  },
+  {
+    "slug": "handcrafted",
+    "name": "手工制作",
+    "query": "Handcrafted",
+    "aliases": [
+      "手工制作",
+      "Handcrafted"
+    ],
+    "id": "pJmCFF0p"
+  },
+  {
+    "slug": "another-furniture",
+    "name": "另一种家具",
+    "query": "Another Furniture",
+    "aliases": [
+      "另一种家具",
+      "AnotherFurniture"
+    ],
+    "id": "ulloLmqG"
+  },
+  {
+    "slug": "mcw-doors",
+    "name": "Macaw 的门",
+    "query": "Macaw Doors",
+    "aliases": [
+      "Macaw的门",
+      "Macaw门",
+      "鹦鹉的门"
+    ]
+  },
+  {
+    "slug": "mcw-windows",
+    "name": "Macaw 的窗户",
+    "query": "Macaw Windows",
+    "aliases": [
+      "Macaw的窗户",
+      "Macaw窗户",
+      "鹦鹉的窗户"
+    ]
+  },
+  {
+    "slug": "mcw-roofs",
+    "name": "Macaw 的屋顶",
+    "query": "Macaw Roofs",
+    "aliases": [
+      "Macaw的屋顶",
+      "Macaw屋顶",
+      "鹦鹉的屋顶"
+    ]
+  },
+  {
+    "slug": "mcw-bridges",
+    "name": "Macaw 的桥梁",
+    "query": "Macaw Bridges",
+    "aliases": [
+      "Macaw的桥梁",
+      "Macaw桥梁",
+      "鹦鹉的桥梁"
+    ]
+  },
+  {
+    "slug": "biomes-o-plenty",
+    "name": "超多生物群系",
+    "query": "Biomes Plenty",
+    "aliases": [
+      "超多生物群系",
+      "超多群系",
+      "BOP",
+      "BiomesOPlenty"
+    ],
+    "id": "HXF82T3G"
+  },
+  {
+    "slug": "regions-unexplored",
+    "name": "未至之域",
+    "query": "Regions Unexplored",
+    "aliases": [
+      "未至之域",
+      "RegionsUnexplored"
+    ],
+    "id": "Tkikq67H"
+  },
+  {
+    "slug": "terralith",
+    "name": "Terralith 地形",
+    "query": "Terralith",
+    "aliases": [
+      "Terralith地形",
+      "地形大修",
+      "Terralith"
+    ],
+    "id": "8oi3bsk5"
+  },
+  {
+    "slug": "tectonic",
+    "name": "地壳",
+    "query": "Tectonic",
+    "aliases": [
+      "地壳",
+      "Tectonic"
+    ],
+    "id": "lWDHr9jE"
+  },
+  {
+    "slug": "incendium",
+    "name": "Incendium 下界",
+    "query": "Incendium",
+    "aliases": [
+      "下界大修",
+      "Incendium"
+    ],
+    "id": "ZVzW5oNS"
+  },
+  {
+    "slug": "nullscape",
+    "name": "Nullscape 末地",
+    "query": "Nullscape",
+    "aliases": [
+      "末地大修",
+      "Nullscape"
+    ],
+    "id": "LPjGiSO4"
+  },
+  {
+    "slug": "betterend",
+    "name": "更好的末地",
+    "query": "BetterEnd",
+    "aliases": [
+      "更好的末地",
+      "更好末地",
+      "BetterEnd"
+    ],
+    "id": "gc8OEnCC"
+  },
+  {
+    "slug": "betternether",
+    "name": "更好的下界",
+    "query": "BetterNether",
+    "aliases": [
+      "更好的下界",
+      "更好下界",
+      "BetterNether"
+    ],
+    "id": "MpzVLzy5"
+  },
+  {
+    "slug": "yungs-better-dungeons",
+    "name": "YUNG 的地牢优化",
+    "query": "YUNG Better Dungeons",
+    "aliases": [
+      "YUNG的地牢优化",
+      "地牢优化",
+      "YungsBetterDungeons"
+    ],
+    "id": "o1C1Dkj5"
+  },
+  {
+    "slug": "yungs-better-mineshafts",
+    "name": "YUNG 的矿井优化",
+    "query": "YUNG Better Mineshafts",
+    "aliases": [
+      "YUNG的矿井优化",
+      "矿井优化",
+      "YungsBetterMineshafts"
+    ],
+    "id": "HjmxVlSr"
+  },
+  {
+    "slug": "yungs-better-strongholds",
+    "name": "YUNG 的要塞优化",
+    "query": "YUNG Better Strongholds",
+    "aliases": [
+      "YUNG的要塞优化",
+      "要塞优化",
+      "YungsBetterStrongholds"
+    ],
+    "id": "kidLKymU"
+  },
+  {
+    "slug": "yungs-api",
+    "name": "YUNG 的 API",
+    "query": "YUNG API",
+    "aliases": [
+      "YUNG的API",
+      "YUNG前置",
+      "YungsAPI"
+    ],
+    "id": "Ua7DFN59"
+  },
+  {
+    "slug": "waystones",
+    "name": "传送石碑",
+    "query": "Waystones",
+    "aliases": [
+      "传送石碑",
+      "传送石",
+      "Waystones"
+    ],
+    "id": "LOpKHB2A"
+  },
+  {
+    "slug": "xaeros-minimap",
+    "name": "Xaero 的小地图",
+    "query": "Xaero Minimap",
+    "aliases": [
+      "Xaero的小地图",
+      "Xaero小地图",
+      "赛罗小地图",
+      "小地图"
+    ],
+    "id": "1bokaNcj"
+  },
+  {
+    "slug": "xaeros-world-map",
+    "name": "Xaero 的世界地图",
+    "query": "Xaero World Map",
+    "aliases": [
+      "Xaero的世界地图",
+      "Xaero世界地图",
+      "赛罗世界地图",
+      "世界地图"
+    ],
+    "id": "NcUtCpym"
+  },
+  {
+    "slug": "journeymap",
+    "name": "旅行地图",
+    "query": "JourneyMap",
+    "aliases": [
+      "旅行地图",
+      "旅途地图",
+      "JourneyMap"
+    ],
+    "id": "lfHFW1mp"
+  },
+  {
+    "slug": "litematica",
+    "name": "投影",
+    "query": "Litematica",
+    "aliases": [
+      "投影",
+      "投影模组",
+      "Litematica"
+    ],
+    "id": "bEpr0Arc"
+  },
+  {
+    "slug": "malilib",
+    "name": "MaLiLib",
+    "query": "MaLiLib",
+    "aliases": [
+      "投影前置",
+      "MaLiLib"
+    ],
+    "id": "GcWjdA9I"
+  },
+  {
+    "slug": "minihud",
+    "name": "迷你 HUD",
+    "query": "MiniHUD",
+    "aliases": [
+      "迷你HUD",
+      "迷你抬头显示",
+      "MiniHUD"
+    ],
+    "id": "UMxybHE8"
+  },
+  {
+    "slug": "tweakeroo",
+    "name": "灵魂出窍",
+    "query": "Tweakeroo",
+    "aliases": [
+      "灵魂出窍",
+      "推客",
+      "Tweakeroo"
+    ],
+    "id": "t5wuYk45"
+  },
+  {
+    "slug": "item-scroller",
+    "name": "物品滚轮",
+    "query": "Item Scroller",
+    "aliases": [
+      "物品滚轮",
+      "物品滚动",
+      "ItemScroller"
+    ],
+    "id": "JygyCSA4"
+  },
+  {
+    "slug": "worldedit",
+    "name": "创世神",
+    "query": "WorldEdit",
+    "aliases": [
+      "创世神",
+      "世界编辑器",
+      "WorldEdit"
+    ],
+    "id": "1u6JkXh5"
+  },
+  {
+    "slug": "replaymod",
+    "name": "录像回放",
+    "query": "ReplayMod",
+    "aliases": [
+      "录像回放",
+      "录制回放",
+      "ReplayMod"
+    ],
+    "id": "Nv2fQJo5"
+  },
+  {
+    "slug": "freecam",
+    "name": "自由相机",
+    "query": "Freecam",
+    "aliases": [
+      "自由相机",
+      "自由视角",
+      "Freecam"
+    ],
+    "id": "XeEZ3fK2"
+  },
+  {
+    "slug": "distanthorizons",
+    "name": "遥远的地平线",
+    "query": "Distant Horizons",
+    "aliases": [
+      "遥远的地平线",
+      "远景",
+      "远距离地形",
+      "DistantHorizons",
+      "DH"
+    ],
+    "id": "uCdwusMi"
+  },
+  {
+    "slug": "bobby",
+    "name": "Bobby 视距",
+    "query": "Bobby",
+    "aliases": [
+      "Bobby视距",
+      "区块缓存",
+      "Bobby"
+    ],
+    "id": "M08ruV16"
+  },
+  {
+    "slug": "continuity",
+    "name": "连接纹理",
+    "query": "Continuity",
+    "aliases": [
+      "连接纹理",
+      "连续纹理",
+      "Continuity"
+    ],
+    "id": "1IjD5062"
+  },
+  {
+    "slug": "lambdynamiclights",
+    "name": "Lamb 动态光源",
+    "query": "LambDynamicLights",
+    "aliases": [
+      "动态光源",
+      "Lamb动态光源",
+      "LambDynamicLights"
+    ],
+    "id": "yBW8D80W"
+  },
+  {
+    "slug": "eating-animation",
+    "name": "进食动画",
+    "query": "Eating Animation",
+    "aliases": [
+      "进食动画",
+      "吃东西动画",
+      "EatingAnimation"
+    ],
+    "id": "rUgZvGzi"
+  },
+  {
+    "slug": "first-person-model",
+    "name": "第一人称模型",
+    "query": "First Person Model",
+    "aliases": [
+      "第一人称模型",
+      "第一人称身体"
+    ],
+    "id": "H5XMjpHi"
+  },
+  {
+    "slug": "3dskinlayers",
+    "name": "3D 皮肤层",
+    "query": "3D Skin Layers",
+    "aliases": [
+      "3D皮肤层",
+      "立体皮肤",
+      "皮肤层3D"
+    ],
+    "id": "zV5r3pPn"
+  },
+  {
+    "slug": "not-enough-animations",
+    "name": "更多动画",
+    "query": "Not Enough Animations",
+    "aliases": [
+      "更多动画",
+      "动画增强",
+      "NotEnoughAnimations"
+    ],
+    "id": "MPCX6s5C"
+  },
+  {
+    "slug": "entity-model-features",
+    "name": "实体模型特性",
+    "query": "Entity Model Features",
+    "aliases": [
+      "实体模型特性",
+      "EMF"
+    ],
+    "id": "4I1XuqiY"
+  },
+  {
+    "slug": "entitytexturefeatures",
+    "name": "实体纹理特性",
+    "query": "Entity Texture Features",
+    "aliases": [
+      "实体纹理特性",
+      "ETF"
+    ],
+    "id": "BVzZfTc1"
+  },
+  {
+    "slug": "ebe",
+    "name": "增强型方块实体",
+    "query": "Enhanced Block Entities",
+    "aliases": [
+      "增强型方块实体",
+      "方块实体优化",
+      "EBE"
+    ],
+    "id": "OVuFYfre"
+  },
+  {
+    "slug": "betterf3",
+    "name": "更好的 F3",
+    "query": "BetterF3",
+    "aliases": [
+      "更好的F3",
+      "F3优化",
+      "BetterF3"
+    ],
+    "id": "8shC1gFX"
+  },
+  {
+    "slug": "better-advancements",
+    "name": "更好的进度",
+    "query": "Better Advancements",
+    "aliases": [
+      "更好的进度",
+      "进度界面优化"
+    ],
+    "id": "Q2OqKxDG"
+  },
+  {
+    "slug": "advancement-plaques",
+    "name": "进度牌匾",
+    "query": "Advancement Plaques",
+    "aliases": [
+      "进度牌匾",
+      "进度提示"
+    ],
+    "id": "9NM0dXub"
+  },
+  {
+    "slug": "mouse-tweaks",
+    "name": "鼠标手势",
+    "query": "Mouse Tweaks",
+    "aliases": [
+      "鼠标手势",
+      "鼠标整理",
+      "MouseTweaks"
+    ],
+    "id": "aC3cM3Vq"
+  },
+  {
+    "slug": "inventory-profiles-next",
+    "name": "一键背包整理 Next",
+    "query": "Inventory Profiles Next",
+    "aliases": [
+      "一键背包整理",
+      "背包整理",
+      "IPN",
+      "InventoryProfilesNext"
+    ],
+    "id": "O7RBXm3n"
+  },
+  {
+    "slug": "inventory-sorting",
+    "name": "背包排序",
+    "query": "Inventory Sorting",
+    "aliases": [
+      "背包排序",
+      "InventorySorting"
+    ],
+    "id": "5ibSyLAz"
+  },
+  {
+    "slug": "shulkerboxtooltip",
+    "name": "潜影盒预览",
+    "query": "ShulkerBoxTooltip",
+    "aliases": [
+      "潜影盒预览",
+      "潜影盒提示",
+      "ShulkerBoxTooltip"
+    ],
+    "id": "2M01OLQq"
+  },
+  {
+    "slug": "durability-tooltip",
+    "name": "耐久度提示",
+    "query": "Durability Tooltip",
+    "aliases": [
+      "耐久度提示",
+      "装备耐久显示"
+    ],
+    "id": "smUP7V3r"
+  },
+  {
+    "slug": "zoomify",
+    "name": "缩放",
+    "query": "Zoomify",
+    "aliases": [
+      "缩放",
+      "望远镜缩放",
+      "Zoomify"
+    ],
+    "id": "w7ThoJFB"
+  },
+  {
+    "slug": "ok-zoomer",
+    "name": "Ok Zoomer 缩放",
+    "query": "Ok Zoomer",
+    "aliases": [
+      "OkZoomer",
+      "好的缩放"
+    ],
+    "id": "aXf2OSFU"
+  },
+  {
+    "slug": "simple-voice-chat",
+    "name": "简单语音聊天",
+    "query": "Simple Voice Chat",
+    "aliases": [
+      "简单语音聊天",
+      "语音聊天",
+      "近距离语音"
+    ],
+    "id": "9eGKb6K1"
+  },
+  {
+    "slug": "chat-heads",
+    "name": "聊天头像",
+    "query": "Chat Heads",
+    "aliases": [
+      "聊天头像",
+      "ChatHeads"
+    ],
+    "id": "Wb5oqrBJ"
+  },
+  {
+    "slug": "chatpatches",
+    "name": "聊天补丁",
+    "query": "Chat Patches",
+    "aliases": [
+      "聊天补丁",
+      "ChatPatches"
+    ],
+    "id": "MOqt4Z5n"
+  },
+  {
+    "slug": "controlling",
+    "name": "键位冲突显示",
+    "query": "Controlling",
+    "aliases": [
+      "键位冲突显示",
+      "按键冲突",
+      "键位管理",
+      "Controlling"
+    ],
+    "id": "xv94TkTM"
+  },
+  {
+    "slug": "searchables",
+    "name": "搜索支持库",
+    "query": "Searchables",
+    "aliases": [
+      "搜索支持库",
+      "Searchables"
+    ],
+    "id": "fuuu3xnx"
+  },
+  {
+    "slug": "clumps",
+    "name": "经验机制改革",
+    "query": "Clumps",
+    "aliases": [
+      "经验机制改革",
+      "经验球合并",
+      "Clumps"
+    ],
+    "id": "Wnxd13zP"
+  },
+  {
+    "slug": "spark",
+    "name": "Spark 性能分析",
+    "query": "spark",
+    "aliases": [
+      "性能分析",
+      "火花",
+      "Spark"
+    ],
+    "id": "l6YH9Als"
+  },
+  {
+    "slug": "chunky",
+    "name": "Chunky 区块预生成",
+    "query": "Chunky",
+    "aliases": [
+      "区块预生成",
+      "区块预加载",
+      "Chunky"
+    ],
+    "id": "fALzjamp"
+  },
+  {
+    "slug": "carpet",
+    "name": "地毯",
+    "query": "Carpet",
+    "aliases": [
+      "地毯",
+      "地毯模组",
+      "Carpet"
+    ],
+    "id": "TQTTVgYE"
+  },
+  {
+    "slug": "carpet-extra",
+    "name": "地毯拓展",
+    "query": "Carpet Extra",
+    "aliases": [
+      "地毯拓展",
+      "地毯扩展",
+      "CarpetExtra"
+    ],
+    "id": "VX3TgwQh"
+  },
+  {
+    "slug": "tweakermore",
+    "name": "更多实用设备",
+    "query": "TweakerMore",
+    "aliases": [
+      "更多实用设备",
+      "TweakerMore"
+    ],
+    "id": "GBeCx05I"
+  },
+  {
+    "slug": "easy-villagers",
+    "name": "简单村民",
+    "query": "Easy Villagers",
+    "aliases": [
+      "简单村民",
+      "便捷村民",
+      "EasyVillagers"
+    ],
+    "id": "Kaov2qgi"
+  },
+  {
+    "slug": "guard-villagers",
+    "name": "村民守卫",
+    "query": "Guard Villagers",
+    "aliases": [
+      "村民守卫",
+      "守卫村民"
+    ],
+    "id": "H1sntfo8"
+  },
+  {
+    "slug": "carry-on",
+    "name": "搬运",
+    "query": "Carry On",
+    "aliases": [
+      "搬运",
+      "搬运模组",
+      "CarryOn"
+    ],
+    "id": "joEfVgkn"
+  },
+  {
+    "slug": "sophisticated-backpacks",
+    "name": "精妙背包",
+    "query": "Sophisticated Backpacks",
+    "aliases": [
+      "精妙背包",
+      "SophisticatedBackpacks"
+    ],
+    "id": "TyCTlI4b"
+  },
+  {
+    "slug": "sophisticated-storage",
+    "name": "精妙存储",
+    "query": "Sophisticated Storage",
+    "aliases": [
+      "精妙存储",
+      "精妙储存",
+      "SophisticatedStorage"
+    ],
+    "id": "hMlaZH8f"
+  },
+  {
+    "slug": "travelersbackpack",
+    "name": "旅行者背包",
+    "query": "Travelers Backpack",
+    "aliases": [
+      "旅行者背包",
+      "旅行背包",
+      "TravelersBackpack"
+    ],
+    "id": "rlloIFEV"
+  },
+  {
+    "slug": "sophisticated-core",
+    "name": "精妙核心",
+    "query": "Sophisticated Core",
+    "aliases": [
+      "精妙核心",
+      "SophisticatedCore"
+    ],
+    "id": "nmoqTijg"
+  },
+  {
+    "slug": "iron-chests",
+    "name": "更多箱子",
+    "query": "Iron Chests",
+    "aliases": [
+      "更多箱子",
+      "铁箱子",
+      "IronChests"
+    ],
+    "id": "P3iIrPH3"
+  },
+  {
+    "slug": "storagedrawers",
+    "name": "储物抽屉",
+    "query": "Storage Drawers",
+    "aliases": [
+      "储物抽屉",
+      "抽屉",
+      "StorageDrawers"
+    ],
+    "id": "guitPqEi"
+  },
+  {
+    "slug": "functional-storage",
+    "name": "功能性存储",
+    "query": "Functional Storage",
+    "aliases": [
+      "功能性存储",
+      "功能性储存",
+      "FunctionalStorage"
+    ],
+    "id": "cO40ZIg3"
+  },
+  {
+    "slug": "sophisticated-storage-in-motion",
+    "name": "精妙存储：动力搬运",
+    "query": "Sophisticated Storage Motion",
+    "aliases": [
+      "精妙存储动力搬运"
+    ],
+    "id": "6vtFbyaJ"
+  },
+  {
+    "slug": "artifacts",
+    "name": "遗物",
+    "query": "Artifacts",
+    "aliases": [
+      "遗物",
+      "Artifacts"
+    ],
+    "id": "P0Mu4wcQ"
+  },
+  {
+    "slug": "relics-mod",
+    "name": "奇珍异宝",
+    "query": "Relics",
+    "aliases": [
+      "奇珍异宝",
+      "Relics"
+    ],
+    "id": "OCJRPujW"
+  },
+  {
+    "slug": "lootr",
+    "name": "战利品实例化",
+    "query": "Lootr",
+    "aliases": [
+      "战利品实例化",
+      "独立战利品",
+      "Lootr"
+    ],
+    "id": "EltpO5cN"
+  },
+  {
+    "slug": "natures-compass",
+    "name": "自然指南针",
+    "query": "Nature Compass",
+    "aliases": [
+      "自然指南针",
+      "生物群系指南针"
+    ],
+    "id": "fPetb5Kh"
+  },
+  {
+    "slug": "explorers-compass",
+    "name": "探险者指南针",
+    "query": "Explorer Compass",
+    "aliases": [
+      "探险者指南针",
+      "探索者指南针",
+      "结构指南针"
+    ],
+    "id": "RV1qfVQ8"
+  },
+  {
+    "slug": "comforts",
+    "name": "舒适用品",
+    "query": "Comforts",
+    "aliases": [
+      "舒适用品",
+      "睡袋",
+      "Comforts"
+    ],
+    "id": "SaCpeal4"
+  },
+  {
+    "slug": "corpse",
+    "name": "尸体",
+    "query": "Corpse",
+    "aliases": [
+      "尸体",
+      "尸体模组",
+      "Corpse"
+    ],
+    "id": "WrpuIfhw"
+  },
+  {
+    "slug": "gravestone-mod",
+    "name": "墓碑",
+    "query": "Gravestone",
+    "aliases": [
+      "墓碑",
+      "Gravestone"
+    ],
+    "id": "RYtXKJPr"
+  },
+  {
+    "slug": "yigd",
+    "name": "你不会丢掉物品",
+    "query": "Grave Danger",
+    "aliases": [
+      "你不会丢掉物品",
+      "YIGD"
+    ],
+    "id": "HnD1GX6e"
+  },
+  {
+    "slug": "ftb-quests",
+    "name": "FTB 任务",
+    "query": "FTB Quests",
+    "aliases": [
+      "FTB任务",
+      "任务书",
+      "FTBQuests"
+    ]
+  },
+  {
+    "slug": "ftb-chunks",
+    "name": "FTB 区块",
+    "query": "FTB Chunks",
+    "aliases": [
+      "FTB区块",
+      "FTB领地",
+      "FTBChunks"
+    ]
+  },
+  {
+    "slug": "ftb-teams",
+    "name": "FTB 队伍",
+    "query": "FTB Teams",
+    "aliases": [
+      "FTB队伍",
+      "FTB组队",
+      "FTBTeams"
+    ]
+  },
+  {
+    "slug": "ftb-library",
+    "name": "FTB 库",
+    "query": "FTB Library",
+    "aliases": [
+      "FTB库",
+      "FTB前置",
+      "FTBLibrary"
+    ]
+  },
+  {
+    "slug": "ftb-ultimine",
+    "name": "FTB 连锁破坏",
+    "query": "FTB Ultimine",
+    "aliases": [
+      "FTB连锁破坏",
+      "连锁采集",
+      "连锁挖矿",
+      "FTBUltimine"
+    ]
+  },
+  {
+    "slug": "veinmining",
+    "name": "矿脉挖掘",
+    "query": "Vein Mining",
+    "aliases": [
+      "矿脉挖掘",
+      "VeinMining"
+    ],
+    "id": "edyuU1xJ"
+  },
+  {
+    "slug": "fallingtree",
+    "name": "快速伐木",
+    "query": "FallingTree",
+    "aliases": [
+      "快速伐木",
+      "一键砍树",
+      "连锁砍树",
+      "FallingTree"
+    ],
+    "id": "Fb4jn8m6"
+  },
+  {
+    "slug": "ore-harvester",
+    "name": "矿石收割",
+    "query": "Ore Harvester",
+    "aliases": [
+      "矿石收割",
+      "OreHarvester"
+    ],
+    "id": "Xiv4r347"
+  },
+  {
+    "slug": "tree-harvester",
+    "name": "树木收割",
+    "query": "Tree Harvester",
+    "aliases": [
+      "树木收割",
+      "TreeHarvester"
+    ],
+    "id": "abooMhox"
+  },
+  {
+    "slug": "inventory-essentials",
+    "name": "背包精简",
+    "query": "Inventory Essentials",
+    "aliases": [
+      "背包精简",
+      "InventoryEssentials"
+    ],
+    "id": "Boon8xwi"
+  },
+  {
+    "slug": "building-gadgets",
+    "name": "建筑小帮手",
+    "query": "Building Gadgets",
+    "aliases": [
+      "建筑小帮手",
+      "建筑工具",
+      "BuildingGadgets"
+    ]
+  },
+  {
+    "slug": "building-wands",
+    "name": "建筑魔杖",
+    "query": "Building Wands",
+    "aliases": [
+      "建筑魔杖",
+      "建筑法杖",
+      "BuildingWands"
+    ],
+    "id": "XkisZUfp"
+  },
+  {
+    "slug": "building-but-better",
+    "name": "更好的建筑",
+    "query": "Building Better",
+    "aliases": [
+      "更好的建筑"
+    ],
+    "id": "OSDpLd82"
+  },
+  {
+    "slug": "camera-utils",
+    "name": "相机工具",
+    "query": "Camera Utils",
+    "aliases": [
+      "相机工具",
+      "CameraUtils"
+    ],
+    "id": "rrwQMaWQ"
+  }
+]

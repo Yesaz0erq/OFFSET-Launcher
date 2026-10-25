@@ -33,11 +33,7 @@ WB_W = 34
 WB_MIN_X = 1040
 WB_CLOSE_X = 1078
 A_CLOSE = 0FFE5484Dh
-; Legacy COLORREF names used by page modules.
-C_INK = T_INK
-C_MUTED = T_SECOND
-C_BLUE = T_ACCENT
-C_LINE = 0EBE6E3h
+include 'palette.inc'
 
 section '.data' data readable writeable
 hWnd dd 0
@@ -153,9 +149,12 @@ roundCorners dd 2
 ncPt POINT
 minHot dd -1
 closeHot dd -1
+align 4
 include 'strings.inc'
 ; All large zero-initialized buffers trail initialized data, so PE stores only
 ; their virtual size. This keeps the portable executable small.
+; Win32 captures UTF-16 control buffers on WCHAR-aligned addresses.
+align 4
 gameDir rw 1024
 javaPath rw 1024
 jvmArgs rw 4096
@@ -385,6 +384,9 @@ proc NewControl uses ebx esi edi,cls,style,id,x,y,w,h
     invoke CreateWindowExW,0,[cls],emptyW,eax,[px],[py],[pw],[ph],[hWnd],[id],[hInstance],0
     mov ebx,eax
     invoke SendMessageW,ebx,WM_SETFONT,[fInput],1
+    ; match the current light/dark look (and any inner header or edit)
+    stdcall ThemeChild,ebx,1
+    invoke EnumChildWindows,ebx,ThemeChild,1
     mov eax,ebx
     ret
 endp
@@ -447,8 +449,7 @@ endp
 
 proc CreateControls
     stdcall CreateFonts
-    invoke CreateSolidBrush,0FFFFFFh
-    mov [inputBrush],eax
+    stdcall ThemeNative
     stdcall NewControl,comboClass,CBS_DROPDOWN+CBS_AUTOHSCROLL+WS_VSCROLL,101,278,390,328,240
     mov [hVersion],eax
     invoke SendMessageA,eax,CB_LIMITTEXT,120,0
@@ -462,11 +463,11 @@ proc CreateControls
     mov [hClient],eax
     invoke SendMessageW,eax,EM_SETLIMITTEXT,120,0
     invoke SetWindowTextA,[hClient],clientId
-    stdcall NewControl,editClass,ES_AUTOHSCROLL,104,288,212,744,26
+    stdcall NewControl,editClass,ES_AUTOHSCROLL,104,288,212,616,26
     mov [hGameDir],eax
     invoke SendMessageW,eax,EM_SETLIMITTEXT,1000,0
     invoke SetWindowTextW,[hGameDir],gameDir
-    stdcall NewControl,editClass,ES_AUTOHSCROLL,105,288,311,744,26
+    stdcall NewControl,editClass,ES_AUTOHSCROLL,105,288,311,496,26
     mov [hJava],eax
     invoke SendMessageW,eax,EM_SETLIMITTEXT,1000,0
     invoke SetWindowTextW,[hJava],javaPath
@@ -1129,6 +1130,15 @@ proc StartWorker uses ebx,callback
     je .settings
     mov [vmModsAction],0
 .settings:
+    ; Browsing metadata needs only the mod filters, not launch settings.
+    ; Installation still saves and validates the configured game directory.
+    cmp [callback],ModWorker
+    jne .otherSettings
+    cmp [modAction],1
+    je .workerReady
+    cmp [modAction],2
+    je .workerReady
+.otherSettings:
     cmp [callback],ServersUiWorker
     je .workerReady
     cmp [callback],VmLoaderWorker
@@ -1362,10 +1372,14 @@ proc Button uses ebx esi edi,dc,str,x,y,w,h,primary
     endl
     stdcall HotAdd,[x],[y],[w],[h]
     mov [idx],eax
-    mov [base],A_SECOND
-    mov [hi],A_SECOND_HI
-    mov [lo],A_SECOND_LO
-    mov [ink],T_INK
+    push A_SECOND
+    pop [base]
+    push A_SECOND_HI
+    pop [hi]
+    push A_SECOND_LO
+    pop [lo]
+    push T_INK
+    pop [ink]
     cmp [primary],0
     je .colors
     mov eax,[themeAccentARGB]
@@ -1494,16 +1508,16 @@ proc PageHeader uses ebx esi edi,eyebrow,title,sheet
     cmp [suppressPageHeader],0
     jne .done
     mov eax,[headerDrawAlpha]
-    stdcall Mix,T_CANVAS,T_MUTED,eax
+    stdcall Mix,[themeCanvasCR],T_MUTED,eax
     mov [muted],eax
     mov eax,[headerDrawAlpha]
-    stdcall Mix,T_CANVAS,T_INK,eax
+    stdcall Mix,[themeCanvasCR],T_INK,eax
     mov [ink],eax
     mov eax,[headerDrawAlpha]
-    stdcall Mix,T_CANVAS,A_HAIRLINE,eax
+    stdcall Mix,[themeCanvasARGB],A_HAIRLINE,eax
     mov [hairline],eax
     mov eax,[headerDrawAlpha]
-    stdcall Mix,T_CANVAS,A_CROSS,eax
+    stdcall Mix,[themeCanvasARGB],[themeCrossARGB],eax
     mov [cross],eax
     stdcall Mono,[eyebrow],253,34,300,16,[muted]
     stdcall Text,0,[title],252,52,640,44,[fHeading],[ink]
@@ -1569,7 +1583,7 @@ proc StatusLine uses ebx esi,x,y,w,h
     xor edx,edx
     mov ecx,260
     div ecx
-    stdcall Mix,T_CANVAS,T_SECOND,eax
+    stdcall Mix,[themeCanvasCR],T_SECOND,eax
     mov esi,eax
 .draw:
     mov eax,[x]
@@ -1803,10 +1817,10 @@ proc PaintSidebar uses ebx esi edi
     mov [sw],eax
     stdcall SidebarLabelFade
     mov [fade],eax
-    stdcall FillRR,0,0,[sw],760,0,A_SIDEBAR
+    stdcall FillRR,0,0,[sw],760,0,[themeSidebarARGB]
     mov eax,[sw]
     dec eax
-    stdcall LineA,eax,0,eax,760,A_SIDELINE,10
+    stdcall LineA,eax,0,eax,760,[themeSidelineARGB],10
     ; app icon: graphite squircle with the OFFSET mark (re-centres on the rail)
     stdcall Lerp,22,15,[sideT]
     mov ebx,eax
@@ -1817,11 +1831,11 @@ proc PaintSidebar uses ebx esi edi
     ; labels fade out as the sidebar narrows (and are clipped to it)
     cmp [fade],256
     jae .toggle
-    stdcall Mix,T_INK,A_SIDEBAR_CR,[fade]
+    stdcall Mix,T_INK,[themeSidebarCR],[fade]
     mov esi,eax
     stdcall ThemeName
     stdcall TextDraw,eax,72,26,106,22,[fBrand],esi,DT_LEFT,2
-    stdcall Mix,T_MUTED,A_SIDEBAR_CR,[fade]
+    stdcall Mix,T_MUTED,[themeSidebarCR],[fade]
     mov esi,eax
     stdcall TextDraw,monoTagline,73,47,140,14,[fMonoSmall],esi,DT_LEFT,1
     stdcall TextDraw,monoWorkspace,25,98,180,14,[fMonoSmall],esi,DT_LEFT,1
@@ -1837,7 +1851,7 @@ proc PaintSidebar uses ebx esi edi
     test eax,eax
     jz @f
     shr eax,4
-    stdcall WithAlpha,0,eax
+    stdcall WithAlpha,A_HOVER,eax
     stdcall FillRR,[tx],[ty],24,24,7,eax
 @@:
     stdcall SideToggleGlyph,[tx],[ty],A_MUTED
@@ -1878,7 +1892,7 @@ proc PaintSidebar uses ebx esi edi
     test eax,eax
     jz .plain
     shr eax,4
-    stdcall WithAlpha,0,eax
+    stdcall WithAlpha,A_HOVER,eax
     stdcall FillRR,12,[iy],[pillW],NAV_H,10,eax
 .plain:
     mov esi,A_MUTED
@@ -1895,7 +1909,7 @@ proc PaintSidebar uses ebx esi edi
     stdcall NavIcon,[i],[iconX],eax,esi
     cmp [fade],256
     jae .nextItem
-    stdcall Mix,edi,A_SIDEBAR_CR,[fade]
+    stdcall Mix,edi,[themeSidebarCR],[fade]
     mov edi,eax
     mov eax,[i]
     mov ecx,[navLabels+eax*4]
@@ -1907,14 +1921,14 @@ proc PaintSidebar uses ebx esi edi
     ; footer: game folder, language, build tag
     mov eax,[sw]
     sub eax,20
-    stdcall LineA,20,600,eax,600,A_SIDELINE,10
+    stdcall LineA,20,600,eax,600,[themeSidelineARGB],10
     stdcall HotAdd,12,608,[pillW],34
     mov [folderHot],eax
     stdcall HoverLevel,eax
     test eax,eax
     jz @f
     shr eax,4
-    stdcall WithAlpha,0,eax
+    stdcall WithAlpha,A_HOVER,eax
     stdcall FillRR,12,608,[pillW],34,10,eax
 @@:
     stdcall Lerp,24,27,[sideT]
@@ -1924,11 +1938,11 @@ proc PaintSidebar uses ebx esi edi
     stdcall LineA,ebx,622,ecx,622,A_MUTED,14
     cmp [fade],256
     jae .rail
-    stdcall Mix,T_SECOND,A_SIDEBAR_CR,[fade]
+    stdcall Mix,T_SECOND,[themeSidebarCR],[fade]
     stdcall Text,0,sFolder,48,608,156,34,[fSmall],eax
     mov eax,[uiLang]
     stdcall Segmented,16,654,188,30,3,5,langNames,eax,[fSmall]
-    stdcall Mix,T_MUTED,A_SIDEBAR_CR,[fade]
+    stdcall Mix,T_MUTED,[themeSidebarCR],[fade]
     stdcall TextDraw,monoBuild,25,700,180,14,[fMonoSmall],eax,DT_LEFT,1
     mov [langHot],-1
     ret
@@ -2034,7 +2048,7 @@ proc PaintHome uses ebx esi edi
     stdcall PaintHero
     ; profile card
     stdcall Card,252,316,490,236,18
-    stdcall CornerTicks,252,316,490,236,A_CROSS
+    stdcall CornerTicks,252,316,490,236,[themeCrossARGB]
     stdcall Text,0,sProfileCaption,278,330,300,24,[fMedium],T_INK
     stdcall Mono,monoProfile,700,334,20,16,T_MUTED
     stdcall Text,0,sVersionLabel,278,364,420,20,[fSmall],T_SECOND
@@ -2046,7 +2060,7 @@ proc PaintHome uses ebx esi edi
     jmp .session
 .onlineName:
     stdcall Text,0,sOnline,278,448,420,20,[fSmall],T_SECOND
-    stdcall FillRR,278,472,436,38,10,A_CANVAS
+    stdcall FillRR,278,472,436,38,10,[themeCanvasARGB]
     cmp [authReady],0
     je .notLogged
     stdcall Dot,294,491,A_GREEN
@@ -2058,7 +2072,7 @@ proc PaintHome uses ebx esi edi
     stdcall Text,0,sNoAccount,306,472,400,38,[fBody],T_SECOND
 .session:
     stdcall Card,762,316,326,236,18
-    stdcall CornerTicks,762,316,326,236,A_CROSS
+    stdcall CornerTicks,762,316,326,236,[themeCrossARGB]
     stdcall Text,0,sSessionCaption,788,330,240,24,[fMedium],T_INK
     stdcall Mono,monoSession,1054,334,20,16,T_MUTED
     mov [segLabels],sOffline
@@ -2102,11 +2116,14 @@ endp
 proc PaintSettings
     stdcall PageHeader,eyebrowSettings,sSettingsHeading,4
     stdcall Card,252,124,836,468,18
-    stdcall CornerTicks,252,124,836,468,A_CROSS
+    stdcall CornerTicks,252,124,836,468,[themeCrossARGB]
     stdcall Text,0,sGameDirLabel,280,166,760,28,[fMedium],T_INK
-    stdcall Field,278,204,768,42,[hGameDir]
+    stdcall Field,278,204,640,42,[hGameDir]
+    stdcall Button,0,sBrowse,930,204,116,42,0
     stdcall Text,0,sJavaPathLabel,280,265,760,28,[fMedium],T_INK
-    stdcall Field,278,303,768,42,[hJava]
+    stdcall Field,278,303,520,42,[hJava]
+    stdcall Button,0,sJavaDetect,810,303,108,42,0
+    stdcall Button,0,sBrowse,930,303,116,42,0
     cinvoke wsprintfW,textBuffer,sMemoryLabel,[memoryLimitMb]
     stdcall Text,0,textBuffer,280,364,340,28,[fMedium],T_INK
     stdcall Field,278,402,216,42,[hMemory]
@@ -2145,7 +2162,7 @@ proc PaintWindowButtons uses ebx esi edi
     stdcall WithAlpha,0FFFFFFh,eax
     jmp .minFill
 @@:
-    stdcall WithAlpha,0,eax
+    stdcall WithAlpha,A_HOVER,eax
 .minFill:
     stdcall FillRR,WB_MIN_X,WB_Y,WB_W,WB_H,8,eax
 .minGlyph:
@@ -2540,6 +2557,34 @@ proc Click uses ebx esi edi,x,y
     stdcall GoPage,6
     jmp .done
 .settingsControls:
+    ; settings: folder / Java pickers beside their fields
+    cmp [x],810
+    jb .settingsLanguage
+    cmp [x],1046
+    ja .settingsLanguage
+    cmp [y],204
+    jb .settingsLanguage
+    cmp [y],246
+    ja .javaPickers
+    cmp [x],930
+    jb .settingsLanguage
+    stdcall BrowseGameDir
+    jmp .done
+.javaPickers:
+    cmp [y],303
+    jb .settingsLanguage
+    cmp [y],345
+    ja .settingsLanguage
+    cmp [x],918
+    jbe .javaDetect
+    cmp [x],930
+    jb .settingsLanguage
+    stdcall BrowseJava
+    jmp .done
+.javaDetect:
+    stdcall JavaDetect
+    jmp .done
+.settingsLanguage:
     ; settings: language segmented control
     cmp [y],402
     jb .saveButton
@@ -2660,6 +2705,8 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     je .drawItem
     cmp [message],WM_MEASUREITEM
     je .measureItem
+    cmp [message],WM_WININICHANGE
+    je .settingChange
     cmp [message],WM_CTLCOLOREDIT
     je .editColor
     cmp [message],WM_CTLCOLORLISTBOX
@@ -2818,8 +2865,13 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     mov [ebx+16],eax
     mov eax,1
     ret
+.settingChange:
+    stdcall ThemeSettingChange,[lparam]
+    jmp .default
 .editColor:
     invoke SetTextColor,[wparam],C_INK
+    ; list boxes and combo faces fill with the DC background colour
+    invoke SetBkColor,[wparam],[palFieldCR]
     invoke SetBkMode,[wparam],TRANSPARENT
     mov eax,[inputBrush]
     ret
@@ -2973,6 +3025,7 @@ include 'mods_ui.inc'
 include 'mod_profile.inc'
 include 'mods.inc'
 include 'modrinth.inc'
+include 'mod_aliases.inc'
 include 'curseforge.inc'
 include 'catalog.inc'
 include 'project_details.inc'
@@ -2980,6 +3033,7 @@ include 'packs.inc'
 include 'pack_export.inc'
 include 'packs_ui.inc'
 include 'details_ui.inc'
+include 'pickers.inc'
 include 'imports.inc'
 
 section '.rsrc' resource data readable

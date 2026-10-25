@@ -346,9 +346,9 @@
       "ja": "次へ"
     },
     "sModWebsite": {
-      "zh": "项目官网  ↗",
-      "en": "Website  ↗",
-      "ja": "公式サイト  ↗"
+      "zh": "Modrinth地址  ↗",
+      "en": "Modrinth  ↗",
+      "ja": "Modrinth  ↗"
     },
     "sModDownload": {
       "zh": "下载  ↓",
@@ -1384,6 +1384,121 @@
       "zh": "已下载 %u.%u MiB · %u 个文件",
       "en": "Downloaded %u.%u MiB · %u files",
       "ja": "受信 %u.%u MiB · %u ファイル"
+    },
+    "sBrowse": {
+      "zh": "浏览…",
+      "en": "Browse…",
+      "ja": "参照…"
+    },
+    "sJavaDetect": {
+      "zh": "自动检测",
+      "en": "Detect",
+      "ja": "自動検出"
+    },
+    "sJavaNone": {
+      "zh": "未找到本机 Java，可点击“浏览…”手动选择。",
+      "en": "No Java installation found. Use Browse… to pick one.",
+      "ja": "Java が見つかりません。「参照…」で選択してください。"
+    },
+    "sJavaPickTitle": {
+      "zh": "选择 Java 可执行文件",
+      "en": "Choose a Java executable",
+      "ja": "Java 実行ファイルを選択"
+    },
+    "sPickSaveHint": {
+      "zh": "已选择，点击“保存”后生效。",
+      "en": "Selected. Click Save to apply.",
+      "ja": "選択しました。保存で反映されます。"
+    },
+    "sPersonalScheme": {
+      "zh": "配色方案",
+      "en": "Color scheme",
+      "ja": "カラースキーム"
+    },
+    "sPersonalWindow": {
+      "zh": "窗口颜色",
+      "en": "Window color",
+      "ja": "ウィンドウの色"
+    },
+    "sPersonalTexture": {
+      "zh": "背景纹理",
+      "en": "Background texture",
+      "ja": "背景テクスチャ"
+    },
+    "sPersonalHelp": {
+      "zh": "六位 HEX；颜色会自动调整以保证可读性。",
+      "en": "Six HEX digits. Colors adjust for readability.",
+      "ja": "6桁のHEX。読みやすさのため色は自動調整されます。"
+    },
+    "sTexDots": {
+      "zh": "点阵",
+      "en": "Dots",
+      "ja": "ドット"
+    },
+    "sTexGrid": {
+      "zh": "网格",
+      "en": "Grid",
+      "ja": "グリッド"
+    },
+    "sTexBlocks": {
+      "zh": "方块",
+      "en": "Blocks",
+      "ja": "ブロック"
+    },
+    "sTexPlain": {
+      "zh": "纯色",
+      "en": "Plain",
+      "ja": "無地"
+    },
+    "sSchemeBlueprint": {
+      "zh": "蓝图",
+      "en": "Blueprint",
+      "ja": "ブループリント"
+    },
+    "sSchemeMeadow": {
+      "zh": "草甸",
+      "en": "Meadow",
+      "ja": "草原"
+    },
+    "sSchemeDesert": {
+      "zh": "沙漠",
+      "en": "Desert",
+      "ja": "砂漠"
+    },
+    "sSchemeOcean": {
+      "zh": "海洋",
+      "en": "Ocean",
+      "ja": "海"
+    },
+    "sSchemeCherry": {
+      "zh": "樱花",
+      "en": "Cherry",
+      "ja": "桜"
+    },
+    "sSchemeAmethyst": {
+      "zh": "紫晶",
+      "en": "Amethyst",
+      "ja": "アメジスト"
+    },
+    "sPersonalAppearance": {
+      "zh": "外观",
+      "en": "Appearance",
+      "ja": "外観"
+    },
+    "sModeLight": {
+      "zh": "浅色",
+      "en": "Light",
+      "ja": "ライト"
+    },
+    "sModeDark": {
+      "zh": "深色",
+      "en": "Dark",
+      "ja": "ダーク"
+    },
+    "sModeSystem": {
+      "zh": "系统",
+      "en": "System",
+      "ja": "システム"
     }
   },
   "status": {

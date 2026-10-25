@@ -253,7 +253,8 @@ proc ModrinthSearch uses ebx esi edi
     jl .filter
     stdcall SetStatusA,mrMsgSearch
     invoke lstrcpyA,mrUrl,mrSearchBase
-    stdcall ModUrlEncode,modQuery,mrEncoded,3072
+    stdcall CnResolve,modQuery
+    stdcall ModUrlEncode,eax,mrEncoded,3072
     cmp eax,-1
     je .filter
     stdcall ModAppend,mrUrl,8192,mrEncoded
@@ -362,6 +363,7 @@ proc MrParseSearch uses ebx esi edi
     stdcall ModAppend,ebx,512,[record]
     test eax,eax
     jz .next
+    stdcall CnDecorateTitle,[record]
     inc [modProjectCount]
 .next:
     inc [idx]

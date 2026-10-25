@@ -616,7 +616,7 @@ proc PaintVersionManager uses ebx,dc
     stdcall Field,428,194,240,36,[hVCQuery]
     stdcall LineA,272,240,666,240,A_DIVIDER,10
     stdcall Card,704,185,384,426,18
-    stdcall CornerTicks,704,185,384,426,A_CROSS
+    stdcall CornerTicks,704,185,384,426,[themeCrossARGB]
     stdcall TextDraw,monoSelected,729,203,300,14,[fMonoSmall],T_MUTED,DT_LEFT,1
     invoke MultiByteToWideChar,65001,0,vUiBase,-1,vUiText,512
     stdcall Text,[dc],vUiText,728,218,332,34,[fTitle],C_INK
@@ -635,7 +635,7 @@ proc PaintVersionManager uses ebx,dc
     jmp .footer
 .installed:
     stdcall Card,252,185,836,426,18
-    stdcall CornerTicks,252,185,836,426,A_CROSS
+    stdcall CornerTicks,252,185,836,426,[themeCrossARGB]
     stdcall LineA,272,550,1066,550,A_DIVIDER,10
     stdcall Button,[dc],sVSetCurrent,280,563,220,40,1
     stdcall Button,[dc],sVOpenVersion,520,563,220,40,0
@@ -643,7 +643,7 @@ proc PaintVersionManager uses ebx,dc
     jmp .footer
 .queue:
     stdcall Card,252,185,836,426,18
-    stdcall CornerTicks,252,185,836,426,A_CROSS
+    stdcall CornerTicks,252,185,836,426,[themeCrossARGB]
     stdcall LineA,272,550,1066,550,A_DIVIDER,10
     stdcall Button,[dc],sVStart,280,563,180,40,1
     stdcall Button,[dc],sVRetry,478,563,180,40,0

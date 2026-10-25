@@ -495,7 +495,7 @@ proc PaintMods uses ebx esi,dc
     ret
 .local:
     stdcall Card,252,185,836,428,18
-    stdcall CornerTicks,252,185,836,428,A_CROSS
+    stdcall CornerTicks,252,185,836,428,[themeCrossARGB]
     cinvoke wsprintfW,modUiText,modLocalFormat,[modLocalCount]
     stdcall Text,[dc],modUiText,280,199,760,28,[fTitle],C_INK
     stdcall ModsDataRoot,modUiText,2048
@@ -517,7 +517,7 @@ endp
 
 proc PaintModApi dc
     stdcall Card,252,185,836,343,18
-    stdcall CornerTicks,252,185,836,343,A_CROSS
+    stdcall CornerTicks,252,185,836,343,[themeCrossARGB]
     stdcall Text,[dc],sModApiHeading,280,205,764,34,[fTitle],C_INK
     stdcall Text,[dc],sModKeyLabel,280,251,764,26,[fSmall],C_MUTED
     stdcall Field,278,282,768,42,[hCurseKey]

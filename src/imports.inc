@@ -1,10 +1,11 @@
 section '.idata' import data readable writeable
-library kernel32,'KERNEL32.DLL',gdiplus,'GDIPLUS.DLL',msimg32,'MSIMG32.DLL',user32,'USER32.DLL',gdi32,'GDI32.DLL',shell32,'SHELL32.DLL',advapi32,'ADVAPI32.DLL',winhttp,'WINHTTP.DLL',comctl32,'COMCTL32.DLL',dwmapi,'DWMAPI.DLL',crypt32,'CRYPT32.DLL',comdlg32,'COMDLG32.DLL',ws2_32,'WS2_32.DLL',dnsapi,'DNSAPI.DLL'
+library kernel32,'KERNEL32.DLL',gdiplus,'GDIPLUS.DLL',msimg32,'MSIMG32.DLL',user32,'USER32.DLL',gdi32,'GDI32.DLL',shell32,'SHELL32.DLL',advapi32,'ADVAPI32.DLL',winhttp,'WINHTTP.DLL',comctl32,'COMCTL32.DLL',dwmapi,'DWMAPI.DLL',crypt32,'CRYPT32.DLL',comdlg32,'COMDLG32.DLL',ws2_32,'WS2_32.DLL',dnsapi,'DNSAPI.DLL',ole32,'OLE32.DLL',uxtheme,'UXTHEME.DLL'
+import ole32,CoInitializeEx,'CoInitializeEx',CoUninitialize,'CoUninitialize',CoCreateInstance,'CoCreateInstance',CoTaskMemFree,'CoTaskMemFree'
 import ws2_32,WSAStartup,'WSAStartup',WSACleanup,'WSACleanup',socket,'socket',closesocket,'closesocket',ioctlsocket,'ioctlsocket',connect,'connect',send,'send',recv,'recv',select,'select',getsockopt,'getsockopt',WSAGetLastError,'WSAGetLastError',GetAddrInfoExW,'GetAddrInfoExW',FreeAddrInfoExW,'FreeAddrInfoExW'
 import dnsapi,DnsQuery_W,'DnsQuery_W',DnsRecordListFree,'DnsRecordListFree'
 import comdlg32,GetOpenFileNameW,'GetOpenFileNameW',GetSaveFileNameW,'GetSaveFileNameW'
 import kernel32,\
- GetModuleHandleW,'GetModuleHandleW',ExitProcess,'ExitProcess',GetModuleFileNameW,'GetModuleFileNameW',GetStdHandle,'GetStdHandle',\
+ GetModuleHandleW,'GetModuleHandleW',GetProcAddress,'GetProcAddress',ExitProcess,'ExitProcess',GetModuleFileNameW,'GetModuleFileNameW',GetStdHandle,'GetStdHandle',\
  GetFullPathNameW,'GetFullPathNameW',LocalFree,'LocalFree',lstrcmpiW,'lstrcmpiW',GlobalMemoryStatusEx,'GlobalMemoryStatusEx',\
  GetTempPathW,'GetTempPathW',GetCurrentProcessId,'GetCurrentProcessId',GlobalAlloc,'GlobalAlloc',GlobalLock,'GlobalLock',GlobalUnlock,'GlobalUnlock',GlobalFree,'GlobalFree',\
  GetEnvironmentVariableW,'GetEnvironmentVariableW',SearchPathW,'SearchPathW',GetFileAttributesW,'GetFileAttributesW',\
@@ -17,7 +18,7 @@ import kernel32,\
  CreateFileMappingW,'CreateFileMappingW',MapViewOfFile,'MapViewOfFile',UnmapViewOfFile,'UnmapViewOfFile',\
  GetSystemTimeAsFileTime,'GetSystemTimeAsFileTime',GetLocalTime,'GetLocalTime',CompareFileTime,'CompareFileTime',GetFileTime,'GetFileTime',SetFilePointer,'SetFilePointer',\
  GetExitCodeProcess,'GetExitCodeProcess',GetSystemDirectoryW,'GetSystemDirectoryW',GetWindowsDirectoryW,'GetWindowsDirectoryW',\
- MultiByteToWideChar,'MultiByteToWideChar',WideCharToMultiByte,'WideCharToMultiByte',\
+ MultiByteToWideChar,'MultiByteToWideChar',WideCharToMultiByte,'WideCharToMultiByte',LCMapStringW,'LCMapStringW',\
  lstrcpyW,'lstrcpyW',lstrcatW,'lstrcatW',lstrlenW,'lstrlenW',lstrlenA,'lstrlenA',lstrcpyA,'lstrcpyA',\
  lstrcatA,'lstrcatA',lstrcmpA,'lstrcmpA',lstrcmpiA,'lstrcmpiA',GetLastError,'GetLastError',\
  CreateDirectoryW,'CreateDirectoryW',DeleteFileW,'DeleteFileW',MoveFileExW,'MoveFileExW',CreateHardLinkW,'CreateHardLinkW',CopyFileW,'CopyFileW',TerminateProcess,'TerminateProcess',\
@@ -39,9 +40,10 @@ import user32,\
  GetKeyState,'GetKeyState',GetFocus,'GetFocus',\
  OpenClipboard,'OpenClipboard',EmptyClipboard,'EmptyClipboard',SetClipboardData,'SetClipboardData',CloseClipboard,'CloseClipboard',\
  TrackMouseEvent,'TrackMouseEvent',GetSystemMetrics,'GetSystemMetrics',IsDialogMessageW,'IsDialogMessageW',\
- EnumChildWindows,'EnumChildWindows',GetParent,'GetParent',IsIconic,'IsIconic',GetForegroundWindow,'GetForegroundWindow'
+ EnumChildWindows,'EnumChildWindows',GetClassNameW,'GetClassNameW',GetParent,'GetParent',IsIconic,'IsIconic',GetForegroundWindow,'GetForegroundWindow',\
+ CreatePopupMenu,'CreatePopupMenu',AppendMenuW,'AppendMenuW',TrackPopupMenu,'TrackPopupMenu',DestroyMenu,'DestroyMenu',GetCursorPos,'GetCursorPos',ClientToScreen,'ClientToScreen'
 import gdi32,\
- CreateSolidBrush,'CreateSolidBrush',CreatePen,'CreatePen',SelectObject,'SelectObject',DeleteObject,'DeleteObject',\
+ CreateSolidBrush,'CreateSolidBrush',SetBkColor,'SetBkColor',CreatePen,'CreatePen',SelectObject,'SelectObject',DeleteObject,'DeleteObject',\
  CreateCompatibleDC,'CreateCompatibleDC',CreateCompatibleBitmap,'CreateCompatibleBitmap',DeleteDC,'DeleteDC',\
  BitBlt,'BitBlt',SetBkMode,'SetBkMode',SetTextColor,'SetTextColor',RoundRect,'RoundRect',\
  MoveToEx,'MoveToEx',LineTo,'LineTo',Rectangle,'Rectangle',Ellipse,'Ellipse',Polygon,'Polygon',\
@@ -59,15 +61,17 @@ import gdiplus,\
  GdipLoadImageFromFile,'GdipLoadImageFromFile',GdipCreateBitmapFromFile,'GdipCreateBitmapFromFile',GdipGetImageWidth,'GdipGetImageWidth',GdipGetImageHeight,'GdipGetImageHeight',\
  GdipCloneBitmapAreaI,'GdipCloneBitmapAreaI',GdipDrawImagePointsRectI,'GdipDrawImagePointsRectI',GdipSetInterpolationMode,'GdipSetInterpolationMode',GdipImageRotateFlip,'GdipImageRotateFlip'
 import msimg32,AlphaBlend,'AlphaBlend'
-import shell32,ShellExecuteW,'ShellExecuteW'
+import shell32,ShellExecuteW,'ShellExecuteW',SHCreateItemFromParsingName,'SHCreateItemFromParsingName'
 import advapi32,\
  CryptAcquireContextW,'CryptAcquireContextW',CryptCreateHash,'CryptCreateHash',CryptHashData,'CryptHashData',\
- CryptGetHashParam,'CryptGetHashParam',CryptDestroyHash,'CryptDestroyHash',CryptReleaseContext,'CryptReleaseContext'
+ CryptGetHashParam,'CryptGetHashParam',CryptDestroyHash,'CryptDestroyHash',CryptReleaseContext,'CryptReleaseContext',\
+ RegOpenKeyExW,'RegOpenKeyExW',RegQueryValueExW,'RegQueryValueExW',RegCloseKey,'RegCloseKey'
 import winhttp,\
  WinHttpOpen,'WinHttpOpen',WinHttpConnect,'WinHttpConnect',WinHttpOpenRequest,'WinHttpOpenRequest',\
  WinHttpSendRequest,'WinHttpSendRequest',WinHttpReceiveResponse,'WinHttpReceiveResponse',\
  WinHttpQueryHeaders,'WinHttpQueryHeaders',WinHttpQueryDataAvailable,'WinHttpQueryDataAvailable',WinHttpReadData,'WinHttpReadData',\
  WinHttpCloseHandle,'WinHttpCloseHandle',WinHttpCrackUrl,'WinHttpCrackUrl',WinHttpSetTimeouts,'WinHttpSetTimeouts',WinHttpSetOption,'WinHttpSetOption'
 import comctl32,InitCommonControlsEx,'InitCommonControlsEx'
+import uxtheme,SetWindowTheme,'SetWindowTheme'
 import dwmapi,DwmSetWindowAttribute,'DwmSetWindowAttribute',DwmFlush,'DwmFlush'
 import crypt32,CryptProtectData,'CryptProtectData',CryptUnprotectData,'CryptUnprotectData'

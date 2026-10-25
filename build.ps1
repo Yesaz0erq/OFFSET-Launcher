@@ -7,6 +7,7 @@ if (!(Test-Path -LiteralPath $assemblerPath)) {
 }
 # UI and status text for zh / en / ja -> src/strings.inc, src/strings_status.inc
 & (Join-Path $projectRoot 'tools\gen-strings.ps1') -ProjectRoot $projectRoot
+& (Join-Path $projectRoot 'tools\gen-mod-aliases.ps1') -ProjectRoot $projectRoot
 New-Item -ItemType Directory -Force (Join-Path $projectRoot 'dist') | Out-Null
 $previousInclude = $env:INCLUDE
 try {

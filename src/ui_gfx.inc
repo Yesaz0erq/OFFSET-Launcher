@@ -3,26 +3,11 @@
 ; Text keeps GDI ClearType rendering; shapes use the GDI+ flat API.
 
 ; ---- Palette. A_* are GDI+ ARGB, T_* are GDI COLORREF (0x00BBGGRR).
-A_CANVAS      = 0FFF5F6F8h
-A_SIDEBAR     = 0FFEEF0F4h
-A_SIDELINE    = 0FFDFE3E9h
-A_CARD        = 0FFFFFFFFh
-A_HAIRLINE    = 0FFE3E6EBh
-A_DIVIDER     = 0FFECEEF2h
-A_FIELD       = 0FFFFFFFFh
-A_FIELDLINE   = 0FFE7EBF2h
-A_TRACK       = 0FFE8EAEFh
+; Light/dark values live in palette.inc; these stay the same in both modes.
 A_ACCENT      = 0FF0071E3h
 A_ACCENT_HI   = 0FF1A84F0h
 A_ACCENT_LO   = 0FF0062C6h
 A_ACCENT_SOFT = 0FFE5F0FDh
-A_SECOND      = 0FFE6E8ECh
-A_SECOND_HI   = 0FFDCDFE5h
-A_SECOND_LO   = 0FFD2D6DDh
-A_INK         = 0FF1D1D1Fh
-A_MUTED       = 0FF8A8F98h
-A_DOT         = 0FFD3D8E0h
-A_CROSS       = 0FFC9CFD9h
 A_GREEN       = 0FF30B455h
 A_ORANGE      = 0FFF2A20Ah
 A_BLUEPRINT1  = 0FF0D3168h
@@ -30,20 +15,14 @@ A_BLUEPRINT2  = 0FF071B3Eh
 A_ICONBG1     = 0FF2A2C32h
 A_ICONBG2     = 0FF060607h
 A_MARK        = 0FFE3E8ECh
-
-T_INK         = 01F1D1Dh
-T_SECOND      = 0736E6Eh
-T_MUTED       = 0A09891h
-T_ACCENT      = 0E37100h
 T_WHITE       = 0FFFFFFh
-T_CANVAS      = 0F8F6F5h
 
 SIDEBAR_W = 220
 NAV_TOP = 128
 NAV_STEP = 44
 NAV_H = 36
 HOT_CAPACITY = 64
-ANIM_SLOTS = 10
+ANIM_SLOTS = 11
 TRANSITION_MS = 300
 HERO_MS = 1100
 
@@ -1158,7 +1137,14 @@ proc PaintBackdrop uses ebx esi edi
     mov [gOffY],0
     stdcall GfxBegin,[bgDC]
     invoke GdipSetPixelOffsetMode,[gfx],4
-    stdcall FillRR,0,0,1120,760,0,A_CANVAS
+    stdcall FillRR,0,0,1120,760,0,[themeCanvasARGB]
+    mov eax,[themeTexture]
+    cmp eax,1
+    je .grid
+    cmp eax,2
+    je .blocks
+    cmp eax,3
+    je .finish
     ; dot grid, every 24 units, with crosshair marks every 96
     mov esi,20
 .col:
@@ -1176,19 +1162,19 @@ proc PaintBackdrop uses ebx esi edi
     div ecx
     or ebx,edx
     jz .cross
-    stdcall FillCircle,esi,edi,1,A_DOT
+    stdcall FillCircle,esi,edi,1,[themeDotARGB]
     jmp .step
 .cross:
     mov eax,esi
     sub eax,4
     mov ecx,esi
     add ecx,4
-    stdcall LineA,eax,edi,ecx,edi,A_CROSS,10
+    stdcall LineA,eax,edi,ecx,edi,[themeCrossARGB],10
     mov eax,edi
     sub eax,4
     mov ecx,edi
     add ecx,4
-    stdcall LineA,esi,eax,esi,ecx,A_CROSS,10
+    stdcall LineA,esi,eax,esi,ecx,[themeCrossARGB],10
 .step:
     add edi,24
     cmp edi,760
@@ -1196,12 +1182,79 @@ proc PaintBackdrop uses ebx esi edi
     add esi,24
     cmp esi,1120
     jb .col
+    jmp .finish
+.grid:
+    ; drafting grid: fine lines every 24, stronger every 96 (same lattice as dots)
+    mov esi,20
+.gridV:
+    lea eax,[esi+96*3-SIDEBAR_W-20]
+    xor edx,edx
+    mov ecx,96
+    div ecx
+    mov eax,[themeGridARGB]
+    test edx,edx
+    jnz @f
+    mov eax,[themeDotARGB]
+@@:
+    stdcall LineA,esi,0,esi,760,eax,10
+    add esi,24
+    cmp esi,1120
+    jb .gridV
+    mov edi,20
+.gridH:
+    mov eax,edi
+    sub eax,20
+    xor edx,edx
+    mov ecx,96
+    div ecx
+    mov eax,[themeGridARGB]
+    test edx,edx
+    jnz @f
+    mov eax,[themeDotARGB]
+@@:
+    stdcall LineA,0,edi,1120,edi,eax,10
+    add edi,24
+    cmp edi,760
+    jb .gridH
+    jmp .finish
+.blocks:
+    ; 16-unit pixels in a few close shades, scattered by a fixed hash
+    xor esi,esi
+.blockCol:
+    xor edi,edi
+.blockRow:
+    mov eax,esi
+    shr eax,4
+    imul eax,73
+    mov ecx,edi
+    shr ecx,4
+    imul ecx,151
+    xor eax,ecx
+    mov ecx,eax
+    imul eax,ecx
+    add eax,ecx
+    shr eax,3
+    and eax,7
+    movzx eax,byte [.shades+eax]
+    test eax,eax
+    jz .blockNext
+    stdcall Mix,[themeCanvasARGB],A_TEXINK,eax
+    stdcall FillRR,esi,edi,16,16,0,eax
+.blockNext:
+    add edi,16
+    cmp edi,760
+    jb .blockRow
+    add esi,16
+    cmp esi,1120
+    jb .blockCol
+.finish:
     stdcall GfxEnd
     pop eax
     mov [gOffY],eax
     pop eax
     mov [gOffX],eax
     ret
+.shades db 0,0,0,4,4,7,7,10
 endp
 
 ; Freeze the last frame so the next page can cross-fade over it.
