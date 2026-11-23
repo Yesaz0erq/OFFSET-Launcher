@@ -1,6 +1,6 @@
 param([string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot))
 $ErrorActionPreference = 'Stop'
-$rows = @([IO.File]::ReadAllText((Join-Path $ProjectRoot 'src/mod_aliases.json'), [Text.Encoding]::UTF8) | ConvertFrom-Json)
+$rows = [IO.File]::ReadAllText((Join-Path $ProjectRoot 'src/mod_aliases.json'), [Text.Encoding]::UTF8) | ConvertFrom-Json
 $out = [Collections.Generic.List[string]]::new()
 $out.Add('; Generated from mod_aliases.json. Original name/alias index; no reference launcher data.')
 $aliases = [Collections.Generic.List[string]]::new()

@@ -4,8 +4,6 @@
 A_CANVAS      equ [themeCanvasARGB]
 A_SIDEBAR     equ [themeSidebarARGB]
 A_SIDELINE    equ [themeSidelineARGB]
-A_DOT         equ [themeDotARGB]
-A_CROSS       equ [themeCrossARGB]
 A_CARD        equ [palCard]
 A_HAIRLINE    equ [palHairline]
 A_DIVIDER     equ [palDivider]
@@ -18,7 +16,6 @@ A_SECOND_LO   equ [palSecondLo]
 A_INK         equ [palInk]
 A_MUTED       equ [palMuted]
 A_HOVER       equ [palHover]        ; RGB for faint hover washes (alpha set by caller)
-A_TEXINK      equ [palTexInk]       ; what background textures are mixed toward
 T_INK         equ [palTInk]
 T_SECOND      equ [palTSecond]
 T_MUTED       equ [palTMuted]

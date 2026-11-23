@@ -1,12 +1,13 @@
 ; Original bounded ZIP/store writer. Caller owns the CREATE_NEW temporary path.
-EZ_MAX = 4096
+EZ_MAX = PK_ZMAX
 EZ_REC = 1552
 EZ_NAME = 16
 EZ_WNAME = 528
-EZ_ARCHIVE_MAX = 536870912
-EZ_FILE_MAX = 134217728
+EZ_ARCHIVE_MAX = PK_ARCHIVE_MAX
+EZ_FILE_MAX = PK_ENTRY_MAX
 section '.ezd' data readable writeable
 exZipOwned dd 0
+ezCrcReady dd 0
 ezHandle dd -1
 ezFailed dd 0
 ezOffset dd 0
@@ -19,6 +20,7 @@ ezHeader rb 46
 ezNameW rw 512
 ezBuffer rb 65536
 ezTable rd 256
+ezNames rd EZ_MAX
 ezRecords rb EZ_REC*EZ_MAX
 
 section '.ezc' code readable executable
@@ -45,6 +47,17 @@ proc ExZipBegin uses ebx esi edi,temporaryW
  je .bad
  mov [ezHandle],eax
  mov [exZipOwned],1
+ stdcall EzCrcInit
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
+proc EzCrcInit uses ebx
+ cmp [ezCrcReady],1
+ je .done
  xor ebx,ebx
 .table:
  mov eax,ebx
@@ -59,10 +72,8 @@ proc ExZipBegin uses ebx esi edi,temporaryW
  inc ebx
  cmp ebx,256
  jb .table
- mov eax,1
- ret
-.bad:
- xor eax,eax
+ mov [ezCrcReady],1
+.done:
  ret
 endp
 proc EzCrcUpdate uses ebx esi,initial,data,bytes
@@ -175,18 +186,12 @@ proc EzValidate uses ebx esi edi,nameA,bytes
  inc esi
  jmp .scan
 .duplicates:
- xor ebx,ebx
-.compare:
- cmp ebx,[ezCount]
- jae .space
- imul eax,ebx,EZ_REC
- add eax,ezRecords+EZ_WNAME
- invoke lstrcmpiW,eax,ezNameW
+ imul eax,[ezCount],EZ_REC
+ lea edi,[ezRecords+eax+EZ_WNAME]
+ invoke lstrcpyW,edi,ezNameW
+ stdcall PkNameIndex,ezNames,[ezCount],edi,1
  test eax,eax
- jz .bad
- inc ebx
- jmp .compare
-.space:
+ jnz .bad
  ; Reserve all pending central headers and EOCD before writing this entry.
  mov eax,[ezNameLength]
  shl eax,1
@@ -234,8 +239,6 @@ proc EzLocal uses ebx esi edi,nameA,bytes,crc
  mov [ebx+12],eax
  lea eax,[ebx+EZ_NAME]
  invoke lstrcpyA,eax,[nameA]
- lea eax,[ebx+EZ_WNAME]
- invoke lstrcpyW,eax,ezNameW
  stdcall EzWrite,ezHeader,30
  test eax,eax
  jz .bad

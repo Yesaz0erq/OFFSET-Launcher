@@ -1,7 +1,11 @@
 ; Original OFFSET modpack installer. No shell/script runtime.
 ; Installs into a private sibling stage, atomically publishes a new instance.
-PK_ZMAX = 4096
-PK_ZSIZE = 1032
+PK_ZMAX = 16384
+PK_ARCHIVE_MAX = 1073741824
+PK_ENTRY_MAX = 536870912
+PK_ZDATA = 1032
+PK_ZCRC = 1036
+PK_ZSIZE = 1040
 PK_FMAX = 4096
 PK_FPATH = 0
 PK_FURL = 512
@@ -9,7 +13,10 @@ PK_FHASH = 2560
 PK_FPROJECT = 2604
 PK_FID = 2608
 PK_FTOKEN = 2612
-PK_FSIZE = 2616
+PK_FITEM = 2616
+PK_FWNAME = 2620
+PK_FSHA512 = PK_FWNAME+1024
+PK_FSIZE = PK_FSHA512+132
 
 section '.packd' data readable writeable
 pkZipCount dd 0
@@ -120,12 +127,16 @@ pkExtract rw 1024
 pkPath rw 2048
 pkSource rw 2048
 pkWide rw 512
-pkComponent rw 128
+pkComponent rw 256
 pkValue rb 4096
 pkValue2 rb 2048
 pkArchiveHash rb 41
 pkMarker rb 4096
+; ZIP central-directory order may differ from local-header order.
+pkSpans rd PK_ZMAX*2*2
+pkZipNames rd PK_ZMAX
 pkZipRecords rb PK_ZMAX*PK_ZSIZE
+pkDownloadNames rd PK_FMAX
 pkFiles rb PK_FMAX*PK_FSIZE
 
 section '.packc' code readable executable
@@ -153,7 +164,7 @@ proc PkComponentSafe uses ebx esi edi,source,length
  mov ecx,[length]
  test ecx,ecx
  jz .bad
- cmp ecx,120
+ cmp ecx,255
  ja .bad
  mov esi,[source]
  lea edi,[pkComponent]
@@ -364,6 +375,51 @@ proc PkPayloadSafe uses esi edi,path
  ret
 endp
 
+; Sorted pointers into stable record storage. Return a matching pointer, or
+; zero on a miss. On insertion only the pointer suffix moves.
+proc PkNameIndex uses ebx esi edi,table,count,nameW,insert
+ local low:DWORD,high:DWORD
+ mov [low],0
+ mov eax,[count]
+ mov [high],eax
+ mov esi,[table]
+.search:
+ mov ebx,[low]
+ cmp ebx,[high]
+ jae .miss
+ add ebx,[high]
+ shr ebx,1
+ mov edi,[esi+ebx*4]
+ invoke lstrcmpiW,[nameW],edi
+ test eax,eax
+ jz .found
+ js .left
+ inc ebx
+ mov [low],ebx
+ jmp .search
+.left:
+ mov [high],ebx
+ jmp .search
+.found:
+ mov eax,edi
+ ret
+.miss:
+ cmp [insert],0
+ je .zero
+ mov ecx,[count]
+ lea edi,[esi+ecx*4]
+ sub ecx,ebx
+ lea esi,[edi-4]
+ std
+ rep movsd
+ cld
+ mov eax,[nameW]
+ mov [edi],eax
+.zero:
+ xor eax,eax
+ ret
+endp
+
 ; Validate the complete ZIP structure before giving it to tar. Central/local
 ; entries must be contiguous and agree, so no unlisted local entries survive.
 ; ZIP64, encryption, links, SFX, multi-disk and non-deflate codecs are rejected.
@@ -406,6 +462,28 @@ proc PkExtraSafe uses ebx esi edi,extra,length
  ret
 endp
 
+; Find the hash slot for a local-header offset. At most half the slots are
+; occupied. Every end offset is positive, so zero marks an unused slot.
+proc PkSpanSlot,offsetValue
+ mov ecx,[offsetValue]
+ imul eax,ecx,09E3779B1h
+ mov edx,eax
+ shr edx,16
+ xor eax,edx
+.probe:
+ and eax,PK_ZMAX*2-1
+ lea edx,[pkSpans+eax*8]
+ cmp dword [edx+4],0
+ je .found
+ cmp [edx],ecx
+ je .found
+ inc eax
+ jmp .probe
+.found:
+ mov eax,edx
+ ret
+endp
+
 proc PkValidateZip uses ebx esi edi,buffer,size
  locals
   endPos dd ?
@@ -423,7 +501,6 @@ proc PkValidateZip uses ebx esi edi,buffer,size
   nameLength dd ?
   pkDirectoryArg dd ?
   localHeader dd ?
-  previous dd ?
   centralHeader dd ?
  endl
  mov [pkZipCount],0
@@ -432,7 +509,7 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  mov eax,[size]
  cmp eax,22
  jb .bad
- cmp eax,536870912
+ cmp eax,PK_ARCHIVE_MAX
  ja .bad
  sub eax,22
  mov esi,[buffer]
@@ -475,7 +552,10 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  cmp eax,[endPos]
  jne .bad
  mov [cdEnd],eax
- mov [localCursor],0
+ mov edi,pkSpans
+ xor eax,eax
+ mov ecx,PK_ZMAX*4
+ rep stosd
  mov [index],0
 .entry:
  mov eax,[index]
@@ -506,9 +586,14 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  mov eax,[esi+20]
  mov [compressed],eax
  mov eax,[esi+24]
- cmp eax,134217728
+ cmp eax,PK_ENTRY_MAX
  ja .bad
  mov [expanded],eax
+ cmp [method],0
+ jne .expanded
+ cmp eax,[compressed]
+ jne .bad
+.expanded:
  add [pkZipTotal],eax
  jc .bad
  cmp [pkZipTotal],2147483647
@@ -551,8 +636,8 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  jne .bad
 .attributes:
  mov eax,[esi+42]
- cmp eax,[localCursor]
- jne .bad
+ cmp eax,[size]
+ jae .bad
  add eax,[buffer]
  jc .bad
  mov ebx,eax
@@ -622,24 +707,13 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  stdcall PkSafePath,pkValue,[pkDirectoryArg]
  test eax,eax
  jz .bad
- ; Canonical wide names make case-aliased duplicates explicit on Windows.
- mov [previous],0
-.duplicates:
- mov eax,[previous]
- cmp eax,[index]
- jae .publish
- imul eax,PK_ZSIZE
- add eax,pkZipRecords
- invoke lstrcmpiW,eax,pkWide
- test eax,eax
- jz .bad
- inc [previous]
- jmp .duplicates
-.publish:
  mov eax,[index]
  imul eax,PK_ZSIZE
  add eax,pkZipRecords
  invoke lstrcpyW,eax,pkWide
+ stdcall PkNameIndex,pkZipNames,[index],eax,1
+ test eax,eax
+ jnz .bad
  mov ebx,[index]
  imul ebx,PK_ZSIZE
  add ebx,pkZipRecords
@@ -647,6 +721,16 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  mov [ebx+1024],eax
  mov eax,[expanded]
  mov [ebx+1028],eax
+ mov eax,[crc]
+ mov [ebx+PK_ZCRC],eax
+ mov eax,-1
+ cmp [method],0
+ jne .offset
+ mov eax,[localCursor]
+ sub eax,[compressed]
+ sub eax,[buffer]
+.offset:
+ mov [ebx+PK_ZDATA],eax
 .localSizes:
  mov ebx,[localHeader]
  test [flags],8
@@ -710,11 +794,29 @@ proc PkValidateZip uses ebx esi edi,buffer,size
 .cursor:
  mov eax,[localCursor]
  sub eax,[buffer]
- mov [localCursor],eax
+ mov ebx,eax
+ mov esi,[centralHeader]
+ stdcall PkSpanSlot,dword [esi+42]
+ cmp dword [eax+4],0
+ jne .bad
+ mov edx,[esi+42]
+ mov [eax],edx
+ mov [eax+4],ebx
  inc [index]
  jmp .entry
 .finished:
- mov eax,[localCursor]
+ ; Walk physical records from byte zero. Every validated span must be used
+ ; exactly once and the last one must end at the central directory.
+ xor ebx,ebx
+ mov esi,[count]
+.chain:
+ stdcall PkSpanSlot,ebx
+ mov ebx,[eax+4]
+ test ebx,ebx
+ jz .bad
+ dec esi
+ jnz .chain
+ mov eax,ebx
  add eax,[buffer]
  cmp eax,[cdPos]
  jne .bad
@@ -741,7 +843,7 @@ proc PkReadZip uses ebx esi,path
  invoke GetFileSize,eax,addr high
  cmp [high],0
  jne .close
- cmp eax,536870912
+ cmp eax,PK_ARCHIVE_MAX
  ja .close
  cmp eax,22
  jb .close
@@ -1039,23 +1141,11 @@ proc PkFileUnique uses ebx esi,index
  stdcall PkPayloadSafe,ebx
  test eax,eax
  jz .bad
- xor esi,esi
-.loop:
- cmp esi,[index]
- jae .good
- imul eax,esi,PK_FSIZE
- add eax,pkFiles
- invoke MultiByteToWideChar,65001,8,eax,-1,pkSource,2048
+ lea esi,[ebx+PK_FWNAME]
+ invoke lstrcpyW,esi,pkWide
+ stdcall PkNameIndex,pkDownloadNames,[index],esi,1
  test eax,eax
- jz .bad
- invoke MultiByteToWideChar,65001,8,ebx,-1,pkPath,2048
- test eax,eax
- jz .bad
- invoke lstrcmpiW,pkSource,pkPath
- test eax,eax
- jz .bad
- inc esi
- jmp .loop
+ jnz .bad
 .good: mov eax,1
  ret
 .bad: xor eax,eax
@@ -1136,21 +1226,22 @@ proc PkReadMr uses ebx esi edi,root
  invoke lstrcpyA,pkOverrides,pkDefaultOverrides
  stdcall JsonGet,[pkContext],[root],pkKeyFiles
  mov [list],eax
+ stdcall PIsArray,[pkContext],eax
  test eax,eax
  jz .bad
- stdcall JsonCount,[pkContext],eax
+ stdcall JsonCount,[pkContext],[list]
  cmp eax,PK_FMAX
  ja .bad
  mov [count],eax
  mov [index],0
  mov [pkFileCount],0
+ stdcall JsonAt,[pkContext],[list],0
+ mov [item],eax
 .loop:
  mov eax,[index]
  cmp eax,[count]
  jae .good
- stdcall JsonAt,[pkContext],[list],eax
- mov [item],eax
- stdcall JsonGet,[pkContext],eax,pkKeyEnv
+ stdcall JsonGet,[pkContext],[item],pkKeyEnv
  test eax,eax
  jz .file
  stdcall JsonGet,[pkContext],eax,pkKeyClient
@@ -1180,6 +1271,7 @@ proc PkReadMr uses ebx esi edi,root
  test eax,eax
  jz .bad
  stdcall JsonGet,[pkContext],[item],pkKeyHash
+ mov esi,eax
  stdcall JsonGet,[pkContext],eax,pkKeySha
  lea edi,[ebx+PK_FHASH]
  stdcall PkString,[pkContext],eax,edi,41
@@ -1188,9 +1280,23 @@ proc PkReadMr uses ebx esi edi,root
  stdcall ModIsSha1,edi
  test eax,eax
  jz .bad
+ mov byte [ebx+PK_FSHA512],0
+ stdcall JsonGet,[pkContext],esi,psSha512
+ test eax,eax
+ jz .downloads
+ lea edi,[ebx+PK_FSHA512]
+ stdcall PkString,[pkContext],eax,edi,129
+ test eax,eax
+ jz .bad
+ stdcall ModIsHexDigest,edi,128
+ test eax,eax
+ jz .bad
+.downloads:
  stdcall JsonGet,[pkContext],[item],pkKeyDownloads
  mov [urls],eax
  mov [ebx+PK_FTOKEN],eax
+ mov edx,[item]
+ mov [ebx+PK_FITEM],edx
  mov [urlIndex],0
 .urls:
  cmp [urlIndex],16
@@ -1211,6 +1317,8 @@ proc PkReadMr uses ebx esi edi,root
 .accepted:
  inc [pkFileCount]
 .next:
+ stdcall JsonNext,[pkContext],[item]
+ mov [item],eax
  inc [index]
  jmp .loop
 .good: mov eax,1
@@ -1220,7 +1328,7 @@ proc PkReadMr uses ebx esi edi,root
 endp
 
 proc PkReadCf uses ebx esi edi,root
- local mc:DWORD,list:DWORD,count:DWORD,index:DWORD,item:DWORD
+ local mc:DWORD,list:DWORD,count:DWORD,index:DWORD,item:DWORD,primary:DWORD
  stdcall JsonGet,[pkContext],[root],pkKeyManifestType
  stdcall PkString,[pkContext],eax,pkValue,4096
  test eax,eax
@@ -1232,13 +1340,17 @@ proc PkReadCf uses ebx esi edi,root
  stdcall JsonInt,[pkContext],eax
  cmp eax,1
  jne .bad
+ invoke lstrcpyA,pkOverrides,pkDefaultOverrides
  stdcall JsonGet,[pkContext],[root],pkKeyOverrides
+ test eax,eax
+ jz .minecraft
  stdcall PkString,[pkContext],eax,pkOverrides,512
  test eax,eax
  jz .bad
  stdcall PkSafePath,pkOverrides,0
  test eax,eax
  jz .bad
+.minecraft:
  stdcall JsonGet,[pkContext],[root],pkKeyMinecraft
  mov [mc],eax
  stdcall JsonGet,[pkContext],eax,pkKeyVersion
@@ -1253,11 +1365,35 @@ proc PkReadCf uses ebx esi edi,root
  stdcall JsonGet,[pkContext],[mc],pkKeyModLoaders
  mov [list],eax
  stdcall JsonCount,[pkContext],eax
- cmp eax,1
+ cmp eax,16
  ja .bad
  test eax,eax
  jz .files
+ mov [count],eax
+ cmp eax,1
+ je .single
+ mov [primary],0
+ xor ebx,ebx
+.select:
+ stdcall JsonAt,[pkContext],[list],ebx
+ mov esi,eax
+ stdcall JsonGet,[pkContext],esi,.primaryKey
+ stdcall JsonBool,[pkContext],eax
+ cmp eax,1
+ jne .advance
+ cmp [primary],0
+ jne .bad
+ mov [primary],esi
+.advance:
+ inc ebx
+ cmp ebx,[count]
+ jb .select
+ mov eax,[primary]
+ jmp .chosen
+.primaryKey db 'primary',0
+.single:
  stdcall JsonAt,[pkContext],[list],0
+.chosen:
  stdcall JsonGet,[pkContext],eax,pkKeyId
  stdcall PkString,[pkContext],eax,pkValue,4096
  test eax,eax
@@ -1297,26 +1433,42 @@ proc PkReadCf uses ebx esi edi,root
 .files:
  stdcall JsonGet,[pkContext],[root],pkKeyFiles
  mov [list],eax
+ stdcall PIsArray,[pkContext],eax
  test eax,eax
  jz .bad
- stdcall JsonCount,[pkContext],eax
+ stdcall JsonCount,[pkContext],[list]
  cmp eax,PK_FMAX
  ja .bad
  mov [count],eax
  mov [index],0
  mov [pkFileCount],0
+ stdcall JsonAt,[pkContext],[list],0
+ mov [item],eax
 .loop:
  mov eax,[index]
  cmp eax,[count]
  jae .good
- stdcall JsonAt,[pkContext],[list],eax
- mov [item],eax
- stdcall JsonGet,[pkContext],eax,pkKeyRequired
+ stdcall JsonGet,[pkContext],[item],pkKeyRequired
  stdcall JsonBool,[pkContext],eax
  cmp eax,-1
  je .bad
  test eax,eax
  jz .next
+ stdcall PkAddCfFile,[item]
+ test eax,eax
+ jz .bad
+.next:
+ stdcall JsonNext,[pkContext],[item]
+ mov [item],eax
+ inc [index]
+ jmp .loop
+.good: mov eax,1
+ ret
+.bad: xor eax,eax
+ ret
+endp
+
+proc PkAddCfFile uses ebx,item
  mov ebx,[pkFileCount]
  imul ebx,PK_FSIZE
  add ebx,pkFiles
@@ -1331,12 +1483,10 @@ proc PkReadCf uses ebx esi edi,root
  jle .bad
  mov [ebx+PK_FID],eax
  inc [pkFileCount]
-.next:
- inc [index]
- jmp .loop
-.good: mov eax,1
+ mov eax,1
  ret
-.bad: xor eax,eax
+.bad:
+ xor eax,eax
  ret
 endp
 
@@ -1354,6 +1504,12 @@ endp
 proc PkReadManifest uses ebx
  local result:DWORD
  mov [result],0
+ imul ebx,[pkManifestIndex],PK_ZSIZE
+ mov ebx,dword [pkZipRecords+ebx+1028]
+ test ebx,ebx
+ jz .done
+ cmp ebx,PK_MANIFEST_MAX
+ ja .done
  invoke lstrcpyW,pkPath,pkExtract
  invoke lstrcatW,pkPath,pkSlash
  invoke lstrcatW,pkPath,pkManifestPathW
@@ -1361,6 +1517,9 @@ proc PkReadManifest uses ebx
  test eax,eax
  jz .done
  mov [pkText],eax
+ invoke lstrlenA,eax
+ cmp eax,ebx
+ jne .done
  stdcall PkParseManifestText
  mov [result],eax
 .done:
@@ -1372,7 +1531,14 @@ proc PkParseManifestText uses ebx
  local result:DWORD
  mov [result],0
  mov [pkEmbeddedCount],0
- stdcall JsonParse,[pkText]
+ mov eax,[pkText]
+ cmp word [eax],0BBEFh
+ jne .parse
+ cmp byte [eax+2],0BFh
+ jne .parse
+ add eax,3
+.parse:
+ stdcall JsonParse,eax
  test eax,eax
  jz .done
  mov [pkContext],eax
@@ -1398,6 +1564,16 @@ proc PkParseManifestText uses ebx
  stdcall PkReadMr,ebx
  jmp .parsed
 .cf:
+ cmp eax,4
+ je .mcbbs
+ stdcall JsonGet,[pkContext],ebx,pkKeyAddons
+ test eax,eax
+ jz .curse
+.mcbbs:
+ mov [pkFormat],4
+ stdcall PkReadMcbbs,ebx
+ jmp .parsed
+.curse:
  stdcall PkReadCf,ebx
  jmp .parsed
 .mmc:
@@ -1600,8 +1776,8 @@ proc PkDownloadFiles uses ebx esi edi
  jne .bad
  cmp [modCancel],0
  jne .bad
- cmp [pkFormat],2
- jne .nextResolve
+ cmp [pkFormat],1
+ je .nextResolve
  stdcall PkResolveCf,esi
  test eax,eax
  jz .blocked
@@ -1661,6 +1837,19 @@ proc PkDownloadFiles uses ebx esi edi
  test eax,eax
  jz .fallback
 .fileDone:
+ cmp [pkFormat],1
+ jne .source
+ cmp byte [ebx+PK_FSHA512],0
+ je .source
+ stdcall DigestFile,pkPath,pkValue2,800Eh,64
+ test eax,eax
+ jz .network
+ lea eax,[ebx+PK_FSHA512]
+ invoke lstrcmpiA,eax,pkValue2
+ test eax,eax
+ jnz .network
+.source:
+ stdcall PkRememberSource,ebx
  inc esi
  jmp .download
 .good: mov eax,1
@@ -1880,6 +2069,12 @@ proc PackInstallChecked uses ebx esi edi,archivePathW,destinationW,expectedSha1A
  stdcall PkReadManifest
  test eax,eax
  jz .manifest
+ cmp [pkFormat],4
+ jne .download
+ stdcall PkVerifyAddons
+ test eax,eax
+ jz .manifest
+.download:
  stdcall PkDownloadFiles
  test eax,eax
  jz .done
@@ -1935,3 +2130,5 @@ proc PackInstallChecked uses ebx esi edi,archivePathW,destinationW,expectedSha1A
 endp
 
 include 'pack_import.inc'
+include 'pack_mcbbs.inc'
+include 'pack_sources.inc'

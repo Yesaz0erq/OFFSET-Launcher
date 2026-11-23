@@ -980,10 +980,15 @@
       "en": "Format",
       "ja": "形式"
     },
+    "sPackImportCounts": {
+      "zh": "下载项 %u 个 · 包内文件 %u 个",
+      "en": "%u downloads · %u bundled files",
+      "ja": "ダウンロード %u 件 · 同梱ファイル %u 件"
+    },
     "sPackImportFormats": {
-      "zh": "Modrinth · CurseForge · Prism / MultiMC",
-      "en": "Modrinth · CurseForge · Prism / MultiMC",
-      "ja": "Modrinth · CurseForge · Prism / MultiMC"
+      "zh": "Modrinth · CurseForge · Prism / MultiMC · MCBBS (HMCL / PCL)",
+      "en": "Modrinth · CurseForge · Prism / MultiMC · MCBBS (HMCL / PCL)",
+      "ja": "Modrinth · CurseForge · Prism / MultiMC · MCBBS (HMCL / PCL)"
     },
     "sPackImportInvalidFolder": {
       "zh": "实例目录名无效或已存在。",
@@ -1410,6 +1415,41 @@
       "en": "Selected. Click Save to apply.",
       "ja": "選択しました。保存で反映されます。"
     },
+    "sThemeMinecraft": {
+      "zh": "Minecraft",
+      "en": "Minecraft",
+      "ja": "Minecraft"
+    },
+    "sThemeBlueprint": {
+      "zh": "蓝图",
+      "en": "Blueprint",
+      "ja": "設計図"
+    },
+    "sThemeOverall": {
+      "zh": "整体主题",
+      "en": "Interface theme",
+      "ja": "テーマ"
+    },
+    "sThemeColors": {
+      "zh": "主题配色",
+      "en": "Theme colors",
+      "ja": "テーマの配色"
+    },
+    "sThemeNav": {
+      "zh": "导航栏",
+      "en": "Navigation",
+      "ja": "ナビゲーション"
+    },
+    "sThemeSurface": {
+      "zh": "面板",
+      "en": "Panels",
+      "ja": "パネル"
+    },
+    "sThemePreview": {
+      "zh": "主题预览",
+      "en": "Theme preview",
+      "ja": "テーマプレビュー"
+    },
     "sPersonalScheme": {
       "zh": "配色方案",
       "en": "Color scheme",
@@ -1420,35 +1460,10 @@
       "en": "Window color",
       "ja": "ウィンドウの色"
     },
-    "sPersonalTexture": {
-      "zh": "背景纹理",
-      "en": "Background texture",
-      "ja": "背景テクスチャ"
-    },
     "sPersonalHelp": {
       "zh": "六位 HEX；颜色会自动调整以保证可读性。",
       "en": "Six HEX digits. Colors adjust for readability.",
       "ja": "6桁のHEX。読みやすさのため色は自動調整されます。"
-    },
-    "sTexDots": {
-      "zh": "点阵",
-      "en": "Dots",
-      "ja": "ドット"
-    },
-    "sTexGrid": {
-      "zh": "网格",
-      "en": "Grid",
-      "ja": "グリッド"
-    },
-    "sTexBlocks": {
-      "zh": "方块",
-      "en": "Blocks",
-      "ja": "ブロック"
-    },
-    "sTexPlain": {
-      "zh": "纯色",
-      "en": "Plain",
-      "ja": "無地"
     },
     "sSchemeBlueprint": {
       "zh": "蓝图",

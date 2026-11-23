@@ -240,12 +240,17 @@ proc ModUrlEncode uses ebx esi edi,source,destination,capacity
     ret
 endp
 
-proc ModIsSha1 uses esi,source
+proc ModIsSha1,source
+    stdcall ModIsHexDigest,[source],40
+    ret
+endp
+
+proc ModIsHexDigest uses esi,source,digits
     mov esi,[source]
     xor ecx,ecx
 .loop:
     mov al,[esi+ecx]
-    cmp ecx,40
+    cmp ecx,[digits]
     je .complete
     cmp al,'0'
     jb .bad
@@ -834,6 +839,7 @@ proc ModsInstall uses ebx esi edi,index
     invoke MoveFileExW,addr cached,addr target,8
     test eax,eax
     jz .moveBad
+    stdcall PsRememberMod,ebx,addr target
     mov eax,mlStatusInstalled
     cmp dword [ebx+MF_REQUIRED],0
     je .status
@@ -843,6 +849,7 @@ proc ModsInstall uses ebx esi edi,index
     mov eax,1
     ret
 .same:
+    stdcall PsRememberMod,ebx,addr target
     stdcall SetStatusA,mlStatusSame
     mov eax,1
     ret

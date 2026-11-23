@@ -12,6 +12,7 @@ hPackLocal dd 0
 hPackImportFolder dd 0
 packImportReady dd 0
 packImportFormat dd 0
+packImportCountsW rw 128
 packUiControls dd 6 dup(0)
 packKeyName db 'name',0
 packKeyVersion db 'version',0
@@ -25,11 +26,12 @@ packIdentityFmt du '%u-%s-%s',0
 packImportFmt du 'import-%08X',0
 packMrExt du '.mrpack',0
 packCfExt du '.zip',0
-packFileFilter du 'Modrinth / CurseForge / Prism / MultiMC (*.mrpack;*.zip)',0,'*.mrpack;*.zip',0,'All files',0,'*.*',0,0
+packFileFilter du 'Modrinth / CurseForge / Prism / MultiMC / MCBBS (*.mrpack;*.zip)',0,'*.mrpack;*.zip',0,'All files',0,'*.*',0,0
 packFormatMr du 'Modrinth',0
 packFormatCf du 'CurseForge',0
 packFormatPrism du 'Prism / MultiMC',0
-packFormatNames dd packFormatMr,packFormatCf,packFormatPrism
+packFormatMcbbs du 'MCBBS',0
+packFormatNames dd packFormatMr,packFormatCf,packFormatPrism,packFormatMcbbs
 packPreviewSeparator du ' / ',0
 packPreviewSpace du ' ',0
 packRoot rw 1024
@@ -284,9 +286,12 @@ proc PackImportPreview uses ebx
  mov eax,[packInspectFormat]
  cmp eax,1
  jb .bad
- cmp eax,3
+ cmp eax,4
  ja .bad
  mov [packImportFormat],eax
+ mov eax,[packInspectFiles]
+ sub eax,[pkEmbeddedCount]
+ cinvoke wsprintfW,packImportCountsW,sPackImportCounts,eax,[pkEmbeddedCount]
  invoke MultiByteToWideChar,65001,8,packInspectName,-1,packImportNameW,256
  test eax,eax
  jz .bad
@@ -850,7 +855,7 @@ proc PaintPacks,dc
  stdcall Text,[dc],sPackImportFormat,280,296,154,24,[fSmall],C_MUTED
  mov eax,[packImportFormat]
  dec eax
- cmp eax,2
+ cmp eax,3
  ja .status
  stdcall Text,[dc],dword [packFormatNames+eax*4],440,296,624,26,[fBody],C_INK
  stdcall Text,[dc],sPackImportName,280,340,154,24,[fSmall],C_MUTED
@@ -860,6 +865,7 @@ proc PaintPacks,dc
  stdcall Text,[dc],sPackImportFolder,280,416,154,26,[fSmall],C_MUTED
  stdcall Field,440,410,624,38,[hPackImportFolder]
  stdcall Text,[dc],sPackImportFolderHelp,440,456,624,26,[fSmall],C_MUTED
+ stdcall Text,[dc],packImportCountsW,440,488,624,26,[fSmall],C_MUTED
  stdcall TextDraw,packRoot,280,520,776,26,[fMonoSmall],T_MUTED,DT_LEFT+DT_PATH_ELLIPSIS,0
  stdcall Button,[dc],sPackImportStart,252,620,220,42,1
  stdcall Button,[dc],sPackImportReset,492,620,172,42,0

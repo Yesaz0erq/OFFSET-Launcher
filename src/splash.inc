@@ -1,12 +1,8 @@
-; Startup animation. A full-window blueprint sheet appears with the OFFSET mark
-; drawing itself in the centre; the sheet then contracts into the Play page's
-; hero card while the mark glides into the hero's large logo on the right.
-; Everything is vector (GDI+ paths); the final frame equals PaintHero exactly,
-; so the hand-off is seamless. Disabled when Personalize > motion is off or
-; offset.ini sets StartupAnimation=0. A click or key press skips it.
+; The title sheet contracts into the home hero. The Minecraft theme reveals
+; the landscape as the OFFSET mark fades. Click or press a key to skip.
 
 SPLASH_LEAD_MS = 140            ; let the window's own show animation finish
-SPLASH_DRAW_MS = 900            ; mark outline + construction circle sweep
+SPLASH_DRAW_MS = 900            ; mark outline + logo sweep
 SPLASH_FILL_AT = 600            ; faint fill settles into the outline
 SPLASH_FILL_MS = 400
 SPLASH_WORD_AT = 650            ; wordmark fades in under the mark
@@ -85,7 +81,7 @@ proc SplashElapsed
     ret
 endp
 
-; Static first-phase sheet (gradient + grid), rendered once at device size.
+; Cache the first-phase sheet, including the grid for Blueprint, at device size.
 proc SplashEnsureCache uses ebx,screen,w,h
     cmp [splashDC],0
     je .build
@@ -109,10 +105,16 @@ proc SplashEnsureCache uses ebx,screen,w,h
     invoke SelectObject,[splashDC],eax
     mov [splashOld],eax
     stdcall GfxBegin,[splashDC]
-    stdcall FillRRGrad,0,0,1120,760,0,[themeBlueprint1],[themeBlueprint2]
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .minecraft
+    stdcall FillRRGrad,0,0,1120,760,0,[themeHeroARGB],[themeBlueprintEnd]
     stdcall DrawBlueprintGrid
     stdcall GfxEnd
     stdcall SplashBuildLayers,[screen],[w],[h]
+    jmp .done
+.minecraft:
+    stdcall FillRR,0,0,1120,760,0,[themeHeroARGB]
+    stdcall GfxEnd
 .done:
     ret
 endp
@@ -134,7 +136,7 @@ proc SplashBuildLayers uses ebx esi edi,screen,w,h
     mov edi,[splashColBits]
     xor ebx,ebx
 .strip:
-    stdcall Mix,[themeBlueprint1],[themeBlueprint2],ebx
+    stdcall Mix,[themeHeroARGB],[themeBlueprintEnd],ebx
     mov [edi+ebx*4],eax
     inc ebx
     cmp ebx,256
@@ -380,13 +382,13 @@ proc HeroTextLevel
     ret
 endp
 
-; Colour for hero text: fades from the blueprint ink to its final colour.
+; Colour for hero text: fades from the hero background to its final colour.
 proc HeroTextColor color
     stdcall HeroTextLevel
     cmp eax,256
     jae .plain
     push eax
-    stdcall ArgbToCR,[themeBlueprint1]
+    stdcall ArgbToCR,[themeHeroARGB]
     pop ecx
     stdcall Mix,eax,[color],ecx
     ret
@@ -410,6 +412,7 @@ proc PaintSplash uses ebx esi edi
         sweep dd ?
         draw dd ?
         k dd ?
+        markAlpha dd ?
         wordLvl dd ?
         bgCR dd ?
     endl
@@ -448,6 +451,8 @@ proc PaintSplash uses ebx esi edi
     mov [lcx],eax
     stdcall Lerp,SPLASH_CY0,SPLASH_CY1,[m]
     mov [lcy],eax
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .minecraft
     ; first phase: Paint already blitted the cached sheet
     cmp [splashCovering],0
     jne .construction
@@ -524,21 +529,44 @@ proc PaintSplash uses ebx esi edi
     mov ecx,[lcx]
     add ecx,edi
     stdcall LineA,eax,[lcy],ecx,[lcy],99FFFFFFh,10
+    jmp .mark
+.minecraft:
+    cmp [splashCovering],0
+    jne .mark
+    stdcall FillRR,[px],[py],[pw],[ph],[pr],[themeHeroARGB]
+    mov eax,[px]
+    add eax,[pw]
+    mov ecx,[py]
+    add ecx,[ph]
+    mov edx,[m]
+    imul edx,255
+    shr edx,10
+    stdcall DrawWorldScene,eax,ecx,8,edx
 .mark:
-    ; the mark: outline sweeps in, then the hero's faint fill settles
     mov eax,[size]
     shr eax,1
     mov esi,[lcx]
     sub esi,eax
     mov edi,[lcy]
     sub edi,eax
+    mov ebx,255
+    cmp [themeStyle],STYLE_MINECRAFT
+    jne .opacity
+    mov eax,[m]
+    imul eax,255
+    shr eax,10
+    sub ebx,eax
+.opacity:
+    mov [markAlpha],ebx
+    stdcall WithAlpha,0FFFFFFh,ebx
+    mov ebx,eax
     stdcall Lerp,18,12,[m]
-    stdcall DrawLogo,esi,edi,[size],0F2FFFFFFh,eax,[sweep]
+    stdcall DrawLogo,esi,edi,[size],ebx,eax,[sweep]
     stdcall SplashProg,SPLASH_FILL_AT,SPLASH_FILL_MS
     test eax,eax
     jz .wordmark
-    imul eax,46h
-    shr eax,10
+    imul eax,[markAlpha]
+    shr eax,12
     stdcall WithAlpha,0FFFFFFh,eax
     stdcall DrawLogo,esi,edi,[size],eax,0,360
 .wordmark:
@@ -557,7 +585,11 @@ proc PaintSplash uses ebx esi edi
     test ebx,ebx
     jz .done
     mov [wordLvl],ebx
-    stdcall Mix,[themeBlueprint1],[themeBlueprint2],128
+    mov eax,[themeHeroARGB]
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne @f
+    stdcall Mix,eax,[themeBlueprintEnd],128
+@@:
     stdcall ArgbToCR,eax
     mov [bgCR],eax
     stdcall Mix,[bgCR],0ECE8E3h,[wordLvl]

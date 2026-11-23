@@ -671,9 +671,10 @@ proc PaintPackExport,dc
  mov [segLabels],sModrinth
  mov [segLabels+4],sCurseForge
  mov [segLabels+8],packFormatPrism
+ mov [segLabels+12],packFormatMcbbs
  mov eax,[peUiFormat]
  dec eax
- stdcall Segmented,440,396,624,40,3,4,segLabels,eax,[fBody]
+ stdcall Segmented,440,396,624,40,4,4,segLabels,eax,[fBody]
  stdcall Text,[dc],sPackExportContents,280,464,154,26,[fSmall],C_MUTED
  stdcall Button,[dc],sPackExportMods,440,456,116,40,[peUiMods]
  stdcall Button,[dc],sPackExportConfig,567,456,116,40,[peUiConfig]
@@ -684,6 +685,10 @@ proc PaintPackExport,dc
  add eax,1048575
  shr eax,20
  cinvoke wsprintfW,peUiScratchW,sPackExportContent,[peUiFiles],eax
+ cmp [peUiReady],0
+ je .output
+ stdcall Text,[dc],peUiScratchW,648,626,207,28,[fSmall],C_MUTED
+.output:
  stdcall Text,[dc],sPackExportOutput,280,570,154,24,[fSmall],C_MUTED
  mov eax,peUiDestW
  cmp word [peUiDestW],0
@@ -743,7 +748,7 @@ proc ClickPackExport uses ebx,x,y
  mov eax,[x]
  sub eax,440
  xor edx,edx
- mov ecx,208
+ mov ecx,156
  div ecx
  inc eax
  cmp eax,[peUiFormat]

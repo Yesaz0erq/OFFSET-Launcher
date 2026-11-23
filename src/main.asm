@@ -33,6 +33,8 @@ WB_W = 34
 WB_MIN_X = 1040
 WB_CLOSE_X = 1078
 A_CLOSE = 0FFE5484Dh
+STYLE_MINECRAFT = 0
+STYLE_BLUEPRINT = 1
 include 'palette.inc'
 
 section '.data' data readable writeable
@@ -96,7 +98,7 @@ kMode du 'Online',0
 iniSuffix du '\offset.ini',0
 fmtRam du '%u MiB',0
 fmtNum du '%u',0
-; Blueprint annotations (decorative, ASCII mono).
+; Compact page labels used by the Blueprint theme.
 eyebrowHome du '01 / LAUNCH',0
 eyebrowVersions du '02 / VERSIONS',0
 eyebrowAccount du '03 / ACCOUNT',0
@@ -145,7 +147,6 @@ windowRect RECT 0,0,1120,760
 wc WNDCLASSEX sizeof.WNDCLASSEX,CS_HREDRAW+CS_VREDRAW,WindowProc,0,0,0,0,0,0,0,className,0
 msg MSG
 icex dd 8,00000400h
-roundCorners dd 2
 ncPt POINT
 minHot dd -1
 closeHot dd -1
@@ -240,7 +241,6 @@ start:
     je @f
     stdcall AnimKick
 @@:
-    invoke DwmSetWindowAttribute,eax,33,roundCorners,4
     invoke ShowWindow,[hWnd],SW_SHOWNORMAL
     invoke UpdateWindow,[hWnd]
     cmp [authHasRefresh],1
@@ -285,6 +285,10 @@ start:
     stdcall AuthInvalidateSession
     stdcall AuthWipeSecrets
     stdcall AuthWipeRefresh
+    invoke GdipDeletePath,[gridMinorPath]
+    invoke GdipDeletePath,[gridMajorPath]
+    invoke GdipDeletePen,[gridMinorPen]
+    invoke GdipDeletePen,[gridMajorPen]
     invoke GdiplusShutdown,[gdipToken]
 .processExit:
     invoke ExitProcess,[msg.wParam]
@@ -1390,6 +1394,8 @@ proc Button uses ebx esi edi,dc,str,x,y,w,h,primary
     mov [lo],eax
     mov [ink],T_WHITE
 .colors:
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .blockButton
     mov eax,[h]
     shr eax,1
     cmp [h],44
@@ -1427,6 +1433,31 @@ proc Button uses ebx esi edi,dc,str,x,y,w,h,primary
     mov eax,[y]
     add eax,edi
     stdcall TextC,0,[str],[x],eax,[w],[h],[fMedium],[ink]
+    ret
+.blockButton:
+    stdcall HoverLevel,[idx]
+    stdcall Mix,[base],[hi],eax
+    mov esi,eax
+    mov edi,[y]
+    mov ebx,4
+    mov eax,[idx]
+    cmp eax,-1
+    je .blockFace
+    cmp eax,[pressIdx]
+    jne .blockFace
+    add edi,2
+    mov ebx,2
+.blockFace:
+    mov eax,[h]
+    sub eax,4
+    stdcall FillRR,[x],edi,[w],eax,0,esi
+    mov eax,[y]
+    add eax,[h]
+    sub eax,ebx
+    stdcall FillRR,[x],eax,[w],ebx,0,[lo]
+    mov eax,[h]
+    sub eax,4
+    stdcall TextC,0,[str],[x],edi,[w],eax,[fBodyStrong],[ink]
     ret
 endp
 
@@ -1497,7 +1528,7 @@ proc Segmented uses ebx esi edi,x,y,w,h,count,slot,labels,selected,font
     ret
 endp
 
-; Page header: mono eyebrow, title, sheet number and a dimension rule.
+; Shared title and divider, with a compact label in the Blueprint theme.
 proc PageHeader uses ebx esi edi,eyebrow,title,sheet
     locals
         muted dd ?
@@ -1519,11 +1550,16 @@ proc PageHeader uses ebx esi edi,eyebrow,title,sheet
     mov eax,[headerDrawAlpha]
     stdcall Mix,[themeCanvasARGB],[themeCrossARGB],eax
     mov [cross],eax
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .title
     stdcall Mono,[eyebrow],253,34,300,16,[muted]
+.title:
     stdcall Text,0,[title],252,52,640,44,[fHeading],[ink]
+    stdcall LineA,252,108,1088,108,[hairline],10
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .done
     cinvoke wsprintfW,sheetText,sheetFmt,[sheet]
     stdcall TextDraw,sheetText,888,34,200,16,[fMono],[muted],DT_RIGHT,1
-    stdcall LineA,252,108,1088,108,[hairline],10
     stdcall LineA,252,104,252,112,[cross],10
     stdcall LineA,1088,104,1088,112,[cross],10
 .done:
@@ -1831,13 +1867,15 @@ proc PaintSidebar uses ebx esi edi
     ; labels fade out as the sidebar narrows (and are clipped to it)
     cmp [fade],256
     jae .toggle
-    stdcall Mix,T_INK,[themeSidebarCR],[fade]
+    stdcall Mix,[sideInkCR],[themeSidebarCR],[fade]
     mov esi,eax
     stdcall ThemeName
     stdcall TextDraw,eax,72,26,106,22,[fBrand],esi,DT_LEFT,2
-    stdcall Mix,T_MUTED,[themeSidebarCR],[fade]
+    stdcall Mix,[sideMutedCR],[themeSidebarCR],[fade]
     mov esi,eax
     stdcall TextDraw,monoTagline,73,47,140,14,[fMonoSmall],esi,DT_LEFT,1
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .toggle
     stdcall TextDraw,monoWorkspace,25,98,180,14,[fMonoSmall],esi,DT_LEFT,1
 .toggle:
     ; collapse / expand button
@@ -1854,7 +1892,7 @@ proc PaintSidebar uses ebx esi edi
     stdcall WithAlpha,A_HOVER,eax
     stdcall FillRR,[tx],[ty],24,24,7,eax
 @@:
-    stdcall SideToggleGlyph,[tx],[ty],A_MUTED
+    stdcall SideToggleGlyph,[tx],[ty],[sideIconARGB]
     ; nav geometry: pill 196 -> 44 wide, icon follows the pill centre
     stdcall Lerp,196,44,[sideT]
     mov [pillW],eax
@@ -1870,9 +1908,16 @@ proc PaintSidebar uses ebx esi edi
     sar eax,8
     add eax,NAV_TOP
     mov ebx,eax
+    cmp [themeStyle],STYLE_MINECRAFT
+    jne .classicSelection
+    stdcall FillRR,12,ebx,[pillW],NAV_H,0,0FF3D3938h
+    stdcall FillRR,12,ebx,4,NAV_H,0,0FF86D562h
+    jmp .items
+.classicSelection:
     stdcall Shadow,12,ebx,[pillW],NAV_H,10
     stdcall FillRR,12,ebx,[pillW],NAV_H,10,A_CARD
     stdcall StrokeRR,12,ebx,[pillW],NAV_H,10,A_HAIRLINE,10
+.items:
     mov [i],0
 .nav:
     mov eax,[i]
@@ -1895,13 +1940,13 @@ proc PaintSidebar uses ebx esi edi
     stdcall WithAlpha,A_HOVER,eax
     stdcall FillRR,12,[iy],[pillW],NAV_H,10,eax
 .plain:
-    mov esi,A_MUTED
-    mov edi,T_SECOND
+    mov esi,[sideIconARGB]
+    mov edi,[sideMutedCR]
     mov ebx,[fBody]
     jmp .item
 .selected:
-    mov esi,[themeAccentARGB]
-    mov edi,T_INK
+    mov esi,[sideSelectedIcon]
+    mov edi,[sideInkCR]
     mov ebx,[fBodyStrong]
 .item:
     mov eax,[iy]
@@ -1933,16 +1978,16 @@ proc PaintSidebar uses ebx esi edi
 @@:
     stdcall Lerp,24,27,[sideT]
     mov ebx,eax
-    stdcall StrokeRR,ebx,619,14,11,2,A_MUTED,14
+    stdcall StrokeRR,ebx,619,14,11,2,[sideIconARGB],14
     lea ecx,[ebx+13]
-    stdcall LineA,ebx,622,ecx,622,A_MUTED,14
+    stdcall LineA,ebx,622,ecx,622,[sideIconARGB],14
     cmp [fade],256
     jae .rail
-    stdcall Mix,T_SECOND,[themeSidebarCR],[fade]
+    stdcall Mix,[sideMutedCR],[themeSidebarCR],[fade]
     stdcall Text,0,sFolder,48,608,156,34,[fSmall],eax
     mov eax,[uiLang]
     stdcall Segmented,16,654,188,30,3,5,langNames,eax,[fSmall]
-    stdcall Mix,T_MUTED,[themeSidebarCR],[fade]
+    stdcall Mix,[sideMutedCR],[themeSidebarCR],[fade]
     stdcall TextDraw,monoBuild,25,700,180,14,[fMonoSmall],eax,DT_LEFT,1
     mov [langHot],-1
     ret
@@ -1961,12 +2006,11 @@ proc PaintSidebar uses ebx esi edi
 endp
 
 ; ---------------------------------------------------------------- home
-; Blueprint hero: grid, construction circle and the mark drawing itself.
+; The hero shows the selected installation and the active theme illustration.
 proc PaintHero uses ebx esi edi
     locals
         t dd ?
         sweep dd ?
-        fillA dd ?
     endl
     ; hero progress 0..1024 (eased)
     mov eax,1024
@@ -1987,8 +2031,15 @@ proc PaintHero uses ebx esi edi
     stdcall EaseOut,eax
 .static:
     mov [t],eax
+    cmp [themeStyle],STYLE_BLUEPRINT
+    je .blueprint
+    stdcall FillRR,252,124,836,172,0,[themeHeroARGB]
+    stdcall DrawWorldScene,1088,296,8,255
+    stdcall HeroTextColor,0CEF0CBh
+    jmp .version
+.blueprint:
     stdcall Shadow,252,124,836,172,22
-    stdcall FillRRGrad,252,124,836,172,22,[themeBlueprint1],[themeBlueprint2]
+    stdcall FillRRGrad,252,124,836,172,22,[themeHeroARGB],[themeBlueprintEnd]
     stdcall ClipRR,252,124,836,172,22
     ; grid: 24-unit minor lines, every 4th brighter (cached paths)
     stdcall DrawBlueprintGrid
@@ -2028,6 +2079,7 @@ proc PaintHero uses ebx esi edi
     stdcall TextDraw,monoRadius,1000,258,68,18,[fMonoSmall],ebx,DT_LEFT,0
     ; left: current version
     stdcall HeroTextColor,0E8D6C2h
+.version:
     stdcall Text,0,sHeroVersion,284,146,520,20,[fSmall],eax
     invoke GetWindowTextW,[hVersion],heroText,120
     test eax,eax
@@ -2036,6 +2088,12 @@ proc PaintHero uses ebx esi edi
 @@:
     stdcall HeroTextColor,T_WHITE
     stdcall Text,0,heroText,282,164,560,50,[fHero],eax
+    cmp [themeStyle],STYLE_MINECRAFT
+    jne .blueprintTag
+    stdcall HeroTextColor,0DBE5DBh
+    stdcall Text,0,sHeroTag,284,214,560,22,[fBody],eax
+    ret
+.blueprintTag:
     stdcall HeroTextColor,0EEDCCAh
     stdcall Text,0,sHeroTag,284,214,560,22,[fBody],eax
     stdcall HeroTextColor,0C59B7Ch
@@ -2050,7 +2108,10 @@ proc PaintHome uses ebx esi edi
     stdcall Card,252,316,490,236,18
     stdcall CornerTicks,252,316,490,236,[themeCrossARGB]
     stdcall Text,0,sProfileCaption,278,330,300,24,[fMedium],T_INK
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne @f
     stdcall Mono,monoProfile,700,334,20,16,T_MUTED
+@@:
     stdcall Text,0,sVersionLabel,278,364,420,20,[fSmall],T_SECOND
     stdcall Button,0,sVmManage,620,384,94,38,0
     cmp [onlineMode],0
@@ -2074,7 +2135,10 @@ proc PaintHome uses ebx esi edi
     stdcall Card,762,316,326,236,18
     stdcall CornerTicks,762,316,326,236,[themeCrossARGB]
     stdcall Text,0,sSessionCaption,788,330,240,24,[fMedium],T_INK
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne @f
     stdcall Mono,monoSession,1054,334,20,16,T_MUTED
+@@:
     mov [segLabels],sOffline
     mov [segLabels+4],sOnline
     stdcall Segmented,786,366,278,36,2,1,segLabels,[onlineMode],[fSmall]
@@ -2995,6 +3059,7 @@ endp
 
 include 'ui_gfx.inc'
 include 'browse_defaults.inc'
+include 'theme_world.inc'
 include 'splash.inc'
 include 'sidebar.inc'
 include 'personalize.inc'

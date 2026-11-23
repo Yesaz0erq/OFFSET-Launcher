@@ -1115,14 +1115,20 @@ proc HttpRequest uses ebx esi edi,url,method,headers,body
     ret
 endp
 
-proc Sha1File uses ebx esi edi,path,output
+proc Sha1File,path,output
+    stdcall DigestFile,[path],[output],8004h,20
+    ret
+endp
+
+; PROV_RSA_AES supports both SHA-1 and the SHA-512 used in mrpack indexes.
+proc DigestFile uses ebx esi edi,path,output,algorithm,digestLength
     locals
         provider dd ?
         hash dd ?
         fileHandle dd ?
         buffer dd ?
         got dd ?
-        digest rb 20
+        digest rb 64
         size dd ?
         result dd ?
     endl
@@ -1131,10 +1137,10 @@ proc Sha1File uses ebx esi edi,path,output
     mov [fileHandle],-1
     mov [buffer],0
     mov [result],0
-    invoke CryptAcquireContextW,addr provider,0,0,1,0f0000000h
+    invoke CryptAcquireContextW,addr provider,0,0,24,0f0000000h
     test eax,eax
     jz .done
-    invoke CryptCreateHash,[provider],8004h,0,0,addr hash
+    invoke CryptCreateHash,[provider],[algorithm],0,0,addr hash
     test eax,eax
     jz .done
     invoke CreateFileW,[path],80000000h,1,0,3,80h,0
@@ -1157,13 +1163,16 @@ proc Sha1File uses ebx esi edi,path,output
     jz .done
     jmp .read
 .digest:
-    mov [size],20
+    mov [size],64
     invoke CryptGetHashParam,[hash],2,addr digest,addr size,0
     test eax,eax
     jz .done
+    mov eax,[size]
+    cmp eax,[digestLength]
+    jne .done
     lea esi,[digest]
     mov edi,[output]
-    mov ecx,20
+    mov ecx,[digestLength]
 .hex:
     lodsb
     movzx ebx,al

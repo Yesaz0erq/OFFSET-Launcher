@@ -1,5 +1,8 @@
-; Native personalization. Palette values are derived from one RGB accent.
+; Appearance, native control colors and the optional custom palette.
 section '.thdata' data readable writeable
+themeStyle dd STYLE_BLUEPRINT
+themeKeyStyle du 'ThemeStyle',0
+themeStyleNames dd sThemeBlueprint,sThemeMinecraft
 themeRGB dd 00071E3h
 themeMotion dd 1
 themeAccentARGB dd 0FF0071E3h
@@ -8,23 +11,24 @@ themeAccentLo dd 0FF0062C6h
 themeAccentSoft dd 0FFE5F0FDh
 themeAccentText dd 0E37100h
 themeFocusARGB dd 400071E3h
-themeBlueprint1 dd 0FF0D3168h
-themeBlueprint2 dd 0FF071B3Eh
+themeHeroARGB dd 0FF0D3168h
+themeBlueprintEnd dd 0FF071B3Eh
+themeDotARGB dd 0FFD3D8E0h
+themeCrossARGB dd 0FFC9CFD9h
+sideInkCR dd 0FFFFFFh
+sideMutedCR dd 0C0C5D0h
+sideIconARGB dd 0FFD0C5C0h
+sideSelectedIcon dd 0FF86D562h
 themeControlLock dd 0
 hThemeColor dd 0
 hThemeName dd 0
 hThemeWindow dd 0
 themePresets dd 00071E3h,07A3FBDh,0007D80h,0227546h,0B94D00h,0B83262h
-; Window (canvas) colour and background texture. Window colours stay light so
-; every ink colour keeps its contrast; the sidebar and grid marks derive from it.
+; Blueprint custom colors are retained while the Minecraft theme is active.
 themeWindowRGB dd 0F5F6F8h
-themeTexture dd 0                       ; 0 dots, 1 grid, 2 blocks, 3 plain
 themeCanvasARGB dd 0FFF5F6F8h
 themeSidebarARGB dd 0FFEEF0F4h
 themeSidelineARGB dd 0FFDFE3E9h
-themeDotARGB dd 0FFD3D8E0h
-themeCrossARGB dd 0FFC9CFD9h
-themeGridARGB dd 0FFE6E9EEh
 themeCanvasCR dd 0F8F6F5h
 themeSidebarCR dd 0F4F0EEh
 ; Appearance: 0 light, 1 dark, 2 follow Windows. themeDark is the result.
@@ -49,7 +53,6 @@ palSecondLo dd 0FFD2D6DDh
 palInk dd 0FF1D1D1Fh
 palMuted dd 0FF8A8F98h
 palHover dd 0
-palTexInk dd 0FF000000h
 palTInk dd 01F1D1Dh
 palTSecond dd 0736E6Eh
 palTMuted dd 0A09891h
@@ -72,12 +75,10 @@ themeClsList du 'SysListView32',0
 themeColorSet du 'ImmersiveColorSet',0
 themeClass rw 32
 windowPresets dd 0F5F6F8h,0EEF3FAh,0EEF5EEh,0F7F1E6h,0F8EEF1h,0F2EFF8h
-; One-click schemes: accent + window colour + texture.
+; Blueprint paired color presets.
 schemeAccent dd 00071E3h,0227546h,0B94D00h,0007D80h,0B83262h,07A3FBDh
 schemeWindow dd 0F5F6F8h,0EEF5EEh,0F7F1E6h,0EEF3FAh,0F8EEF1h,0F2EFF8h
-schemeTexture dd 0,2,1,1,0,2
 schemeNames dd sSchemeBlueprint,sSchemeMeadow,sSchemeDesert,sSchemeOcean,sSchemeCherry,sSchemeAmethyst
-textureNames dd sTexDots,sTexGrid,sTexBlocks,sTexPlain
 themeKeyWindow du 'WindowColor',0
 themeKeyTexture du 'Texture',0
 themeDefaultWindow du 'F5F6F8',0
@@ -560,6 +561,14 @@ endp
 ; control themes, context menus and the DWM frame. Cheap when nothing changed.
 proc ThemeNative
     local flag:DWORD
+    ; Windows 11 frame corners follow the geometry of the selected theme.
+    mov eax,1                              ; DWMWCP_DONOTROUND
+    cmp [themeStyle],STYLE_MINECRAFT
+    je @f
+    inc eax                                ; DWMWCP_ROUND
+@@:
+    mov [flag],eax
+    invoke DwmSetWindowAttribute,[hWnd],33,addr flag,4
     mov [themeRetheme],0
     xor ecx,ecx
     mov eax,[palFieldCR]
@@ -639,6 +648,8 @@ proc ThemeApply uses ebx
     stdcall ThemeSystemDark
 @@:
     mov [themeDark],eax
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .minecraft
     stdcall ThemeNormalizeRGB,[themeRGB]
     mov [themeRGB],eax
     or eax,0FF000000h
@@ -659,17 +670,17 @@ proc ThemeApply uses ebx
     mov [themeFocusARGB],eax
     ; Blueprints remain dark, with a restrained tint from the chosen accent.
     stdcall Mix,0FF102030h,ebx,80
-    mov [themeBlueprint1],eax
+    mov [themeHeroARGB],eax
     stdcall Mix,0FF07111Bh,ebx,42
-    mov [themeBlueprint2],eax
+    mov [themeBlueprintEnd],eax
     cmp [themeRGB],00071E3h
     jne .window
     ; Keep the existing design exactly when the default theme is selected.
     mov [themeAccentHi],0FF1A84F0h
     mov [themeAccentLo],0FF0062C6h
     mov [themeAccentSoft],0FFE5F0FDh
-    mov [themeBlueprint1],0FF0D3168h
-    mov [themeBlueprint2],0FF071B3Eh
+    mov [themeHeroARGB],0FF0D3168h
+    mov [themeBlueprintEnd],0FF071B3Eh
 .window:
     stdcall ThemeLightRGB,[themeWindowRGB]
     mov [themeWindowRGB],eax
@@ -687,7 +698,6 @@ proc ThemeApply uses ebx
     mov [palInk],0FF1D1D1Fh
     mov [palMuted],0FF8A8F98h
     mov [palHover],0
-    mov [palTexInk],0FF000000h
     mov [palTInk],01F1D1Dh
     mov [palTSecond],0736E6Eh
     mov [palTMuted],0A09891h
@@ -703,16 +713,14 @@ proc ThemeApply uses ebx
     mov [themeDotARGB],eax
     stdcall Mix,ebx,0FF000000h,43
     mov [themeCrossARGB],eax
-    stdcall Mix,ebx,0FF000000h,14
-    mov [themeGridARGB],eax
     cmp [themeWindowRGB],0F5F6F8h
-    jne .colorRefs
+    jne .classicSide
     ; the default window keeps the original palette exactly
     mov [themeSidebarARGB],0FFEEF0F4h
     mov [themeSidelineARGB],0FFDFE3E9h
     mov [themeDotARGB],0FFD3D8E0h
     mov [themeCrossARGB],0FFC9CFD9h
-    jmp .colorRefs
+    jmp .classicSide
 .dark:
     ; Dark surfaces step up in lightness from a tinted near-black canvas.
     stdcall ThemeDarkCanvas,[themeWindowRGB]
@@ -722,7 +730,6 @@ proc ThemeApply uses ebx
     tmix themeSidelineARGB,ebx,0FFFFFFFFh,22
     tmix themeDotARGB,ebx,0FFFFFFFFh,34
     tmix themeCrossARGB,ebx,0FFFFFFFFh,50
-    tmix themeGridARGB,ebx,0FFFFFFFFh,14
     tmix palCard,ebx,0FFFFFFFFh,18
     tmix palHairline,ebx,0FFFFFFFFh,34
     tmix palDivider,ebx,0FFFFFFFFh,26
@@ -735,7 +742,6 @@ proc ThemeApply uses ebx
     mov [palInk],0FFF2F2F5h
     mov [palMuted],0FF8E939Ch
     mov [palHover],0FFFFFFh
-    mov [palTexInk],0FFFFFFFFh
     mov [palTInk],0F5F2F2h
     mov [palTSecond],0B5ADA9h
     mov [palTMuted],08B827Dh
@@ -744,6 +750,69 @@ proc ThemeApply uses ebx
     stdcall ThemeCR,eax
     mov [themeAccentText],eax
     tmix themeAccentSoft,[palCard],[themeAccentARGB],60
+.classicSide:
+    mov eax,[palTInk]
+    mov [sideInkCR],eax
+    mov eax,[palTSecond]
+    mov [sideMutedCR],eax
+    mov eax,[palMuted]
+    mov [sideIconARGB],eax
+    mov eax,[themeAccentARGB]
+    mov [sideSelectedIcon],eax
+    jmp .colorRefs
+.minecraft:
+    ; Minecraft core colors. The navigation stays charcoal in either mode.
+    mov [themeHeroARGB],0FF192C23h
+    mov [themeSidebarARGB],0FF171615h
+    mov [themeSidelineARGB],0FF3D3938h
+    mov [sideInkCR],0FFFFFFh
+    mov [sideMutedCR],0C0C5D0h
+    mov [sideIconARGB],0FFD0C5C0h
+    mov [sideSelectedIcon],0FF86D562h
+    mov [themeAccentARGB],0FF347323h
+    mov [themeAccentHi],0FF397B26h
+    mov [themeAccentLo],0FF224D16h
+    mov [themeFocusARGB],806CC349h
+    cmp [themeDark],0
+    jne .minecraftDark
+    mov [themeCanvasARGB],0FFFCF5F1h
+    mov [palCard],0FFFFFFFFh
+    mov [palHairline],0FFD0C5C0h
+    mov [palDivider],0FFE2D9D5h
+    mov [palField],0FFFCF9F7h
+    mov [palFieldLine],0FF9C938Fh
+    mov [palTrack],0FFEDE5E2h
+    mov [palSecond],0FFEDE5E2h
+    mov [palSecondHi],0FFE0D6D1h
+    mov [palSecondLo],0FFB7ACA6h
+    mov [palInk],0FF262423h
+    mov [palTInk],0232426h
+    mov [palMuted],0FF6B6562h
+    mov [palTMuted],062656Bh
+    mov [palTSecond],04E5156h
+    mov [palHover],0
+    mov [themeAccentText],01C642Ah
+    mov [themeAccentSoft],0FFE0F0D9h
+    jmp .colorRefs
+.minecraftDark:
+    mov [themeCanvasARGB],0FF171615h
+    mov [palCard],0FF262423h
+    mov [palHairline],0FF514D4Ah
+    mov [palDivider],0FF3D3938h
+    mov [palField],0FF1E1D1Ch
+    mov [palFieldLine],0FF79716Dh
+    mov [palTrack],0FF171615h
+    mov [palSecond],0FF494543h
+    mov [palSecondHi],0FF595552h
+    mov [palSecondLo],0FF302E2Ch
+    mov [palInk],0FFFCF5F1h
+    mov [palTInk],0F1F5FCh
+    mov [palMuted],0FFABA09Ch
+    mov [palTMuted],09CA0ABh
+    mov [palTSecond],0C0C5D0h
+    mov [palHover],0FFFFFFh
+    mov [themeAccentText],062D586h
+    mov [themeAccentSoft],0FF2B4227h
 .colorRefs:
     stdcall ThemeCR,[palField]
     mov [palFieldCR],eax
@@ -763,10 +832,6 @@ proc ThemeApply uses ebx
     mov eax,[themeCanvasCR]
 @@:
     mov [palTipText],eax
-    cmp [themeTexture],3
-    jbe .ready
-    mov [themeTexture],0
-.ready:
     cmp [hWnd],0
     je .done
     stdcall ThemeWindowTitle
@@ -799,15 +864,15 @@ proc ThemeLoad
     invoke GetPrivateProfileStringW,sectionName,themeKeyWindow,themeDefaultWindow,themeWinHex,16,iniPath
     stdcall ThemeParseHex,themeWinHex,themeWindowRGB
     test eax,eax
-    jnz .texture
+    jnz .style
     mov [themeWindowRGB],0F5F6F8h
-.texture:
-    invoke GetPrivateProfileIntW,sectionName,themeKeyTexture,0,iniPath
-    cmp eax,3
-    jbe .setTexture
-    xor eax,eax
-.setTexture:
-    mov [themeTexture],eax
+.style:
+    invoke GetPrivateProfileIntW,sectionName,themeKeyStyle,STYLE_BLUEPRINT,iniPath
+    cmp eax,STYLE_MINECRAFT
+    je @f
+    mov eax,STYLE_BLUEPRINT
+@@:
+    mov [themeStyle],eax
     invoke GetPrivateProfileIntW,sectionName,themeKeyMode,2,iniPath
     cmp eax,2
     jbe @f
@@ -846,8 +911,10 @@ proc ThemeSave uses ebx
     cinvoke wsprintfW,themeHex,themeHexFormat,[themeWindowRGB]
     invoke WritePrivateProfileStringW,sectionName,themeKeyWindow,themeHex,iniPath
     and ebx,eax
-    cinvoke wsprintfW,themeHex,themeDecimalFormat,[themeTexture]
-    invoke WritePrivateProfileStringW,sectionName,themeKeyTexture,themeHex,iniPath
+    ; Discard the obsolete INI entry when saving an upgraded profile.
+    invoke WritePrivateProfileStringW,sectionName,themeKeyTexture,0,iniPath
+    cinvoke wsprintfW,themeHex,themeDecimalFormat,[themeStyle]
+    invoke WritePrivateProfileStringW,sectionName,themeKeyStyle,themeHex,iniPath
     and ebx,eax
     cinvoke wsprintfW,themeHex,themeDecimalFormat,[themeMode]
     invoke WritePrivateProfileStringW,sectionName,themeKeyMode,themeHex,iniPath
@@ -893,9 +960,19 @@ endp
 
 proc ShowPersonalizationControls
     stdcall RefreshPersonalizationControls
-    invoke ShowWindow,[hThemeColor],SW_SHOW
-    invoke ShowWindow,[hThemeWindow],SW_SHOW
+    stdcall ShowCustomColorInputs
     invoke ShowWindow,[hThemeName],SW_SHOW
+    ret
+endp
+
+proc ShowCustomColorInputs uses ebx
+    mov ebx,SW_HIDE
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne @f
+    mov ebx,SW_SHOW
+@@:
+    invoke ShowWindow,[hThemeColor],ebx
+    invoke ShowWindow,[hThemeWindow],ebx
     ret
 endp
 
@@ -915,6 +992,8 @@ endp
 
 proc PersonalizationCommand,wparam
     local parsed:DWORD
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .done
     cmp [themeControlLock],0
     jne .done
     mov eax,[wparam]
@@ -947,13 +1026,13 @@ proc PersonalizationCommand,wparam
     ret
 endp
 
-; ---- scheme tiles: a small window swatch with its texture, accent bar and name
+; Blueprint palette shortcuts below the overall theme selector.
 SCHEME_X = 276
-SCHEME_Y = 180
+SCHEME_Y = 278
 SCHEME_W = 112
-SCHEME_H = 104
+SCHEME_H = 48
 SCHEME_DX = 124
-SCHEME_DY = 116
+SCHEME_DY = 60
 
 ; Returns 1 when the current theme equals scheme [index].
 proc ThemeSchemeActive,index
@@ -963,9 +1042,6 @@ proc ThemeSchemeActive,index
     jne .no
     mov eax,[schemeWindow+ecx*4]
     cmp eax,[themeWindowRGB]
-    jne .no
-    mov eax,[schemeTexture+ecx*4]
-    cmp eax,[themeTexture]
     jne .no
     mov eax,1
     ret
@@ -989,18 +1065,10 @@ proc ThemeTilePos,index
 endp
 
 proc PaintSchemeTile uses ebx esi edi,index
-    locals
-        tx dd ?
-        ty dd ?
-        base dd ?
-        mark dd ?
-        i dd ?
-        j dd ?
-    endl
     stdcall ThemeTilePos,[index]
-    mov [tx],eax
-    mov [ty],edx
-    stdcall HotAdd,[tx],[ty],SCHEME_W,SCHEME_H
+    mov ebx,eax
+    mov edi,edx
+    stdcall HotAdd,ebx,edi,SCHEME_W,SCHEME_H
     mov esi,[index]
     mov eax,[schemeWindow+esi*4]
     or eax,0FF000000h
@@ -1008,121 +1076,44 @@ proc PaintSchemeTile uses ebx esi edi,index
     je @f
     stdcall ThemeDarkCanvas,eax
 @@:
-    mov [base],eax
-    stdcall FillRR,[tx],[ty],SCHEME_W,SCHEME_H,12,[base]
-    stdcall Mix,[base],A_TEXINK,40
-    mov [mark],eax
-    mov eax,[schemeTexture+esi*4]
-    cmp eax,1
-    je .grid
-    cmp eax,2
-    je .blocks
-    cmp eax,3
-    je .accent
-    ; dots
-    mov [j],0
-.dotRow:
-    mov [i],0
-.dotCol:
-    mov eax,[i]
-    imul eax,15
-    add eax,[tx]
-    add eax,18
-    mov ecx,[j]
-    imul ecx,13
-    add ecx,[ty]
-    add ecx,16
-    stdcall FillCircle,eax,ecx,1,[mark]
-    inc [i]
-    cmp [i],6
-    jb .dotCol
-    inc [j]
-    cmp [j],3
-    jb .dotRow
-    jmp .accent
-.grid:
-    mov [i],0
-.gridV:
-    mov eax,[i]
-    imul eax,22
-    add eax,[tx]
-    add eax,12
-    mov ecx,[ty]
-    add ecx,10
-    mov edx,[ty]
-    add edx,52
-    stdcall LineA,eax,ecx,eax,edx,[mark],10
-    inc [i]
-    cmp [i],5
-    jb .gridV
-    mov [i],0
-.gridH:
-    mov eax,[i]
-    imul eax,14
-    add eax,[ty]
-    add eax,10
-    mov ecx,[tx]
-    add ecx,12
-    mov edx,[tx]
-    add edx,100
-    stdcall LineA,ecx,eax,edx,eax,[mark],10
-    inc [i]
-    cmp [i],4
-    jb .gridH
-    jmp .accent
-.blocks:
-    mov [j],0
-.blockRow:
-    mov [i],0
-.blockCol:
-    ; a fixed, varied shade pattern of 11-unit pixels
-    mov eax,[i]
-    imul eax,3
-    mov ecx,[j]
-    imul ecx,5
-    add eax,ecx
-    and eax,3
-    jz .blockNext
-    imul eax,9
-    stdcall Mix,[base],A_TEXINK,eax
-    mov ebx,eax
-    mov eax,[i]
-    imul eax,11
-    add eax,[tx]
-    add eax,12
-    mov ecx,[j]
-    imul ecx,11
-    add ecx,[ty]
-    add ecx,10
-    stdcall FillRR,eax,ecx,11,11,0,ebx
-.blockNext:
-    inc [i]
-    cmp [i],8
-    jb .blockCol
-    inc [j]
-    cmp [j],4
-    jb .blockRow
-.accent:
+    stdcall FillRR,ebx,edi,SCHEME_W,SCHEME_H,6,eax
     mov eax,[schemeAccent+esi*4]
     or eax,0FF000000h
-    mov ecx,[tx]
-    add ecx,12
-    mov edx,[ty]
-    add edx,60
-    stdcall FillRR,ecx,edx,88,8,4,eax
-    mov ecx,[tx]
-    add ecx,12
-    mov edx,[ty]
-    add edx,74
-    mov eax,[schemeNames+esi*4]
-    stdcall Text,0,eax,ecx,edx,92,24,[fSmall],T_INK
+    lea ecx,[ebx+8]
+    lea edx,[edi+10]
+    stdcall FillRR,ecx,edx,5,28,2,eax
+    lea ecx,[ebx+20]
+    stdcall Text,0,dword [schemeNames+esi*4],ecx,edi,88,SCHEME_H,[fSmall],T_INK
     stdcall ThemeSchemeActive,esi
     test eax,eax
-    jz .plainEdge
-    stdcall StrokeRR,[tx],[ty],SCHEME_W,SCHEME_H,12,[themeAccentARGB],22
+    jz .plain
+    stdcall StrokeRR,ebx,edi,SCHEME_W,SCHEME_H,6,[themeAccentARGB],20
     ret
-.plainEdge:
-    stdcall StrokeRR,[tx],[ty],SCHEME_W,SCHEME_H,12,A_HAIRLINE,10
+.plain:
+    stdcall StrokeRR,ebx,edi,SCHEME_W,SCHEME_H,6,A_HAIRLINE,10
+    ret
+endp
+
+; A miniature client shares the live surfaces and the home illustration.
+proc PaintWorldPreview,dc
+    stdcall Text,[dc],sThemePreview,700,141,355,26,[fMedium],T_INK
+    stdcall FillRR,700,184,360,200,0,A_CANVAS
+    stdcall FillRR,700,184,69,200,0,[themeSidebarARGB]
+    stdcall DrawLogo,719,200,30,0FFFCF5F1h,0,360
+    stdcall FillRR,709,244,50,14,0,0FF3D3938h
+    stdcall FillRR,709,244,3,14,0,0FF86D562h
+    stdcall FillRR,719,269,32,3,0,0FF6B6562h
+    stdcall FillRR,719,283,23,3,0,0FF6B6562h
+    stdcall FillRR,782,199,265,95,0,[themeHeroARGB]
+    stdcall DrawWorldScene,1047,294,3,255
+    stdcall Text,[dc],sBrand,794,210,120,26,[fBrand],T_WHITE
+    stdcall FillRR,782,304,265,63,0,A_CARD
+    stdcall StrokeRR,782,304,265,63,0,A_HAIRLINE,10
+    stdcall Text,[dc],sHeroTag,791,312,140,44,[fSmall],T_INK
+    stdcall FillRR,938,318,99,34,0,[themeAccentLo]
+    stdcall FillRR,938,318,99,31,0,[themeAccentARGB]
+    stdcall TextC,[dc],sLaunch,938,318,99,31,[fSmall],T_WHITE
+    stdcall StrokeRR,700,184,360,200,0,A_HAIRLINE,10
     ret
 endp
 
@@ -1168,26 +1159,40 @@ endp
 
 proc PaintPersonalization uses ebx esi,dc
     stdcall PageHeader,themeEyebrow,sPersonalHeading,7
-    ; left: colour schemes
     stdcall Card,252,124,404,300,18
-    stdcall Text,[dc],sPersonalScheme,280,140,360,26,[fMedium],T_INK
+    stdcall Card,672,124,416,300,18
+    stdcall Text,[dc],sThemeOverall,280,140,360,26,[fMedium],T_INK
+    mov eax,[themeStyle]
+    xor eax,1                              ; Blueprint first, preserved INI values
+    stdcall Segmented,276,182,368,44,2,9,themeStyleNames,eax,[fBodyStrong]
+    cmp [themeStyle],STYLE_BLUEPRINT
+    je .classic
+    stdcall Text,[dc],sThemeColors,280,249,360,24,[fMedium],T_INK
+    stdcall FillRR,280,292,110,32,0,[themeAccentARGB]
+    stdcall FillRR,402,292,110,32,0,[themeSidebarARGB]
+    stdcall FillRR,524,292,110,32,0,A_CARD
+    stdcall StrokeRR,524,292,110,32,0,A_HAIRLINE,10
+    stdcall Text,[dc],sPersonalColor,280,332,116,28,[fSmall],T_SECOND
+    stdcall Text,[dc],sThemeNav,402,332,116,28,[fSmall],T_SECOND
+    stdcall Text,[dc],sThemeSurface,524,332,116,28,[fSmall],T_SECOND
+    stdcall PaintWorldPreview,[dc]
+    jmp .preferences
+.classic:
+    stdcall Text,[dc],sPersonalScheme,280,242,360,26,[fMedium],T_INK
     xor esi,esi
 .tile:
     stdcall PaintSchemeTile,esi
     inc esi
     cmp esi,6
     jb .tile
-    ; right: accent, window colour, texture
-    stdcall Card,672,124,416,300,18
     stdcall Text,[dc],sPersonalColor,700,140,270,26,[fMedium],T_INK
     stdcall PaintSwatchRow,188,themePresets,[themeRGB],0
     stdcall Field,980,170,92,36,[hThemeColor]
     stdcall Text,[dc],sPersonalWindow,700,220,270,26,[fMedium],T_INK
     stdcall PaintSwatchRow,268,windowPresets,[themeWindowRGB],1
     stdcall Field,980,250,92,36,[hThemeWindow]
-    stdcall Text,[dc],sPersonalTexture,700,300,370,26,[fMedium],T_INK
-    stdcall Segmented,700,332,372,36,4,9,textureNames,[themeTexture],[fSmall]
-    stdcall Text,[dc],sPersonalHelp,700,380,380,30,[fSmall],T_MUTED
+    stdcall Text,[dc],sPersonalHelp,700,330,370,48,[fSmall],T_MUTED
+.preferences:
     ; bottom: name and motion
     stdcall Card,252,440,836,152,18
     stdcall Text,[dc],sPersonalName,280,476,150,26,[fBody],T_SECOND
@@ -1247,6 +1252,28 @@ proc ClickPersonalization uses ebx esi,x,y
     end if
     ret
 .edit:
+    cmp [y],182
+    jb .palette
+    cmp [y],226
+    jae .palette
+    mov eax,[x]
+    sub eax,279
+    jb .palette
+    cmp eax,362
+    jae .palette
+    cmp eax,181
+    setb al
+    movzx eax,al
+    cmp eax,[themeStyle]
+    je .done
+    mov [themeStyle],eax
+    stdcall ThemeApply
+    stdcall RefreshPersonalizationColor
+    stdcall ShowCustomColorInputs
+    jmp .done
+.palette:
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .actions
     ; scheme tiles
     cmp [x],656
     jae .right
@@ -1267,8 +1294,6 @@ proc ClickPersonalization uses ebx esi,x,y
     mov [themeRGB],eax
     mov eax,[schemeWindow+esi*4]
     mov [themeWindowRGB],eax
-    mov eax,[schemeTexture+esi*4]
-    mov [themeTexture],eax
     jmp .applied
 .nextTile:
     inc esi
@@ -1291,28 +1316,13 @@ proc ClickPersonalization uses ebx esi,x,y
     cmp [y],248
     jb .done
     cmp [y],288
-    ja .textureRow
+    ja .actions
     stdcall SwatchAt,[x]
     cmp eax,-1
     je .done
     mov eax,[windowPresets+eax*4]
     mov [themeWindowRGB],eax
     jmp .applied
-.textureRow:
-    cmp [y],332
-    jb .done
-    cmp [y],368
-    ja .actions
-    cmp [x],703
-    jb .done
-    mov eax,[x]
-    sub eax,703
-    xor edx,edx
-    mov ecx,91
-    div ecx
-    cmp eax,3
-    ja .done
-    mov [themeTexture],eax
 .applied:
     stdcall ThemeApply
     stdcall RefreshPersonalizationColor
@@ -1372,12 +1382,15 @@ proc ClickPersonalization uses ebx esi,x,y
     ja .done
     mov [themeRGB],00071E3h
     mov [themeWindowRGB],0F5F6F8h
-    mov [themeTexture],0
+    mov [themeStyle],STYLE_BLUEPRINT
     mov [themeMotion],1
     mov [themeMode],2
     mov word [themeName],0
+    stdcall ShowCustomColorInputs
     jmp .save
 .apply:
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .name
     invoke GetWindowTextW,[hThemeColor],themeHex,16
     stdcall ThemeParseHex,themeHex,addr parsed
     test eax,eax
@@ -1388,14 +1401,15 @@ proc ClickPersonalization uses ebx esi,x,y
     stdcall ThemeParseHex,themeWinHex,addr parsed
     test eax,eax
     jz .invalid
+    mov [themeRGB],ebx
+    mov eax,[parsed]
+    mov [themeWindowRGB],eax
+.name:
     invoke GetWindowTextW,[hThemeName],themeInput,40
     stdcall ThemeValidName,themeInput
     test eax,eax
     jz .invalid
     invoke lstrcpyW,themeName,themeInput
-    mov [themeRGB],ebx
-    mov eax,[parsed]
-    mov [themeWindowRGB],eax
 .save:
     stdcall ThemeApply
     stdcall RefreshPersonalizationControls

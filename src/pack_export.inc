@@ -1,5 +1,5 @@
 ; Original game-content export. Source profiles/settings are only read.
-PE_MAX = 4093
+PE_MAX = PK_ZMAX-3
 PE_NAME = 0
 PE_PATH = 512
 PE_BYTES = 4608
@@ -19,7 +19,8 @@ peLoaderKind dd 0
 peManifestBytes dd 0
 peCfgBytes dd 0
 peMetaBytes dd 0
-peArchiveBytes dd 0
+peListCount dd 0
+peSourceAvailable dd 0
 peNameA db 'Exported pack',0,242 dup(0)
 peVersionLabelA db '1.0.0',0,122 dup(0)
 peSlashW du '\',0
@@ -49,12 +50,23 @@ peDirResources du 'resources',0
 peDirResourcepacks du 'resourcepacks',0
 peDirShaderpacks du 'shaderpacks',0
 peDirDatapacks du 'datapacks',0
+peDirBooks du 'patchouli_books',0
+peDirPackmenu du 'packmenu',0
+peDirGlobalPacks du 'global_packs',0
+peDirGlobalData du 'global_data_packs',0
+peDirGlobalResources du 'global_resource_packs',0
+peDirSchematics du 'schematics',0
+peDirStructures du 'structures',0
 peDirSaves du 'saves',0
 peFileOptions du 'options.txt',0
 peFileOptionsOf du 'optionsof.txt',0
 peFileOptionsShaders du 'optionsshaders.txt',0
 peFileServers du 'servers.dat',0
-peAllowDirs dd peDirMods,peDirConfig,peDirDefault,peDirKube,peDirScripts,peDirResources,peDirResourcepacks,peDirShaderpacks,peDirDatapacks,peDirSaves
+peAllowDirs dd peDirMods,peDirConfig,peDirDefault,peDirKube,peDirScripts,peDirPackmenu
+peResourceDirs dd peDirResources,peDirResourcepacks,peDirShaderpacks,peDirDatapacks,peDirBooks
+ dd peDirGlobalPacks,peDirGlobalData,peDirGlobalResources,peDirSchematics,peDirStructures
+peSaveDirs dd peDirSaves
+peAllowDirsEnd:
 peAllowFiles dd peFileOptions,peFileOptionsOf,peFileOptionsShaders
 peSkipLogs du 'logs',0
 peSkipCrash du 'crash-reports',0
@@ -105,7 +117,7 @@ peOverridePrefix db 'overrides/',0
 peMmcPrefix db '.minecraft/',0
 peMrStart db '{"formatVersion":1,"game":"minecraft","name":',0
 peMrVersion db ',"versionId":',0
-peMrDeps db ',"files":[],"dependencies":{"minecraft":"',0
+peMrDeps db ',"dependencies":{"minecraft":"',0
 peCfStart db '{"manifestType":"minecraftModpack","manifestVersion":1,"name":',0
 peCfVersion db ',"version":',0
 peCfAuthor db ',"author":',0
@@ -113,7 +125,12 @@ peCfMc db ',"minecraft":{"version":"',0
 peCfLoaders db '","modLoaders":[',0
 peCfLoaderStart db '{"id":"',0
 peCfLoaderEnd db '","primary":true}',0
-peCfEnd db ']},"files":[],"overrides":"overrides"}',0
+peCfEnd db ']},"overrides":"overrides","files":[',0
+peBbsStart db '{"manifestType":"minecraftModpack","manifestVersion":2,"name":',0
+peBbsGame db ',"addons":[{"id":"game","version":"',0
+peBbsLoader db ',{"id":"',0
+peFilesStart db '],"files":[',0
+peManifestNames dd peMrName,peCfName,peMmcName,pkMcbbsManifest
 peMmcStart db '{"formatVersion":1,"components":[{"uid":"net.minecraft","version":"',0
 peMmcLoaderStart db ',{"uid":"',0
 peMmcLoaderVersion db '","version":"',0
@@ -139,7 +156,7 @@ peMmcFabric db 'net.fabricmc.fabric-loader',0
 peMmcForge db 'net.minecraftforge',0
 peMmcNeo db 'net.neoforged',0
 peMmcQuilt db 'org.quiltmc.quilt-loader',0
-peCloseDeps db '"}}',0
+peCloseDeps db '"},"files":[',0
 peQuoteA db '"',0
 peBraceA db '}',0
 peCommaA db ',',0
@@ -155,6 +172,7 @@ peTempW rw 2048
 peArchiveNameA rb 512
 peSummaryA rb 32768
 peProfile rb VS_SIZE
+peSortedNames rd PE_MAX
 peRecords rb PE_MAX*PE_ENTRY
 pePathW rw 2048
 pePath2W rw 2048
@@ -162,9 +180,10 @@ peRelativeW rw 512
 peComponentW rw 512
 peTextA rb 4096
 peText2A rb 2048
-peManifestA rb 8192
+peManifestA rb PK_MANIFEST_MAX
 peCfgA rb 2048
 peMetaA rb 2048
+peCompanionA rb 8192
 peQuotedName rb 1024
 peQuotedVersion rb 512
 peQuotedAuthor rb 1024
@@ -499,17 +518,17 @@ proc PeWalk uses ebx esi edi,relativeW,depth
  mov [index],0
 .dirAllow:
  mov eax,[index]
- cmp eax,10
+ cmp eax,(peAllowDirsEnd-peAllowDirs)/4
  jae .next
  invoke lstrcmpiW,addr find.cFileName,dword [peAllowDirs+eax*4]
  test eax,eax
  jnz .dirNext
  mov eax,[index]
- cmp eax,9
+ cmp eax,(peSaveDirs-peAllowDirs)/4
  je .saveFlag
  test eax,eax
  jz .modFlag
- cmp eax,5
+ cmp eax,(peResourceDirs-peAllowDirs)/4
  jae .resourceFlag
  cmp [peIncludeConfig],1
  jne .next
@@ -576,7 +595,7 @@ proc PeWalk uses ebx esi edi,relativeW,depth
 .file:
  cmp [find.nFileSizeHigh],0
  jne .done
- cmp [find.nFileSizeLow],134217728
+ cmp [find.nFileSizeLow],PK_ENTRY_MAX
  ja .done
  mov eax,[find.nFileSizeLow]
  add eax,[peTotalBytes]
@@ -612,20 +631,10 @@ proc PeWalk uses ebx esi edi,relativeW,depth
  invoke lstrcatW,edi,addr child
  mov eax,[find.nFileSizeLow]
  mov [ebx+PE_BYTES],eax
- mov [index],0
-.unique:
- mov eax,[index]
- cmp eax,[peFileCount]
- jae .summary
- imul eax,PE_ENTRY
- lea esi,[peRecords+eax+PE_PATH]
- lea edi,[ebx+PE_PATH]
- invoke lstrcmpiW,esi,edi
+ lea eax,[ebx+PE_PATH]
+ stdcall PkNameIndex,peSortedNames,[peFileCount],eax,1
  test eax,eax
- jz .done
- inc [index]
- jmp .unique
-.summary:
+ jnz .done
  cmp [peFileCount],60
  jae .count
  stdcall ModAppend,peSummaryA,32768,addr archiveA
@@ -733,9 +742,27 @@ proc PeQuote uses ebx esi edi,source,dest,capacity
  ret
 endp
 
-; Metadata is deliberately independent of platform distribution IDs. Export
-; contains local game payload and never invents downloaded-file provenance.
-proc PeMakeManifest uses ebx esi edi
+; The files array is filled while each selected source file is pinned.
+proc PeMakeManifest
+ cmp [peFormat],4
+ jne .header
+ ; HMCL ships the same embedded payload with a CurseForge companion.
+ mov [peFormat],2
+ stdcall PeBuildHeader
+ mov [peFormat],4
+ test eax,eax
+ jz .done
+ invoke lstrcpyA,peCompanionA,peManifestA
+ stdcall ModAppend,peCompanionA,8192,psEnd
+ test eax,eax
+ jz .done
+.header:
+ stdcall PeBuildHeader
+.done:
+ ret
+endp
+
+proc PeBuildHeader uses ebx esi edi
  stdcall PeValidText,peNameA,256,0
  test eax,eax
  jz .bad
@@ -747,7 +774,7 @@ proc PeMakeManifest uses ebx esi edi
  jz .bad
  cmp [peFormat],1
  jb .bad
- cmp [peFormat],3
+ cmp [peFormat],4
  ja .bad
  stdcall PeQuote,peNameA,peQuotedName,1024
  test eax,eax
@@ -769,6 +796,9 @@ proc PeMakeManifest uses ebx esi edi
  jz .bad
  invoke lstrlenA,peMetaA
  mov [peMetaBytes],eax
+ mov [peListCount],0
+ cmp [peFormat],4
+ je .mcbbs
  cmp [peFormat],2
  je .curseforge
  cmp [peFormat],3
@@ -790,11 +820,32 @@ proc PeMakeManifest uses ebx esi edi
  jmp .finish
 .curseforge:
  invoke lstrcpyA,peManifestA,peCfStart
+ jmp .identity
+.mcbbs:
+ invoke lstrcpyA,peManifestA,peBbsStart
+.identity:
  stdcall ModAppend,peManifestA,8192,peQuotedName
  stdcall ModAppend,peManifestA,8192,peCfVersion
  stdcall ModAppend,peManifestA,8192,peQuotedVersion
  stdcall ModAppend,peManifestA,8192,peCfAuthor
  stdcall ModAppend,peManifestA,8192,peQuotedAuthor
+ cmp [peFormat],4
+ jne .cfMinecraft
+ stdcall ModAppend,peManifestA,8192,peBbsGame
+ stdcall ModAppend,peManifestA,8192,peBaseA
+ stdcall ModAppend,peManifestA,8192,peMmcComponentEnd
+ mov ebx,[peLoaderKind]
+ test ebx,ebx
+ jz .bbsFiles
+ stdcall ModAppend,peManifestA,8192,peBbsLoader
+ stdcall ModAppend,peManifestA,8192,dword [pkBbsIds+ebx*4]
+ stdcall ModAppend,peManifestA,8192,peMmcLoaderVersion
+ stdcall ModAppend,peManifestA,8192,peLoaderA
+ stdcall ModAppend,peManifestA,8192,peMmcComponentEnd
+.bbsFiles:
+ stdcall ModAppend,peManifestA,8192,peFilesStart
+ jmp .finish
+.cfMinecraft:
  stdcall ModAppend,peManifestA,8192,peCfMc
  stdcall ModAppend,peManifestA,8192,peBaseA
  stdcall ModAppend,peManifestA,8192,peCfLoaders
@@ -958,75 +1009,6 @@ proc PeDestination uses ebx esi edi
  ret
 endp
 
-proc PeSizeAdd,nameA,bytes
- invoke lstrlenA,[nameA]
- shl eax,1
- add eax,76
- add eax,[bytes]
- jc .bad
- add eax,[peArchiveBytes]
- jc .bad
- cmp eax,536870912
- ja .bad
- mov [peArchiveBytes],eax
- mov eax,1
- ret
-.bad:
- xor eax,eax
- ret
-endp
-proc PeEstimate uses ebx esi edi
- local index:DWORD
- mov [peArchiveBytes],22
- mov eax,peMrName
- cmp [peFormat],1
- je .main
- mov eax,peCfName
- cmp [peFormat],2
- je .main
- mov eax,peMmcName
-.main:
- stdcall PeSizeAdd,eax,[peManifestBytes]
- test eax,eax
- jz .bad
- stdcall PeSizeAdd,peMetaName,[peMetaBytes]
- test eax,eax
- jz .bad
- cmp [peFormat],3
- jne .files
- stdcall PeSizeAdd,peCfgName,[peCfgBytes]
- test eax,eax
- jz .bad
-.files:
- mov [index],0
-.file:
- mov eax,[index]
- cmp eax,[peFileCount]
- jae .good
- imul ebx,eax,PE_ENTRY
- add ebx,peRecords
- mov eax,peOverridePrefix
- cmp [peFormat],3
- jne .prefix
- mov eax,peMmcPrefix
-.prefix:
- invoke lstrcpyA,peArchiveNameA,eax
- stdcall ModAppend,peArchiveNameA,512,ebx
- test eax,eax
- jz .bad
- stdcall PeSizeAdd,peArchiveNameA,dword [ebx+PE_BYTES]
- test eax,eax
- jz .bad
- inc [index]
- jmp .file
-.good:
- mov eax,1
- ret
-.bad:
- xor eax,eax
- ret
-endp
-
 proc PackExportBuild uses ebx esi edi
  locals
   root rw 1024
@@ -1048,9 +1030,7 @@ proc PackExportBuild uses ebx esi edi
  stdcall PeMakeManifest
  test eax,eax
  jz .metadata
- stdcall PeEstimate
- test eax,eax
- jz .failed
+ stdcall PePrepareSources
  stdcall PeDestination
  test eax,eax
  jz .destination
@@ -1065,23 +1045,19 @@ proc PackExportBuild uses ebx esi edi
  mov [owned],eax
  test ebx,ebx
  jz .failed
- mov eax,peMrName
- cmp [peFormat],1
- je .manifest
- mov eax,peCfName
- cmp [peFormat],2
- je .manifest
- mov eax,peMmcName
-.manifest:
- stdcall ExZipAddMemory,eax,peManifestA,[peManifestBytes]
- test eax,eax
- jz .failed
  cmp [peFormat],3
  jne .meta
  stdcall ExZipAddMemory,peCfgName,peCfgA,[peCfgBytes]
  test eax,eax
  jz .failed
 .meta:
+ cmp [peFormat],4
+ jne .generator
+ invoke lstrlenA,peCompanionA
+ stdcall ExZipAddMemory,peCfName,peCompanionA,eax
+ test eax,eax
+ jz .failed
+.generator:
  stdcall ExZipAddMemory,peMetaName,peMetaA,[peMetaBytes]
  test eax,eax
  jz .failed
@@ -1118,22 +1094,28 @@ proc PackExportBuild uses ebx esi edi
  stdcall VsDirectoryChain,pePathW,0
  test eax,eax
  jz .failed
- stdcall ExZipAddFile,peArchiveNameA,edi
+ stdcall PeWritePayload,ebx
  test eax,eax
  jz .failed
  inc [index]
  jmp .file
 .finish:
+ cmp [peFormat],3
+ je .manifest
+ mov eax,[peManifestBytes]
+ mov word [peManifestA+eax],7D5Dh
+ mov byte [peManifestA+eax+2],0
+ add [peManifestBytes],2
+.manifest:
+ mov eax,[peFormat]
+ stdcall ExZipAddMemory,dword [peManifestNames+eax*4-4],peManifestA,[peManifestBytes]
+ test eax,eax
+ jz .failed
  stdcall ExZipFinish
  test eax,eax
  jz .failed
- ; Validate our complete ZIP and manifest using the real import preflight
- ; before publishing anything at the requested path.
- ; The self-check reads our own manifest from memory, so it does not depend
- ; on tar.exe; ZIP structure and payload paths are still fully validated.
- mov [pkSelfCheck],1
+ ; Reopen the on-disk archive through the importer's normal preflight.
  stdcall PackInspect,peTempW
- mov [pkSelfCheck],0
  test eax,eax
  jz .failed
  cmp [engineCancel],0
@@ -1169,44 +1151,6 @@ proc PackExportBuild uses ebx esi edi
  stdcall SetStatusA,peMsgCancel
 .return:
  mov eax,[result]
- ret
-endp
-
-; PkCaptureEntry hook for the export self-check: the archive's root manifest
-; (and Prism instance.cfg) must be byte-for-byte the text this export wrote.
-proc PkSelfEntry uses ebx esi edi,record,dest,size
- local nameA[512]:BYTE
- invoke WideCharToMultiByte,65001,0,[record],-1,addr nameA,512,0,0
- test eax,eax
- jz .bad
- lea ebx,[nameA]
- invoke lstrcmpA,ebx,peMrName
- test eax,eax
- jz .manifest
- invoke lstrcmpA,ebx,peCfName
- test eax,eax
- jz .manifest
- invoke lstrcmpA,ebx,peMmcName
- test eax,eax
- jz .manifest
- invoke lstrcmpA,ebx,peCfgName
- test eax,eax
- jnz .bad
- mov esi,peCfgA
- mov ecx,[peCfgBytes]
- jmp .copy
-.manifest:
- mov esi,peManifestA
- mov ecx,[peManifestBytes]
-.copy:
- cmp ecx,[size]
- jne .bad
- mov edi,[dest]
- rep movsb
- mov eax,1
- ret
-.bad:
- xor eax,eax
  ret
 endp
 

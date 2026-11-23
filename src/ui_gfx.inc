@@ -10,8 +10,6 @@ A_ACCENT_LO   = 0FF0062C6h
 A_ACCENT_SOFT = 0FFE5F0FDh
 A_GREEN       = 0FF30B455h
 A_ORANGE      = 0FFF2A20Ah
-A_BLUEPRINT1  = 0FF0D3168h
-A_BLUEPRINT2  = 0FF071B3Eh
 A_ICONBG1     = 0FF2A2C32h
 A_ICONBG2     = 0FF060607h
 A_MARK        = 0FFE3E8ECh
@@ -278,6 +276,8 @@ proc RRPath uses ebx esi edi,x,y,w,h,r,inset10
     sub eax,ecx
     stdcall FL,eax
     mov [fh],eax
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .rect
     ; clamp radius to half the shorter side
     mov eax,[r]
     mov ecx,[w]
@@ -652,6 +652,13 @@ endp
 
 ; ---------------------------------------------------------------- composites
 proc Shadow uses ebx esi,x,y,w,h,r
+    cmp [themeStyle],STYLE_MINECRAFT
+    jne .soft
+    mov eax,[y]
+    add eax,2
+    stdcall FillRR,[x],eax,[w],[h],0,25000000h
+    ret
+.soft:
     mov eax,[x]
     sub eax,2
     mov ecx,[y]
@@ -680,12 +687,15 @@ proc Card uses ebx esi,x,y,w,h,r
     ret
 endp
 
+
 ; Blueprint registration ticks just outside the four corners of a box.
 proc CornerTicks x,y,w,h,argb
     locals
         x2 dd ?
         y2 dd ?
     endl
+    cmp [themeStyle],STYLE_MINECRAFT
+    je .done
     mov eax,[x]
     add eax,[w]
     mov [x2],eax
@@ -732,6 +742,7 @@ proc CornerTicks x,y,w,h,argb
     mov ecx,[y2]
     add ecx,10
     stdcall LineA,[x2],eax,[x2],ecx,[argb],10
+.done:
     ret
 endp
 
@@ -1127,7 +1138,7 @@ proc EnsureBuffers uses ebx esi edi,screen,w,h
     ret
 endp
 
-; Static canvas: sidebar wash and the blueprint dot grid. Rendered once.
+; Cache the backdrop. The dot lattice belongs to the Blueprint theme.
 proc PaintBackdrop uses ebx esi edi
     mov eax,[gOffX]
     push eax
@@ -1138,13 +1149,8 @@ proc PaintBackdrop uses ebx esi edi
     stdcall GfxBegin,[bgDC]
     invoke GdipSetPixelOffsetMode,[gfx],4
     stdcall FillRR,0,0,1120,760,0,[themeCanvasARGB]
-    mov eax,[themeTexture]
-    cmp eax,1
-    je .grid
-    cmp eax,2
-    je .blocks
-    cmp eax,3
-    je .finish
+    cmp [themeStyle],STYLE_BLUEPRINT
+    jne .finish
     ; dot grid, every 24 units, with crosshair marks every 96
     mov esi,20
 .col:
@@ -1182,71 +1188,6 @@ proc PaintBackdrop uses ebx esi edi
     add esi,24
     cmp esi,1120
     jb .col
-    jmp .finish
-.grid:
-    ; drafting grid: fine lines every 24, stronger every 96 (same lattice as dots)
-    mov esi,20
-.gridV:
-    lea eax,[esi+96*3-SIDEBAR_W-20]
-    xor edx,edx
-    mov ecx,96
-    div ecx
-    mov eax,[themeGridARGB]
-    test edx,edx
-    jnz @f
-    mov eax,[themeDotARGB]
-@@:
-    stdcall LineA,esi,0,esi,760,eax,10
-    add esi,24
-    cmp esi,1120
-    jb .gridV
-    mov edi,20
-.gridH:
-    mov eax,edi
-    sub eax,20
-    xor edx,edx
-    mov ecx,96
-    div ecx
-    mov eax,[themeGridARGB]
-    test edx,edx
-    jnz @f
-    mov eax,[themeDotARGB]
-@@:
-    stdcall LineA,0,edi,1120,edi,eax,10
-    add edi,24
-    cmp edi,760
-    jb .gridH
-    jmp .finish
-.blocks:
-    ; 16-unit pixels in a few close shades, scattered by a fixed hash
-    xor esi,esi
-.blockCol:
-    xor edi,edi
-.blockRow:
-    mov eax,esi
-    shr eax,4
-    imul eax,73
-    mov ecx,edi
-    shr ecx,4
-    imul ecx,151
-    xor eax,ecx
-    mov ecx,eax
-    imul eax,ecx
-    add eax,ecx
-    shr eax,3
-    and eax,7
-    movzx eax,byte [.shades+eax]
-    test eax,eax
-    jz .blockNext
-    stdcall Mix,[themeCanvasARGB],A_TEXINK,eax
-    stdcall FillRR,esi,edi,16,16,0,eax
-.blockNext:
-    add edi,16
-    cmp edi,760
-    jb .blockRow
-    add esi,16
-    cmp esi,1120
-    jb .blockCol
 .finish:
     stdcall GfxEnd
     pop eax
@@ -1254,7 +1195,6 @@ proc PaintBackdrop uses ebx esi edi
     pop eax
     mov [gOffX],eax
     ret
-.shades db 0,0,0,4,4,7,7,10
 endp
 
 ; Freeze the last frame so the next page can cross-fade over it.

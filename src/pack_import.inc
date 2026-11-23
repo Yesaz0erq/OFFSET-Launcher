@@ -10,8 +10,8 @@ packInspectBytes dd 0
 pkManifestIndex dd 0
 pkCaptureSize dd 0
 pkEmbeddedCount dd 0
-pkSelfCheck dd 0
 piSecurity dd 12,0,1
+pkMcbbsManifest db 'mcbbs.packmeta',0
 pkMmcManifest db 'mmc-pack.json',0
 pkInstanceCfg db 'instance.cfg',0
 pkMinecraftDir db '.minecraft',0
@@ -114,10 +114,27 @@ proc PkDetectArchive uses ebx esi edi
  mov [kind],3
  invoke lstrcmpA,edi,pkMmcManifest
  test eax,eax
+ jz .candidate
+ mov [kind],4
+ invoke lstrcmpA,edi,pkMcbbsManifest
+ test eax,eax
  jnz .next
 .candidate:
  cmp [chosen],-1
+ je .choose
+ ; HMCL also writes a CurseForge companion in the same archive root.
+ cmp [pkManifest],2
+ jne .companion
+ cmp [kind],4
  jne .bad
+ jmp .choose
+.companion:
+ cmp [pkManifest],4
+ jne .bad
+ cmp [kind],2
+ jne .bad
+ jmp .next
+.choose:
  mov eax,[index]
  mov [chosen],eax
  mov [pkManifestIndex],eax
@@ -180,22 +197,15 @@ proc PkFindEntry uses ebx esi,nameA
  invoke MultiByteToWideChar,65001,8,[nameA],-1,pkWide,512
  test eax,eax
  jz .bad
- xor ebx,ebx
-.loop:
- cmp ebx,[pkZipCount]
- jae .bad
- imul esi,ebx,PK_ZSIZE
- add esi,pkZipRecords
- cmp dword [esi+1024],0
- jne .next
- invoke lstrcmpiW,esi,pkWide
+ stdcall PkNameIndex,pkZipNames,[pkZipCount],pkWide,0
  test eax,eax
- jz .found
-.next:
- inc ebx
- jmp .loop
-.found:
- mov eax,ebx
+ jz .bad
+ cmp dword [eax+1024],0
+ jne .bad
+ sub eax,pkZipRecords
+ xor edx,edx
+ mov ecx,PK_ZSIZE
+ div ecx
  ret
 .bad:
  or eax,-1
@@ -209,7 +219,7 @@ proc PkCaptureEntry uses ebx esi edi,index
  locals
   readPipe dd ?
   writePipe dd ?
-  nullFile dd ?
+  inputFile dd ?
   text dd ?
   limit dd ?
   used dd ?
@@ -225,7 +235,7 @@ proc PkCaptureEntry uses ebx esi edi,index
  endl
  mov [readPipe],0
  mov [writePipe],0
- mov [nullFile],-1
+ mov [inputFile],-1
  mov [text],0
  mov [result],0
  mov [started],0
@@ -252,11 +262,27 @@ proc PkCaptureEntry uses ebx esi edi,index
  test eax,eax
  jz .done
  mov [text],eax
- cmp [pkSelfCheck],1
- jne .tarPath
- stdcall PkSelfEntry,ebx,[text],[limit]
+ cmp dword [ebx+PK_ZDATA],-1
+ je .tarPath
+ ; The import worker holds a sharing lock on pkArchive through this read.
+ invoke CreateFileW,pkArchive,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
+ cmp eax,-1
+ je .done
+ mov [inputFile],eax
+ invoke SetFilePointer,eax,dword [ebx+PK_ZDATA],0,FILE_BEGIN
+ cmp eax,[ebx+PK_ZDATA]
+ jne .done
+ invoke ReadFile,[inputFile],[text],[limit],addr got,0
  test eax,eax
  jz .done
+ mov eax,[got]
+ cmp eax,[limit]
+ jne .done
+ stdcall EzCrcInit
+ stdcall EzCrcUpdate,-1,[text],[limit]
+ not eax
+ cmp eax,[ebx+PK_ZCRC]
+ jne .done
  mov eax,[limit]
  mov [pkCaptureSize],eax
  mov esi,[text]
@@ -303,14 +329,14 @@ proc PkCaptureEntry uses ebx esi edi,index
  invoke CreateFileW,pkNull,GENERIC_READ+GENERIC_WRITE,FILE_SHARE_READ+FILE_SHARE_WRITE,piSecurity,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
  cmp eax,-1
  je .done
- mov [nullFile],eax
+ mov [inputFile],eax
  lea edi,[info]
  xor eax,eax
  mov ecx,sizeof.STARTUPINFO/4
  rep stosd
  mov [info.cb],sizeof.STARTUPINFO
  mov [info.dwFlags],STARTF_USESTDHANDLES
- mov eax,[nullFile]
+ mov eax,[inputFile]
  mov [info.hStdInput],eax
  mov [info.hStdError],eax
  mov eax,[writePipe]
@@ -395,9 +421,9 @@ proc PkCaptureEntry uses ebx esi edi,index
  je .null
  invoke CloseHandle,[writePipe]
 .null:
- cmp [nullFile],-1
+ cmp [inputFile],-1
  je .free
- invoke CloseHandle,[nullFile]
+ invoke CloseHandle,[inputFile]
 .free:
  stdcall FreeMem,[text]
  mov eax,[result]
@@ -632,7 +658,7 @@ proc PkReadMmc uses ebx esi edi,root
  stdcall PkReadCfg,eax
  test eax,eax
  jz .done
- ; Exactly one game-data directory is supported, with an indexed payload.
+ ; Empty instances may omit both game-data directories.
  invoke lstrcpyA,pkOverrides,pkMinecraftDir
  invoke lstrcpyA,pkValue,pkArchivePrefix
  stdcall ModAppend,pkValue,4096,pkMinecraftDir
@@ -650,12 +676,9 @@ proc PkReadMmc uses ebx esi edi,root
  jmp .accepted
 .alternate:
  test eax,eax
- jz .done
+ jz .accepted
  invoke lstrcpyA,pkOverrides,pkMinecraftAlt
 .accepted:
- stdcall PkValidatePayload,pkOverrides
- test eax,eax
- jz .done
  mov [result],1
 .done:
  stdcall FreeMem,[cfg]
@@ -748,10 +771,7 @@ proc PkValidatePayload uses ebx esi edi,prefixA
  jmp .loop
 .good:
  mov eax,[count]
- cmp [pkFormat],3
- jne .accepted
- mov [pkEmbeddedCount],eax
-.accepted:
+ add [pkEmbeddedCount],eax
  mov eax,1
  ret
 .bad:
