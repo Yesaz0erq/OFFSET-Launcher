@@ -162,6 +162,29 @@ proc VsSafeId uses ebx esi edi,text
  ret
 endp
 
+proc CanonicalGameRoot,path,destination
+ invoke GetFullPathNameW,[path],1024,[destination],0
+ test eax,eax
+ jz .bad
+ cmp eax,1024
+ jae .bad
+ mov edx,[destination]
+.trim:
+ cmp eax,3
+ jbe .good
+ cmp word [edx+eax*2-2],92
+ jne .good
+ dec eax
+ mov word [edx+eax*2],0
+ jmp .trim
+.good:
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
 ; Every existing parent must be a real directory. Optional missing tails are
 ; allowed only when resolving a future data directory, never for installed UI.
 proc VsDirectoryChain uses ebx esi edi,path,allowMissing

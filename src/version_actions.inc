@@ -4,10 +4,35 @@ vmActionResult dd 0
 homeVersionMemory dd 4096
 homeVersionJavaW rw 1024
 homeVersionRecord rb VS_SIZE
-homeVersionIdA rb 128
+
 
 section '.vmactc' code readable executable
  nop
+; The combo and installed list use UTF-16. The engine stores the version ID in UTF-8.
+proc HomeVersionFromWide,nameW
+ invoke WideCharToMultiByte,65001,0,[nameW],-1,selectedVersion,128,0,0
+ test eax,eax
+ jnz .done
+ mov byte [selectedVersion],0
+.done:
+ ret
+endp
+
+proc ReadHomeVersion
+ local nameW[128]:WORD
+ invoke GetWindowTextW,[hVersion],addr nameW,128
+ stdcall HomeVersionFromWide,addr nameW
+ ret
+endp
+
+proc ShowHomeVersion
+ local nameW[128]:WORD
+ mov word [nameW],0
+ invoke MultiByteToWideChar,65001,8,selectedVersion,-1,addr nameW,128
+ invoke SetWindowTextW,[hVersion],addr nameW
+ ret
+endp
+
 proc RefreshHomeVersionSettings
  cmp [busy],0
  jne .done
@@ -43,14 +68,14 @@ proc HomeVersionCommand,wparam
  je .selection
  cmp edx,CBN_EDITCHANGE
  jne .done
- invoke GetWindowTextA,[hVersion],selectedVersion,128
+ stdcall ReadHomeVersion
  jmp .refresh
 .selection:
  invoke SendMessageW,[hVersion],CB_GETCURSEL,0,0
  cmp eax,-1
  je .done
- invoke SendMessageA,[hVersion],CB_GETLBTEXT,eax,homeVersionIdA
- invoke lstrcpyA,selectedVersion,homeVersionIdA
+ invoke SendMessageW,[hVersion],CB_GETLBTEXT,eax,textBuffer
+ stdcall HomeVersionFromWide,textBuffer
 .refresh:
  stdcall RefreshHomeVersionSettings
  invoke InvalidateRect,[hWnd],0,0
@@ -76,7 +101,7 @@ proc VersionPageUse uses ebx esi edi
  invoke SetWindowTextW,[hGameDir],gameDir
  invoke lstrcpyA,selectedVersion,vmIdA
  stdcall EngineScanVersions,[hVersion]
- invoke SetWindowTextA,[hVersion],selectedVersion
+ stdcall ShowHomeVersion
  stdcall SaveSettings
  test eax,eax
  jnz .selected
@@ -84,7 +109,7 @@ proc VersionPageUse uses ebx esi edi
  invoke lstrcpyA,selectedVersion,addr oldId
  invoke SetWindowTextW,[hGameDir],gameDir
  stdcall EngineScanVersions,[hVersion]
- invoke SetWindowTextA,[hVersion],selectedVersion
+ stdcall ShowHomeVersion
  jmp .bad
 .selected:
  invoke lstrcpyW,statusText,sVCurrentSet

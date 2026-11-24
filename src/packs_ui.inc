@@ -621,6 +621,9 @@ proc PackScanLocal uses ebx esi edi
  stdcall VersionsSafeId,esi
  test eax,eax
  jz .freeContext
+ stdcall PackUiVersionDir,ebx,esi
+ test eax,eax
+ jz .freeContext
  stdcall JsonGet,[ctx],[root],packKeyName
  stdcall JsonString,[ctx],eax,packUiNameA,1024
  test eax,eax
@@ -679,6 +682,26 @@ proc PackUiRegularFile,path
  xor eax,eax
  ret
 endp
+; On success, packUiWide holds versions/<id> and packUiWide2 its leaf.
+; Check again on activation in case the version changed since the list scan.
+proc PackUiVersionDir,rootW,idA
+ stdcall PackUiDirectory,[rootW]
+ test eax,eax
+ jz .done
+ invoke lstrcpyW,packUiWide,[rootW]
+ invoke lstrcatW,packUiWide,eVersions
+ stdcall PackUiDirectory,packUiWide
+ test eax,eax
+ jz .done
+ invoke MultiByteToWideChar,65001,8,[idA],-1,packUiWide2,2048
+ test eax,eax
+ jz .done
+ invoke lstrcatW,packUiWide,packUiWide2
+ stdcall PackUiDirectory,packUiWide
+.done:
+ ret
+endp
+
 proc PackActivateSelected uses ebx esi
  cmp [busy],0
  jne .done
@@ -692,23 +715,10 @@ proc PackActivateSelected uses ebx esi
  shl eax,11
  add eax,packLocalDirs
  mov esi,eax
- stdcall PackUiDirectory,esi
- test eax,eax
- jz .done
- ; Recheck the installed child and its parents before changing the workspace.
- invoke lstrcpyW,packUiWide,esi
- invoke lstrcatW,packUiWide,eVersions
- stdcall PackUiDirectory,packUiWide
- test eax,eax
- jz .done
  mov eax,ebx
  shl eax,7
  add eax,packLocalVersions
- invoke MultiByteToWideChar,65001,8,eax,-1,packUiWide2,2048
- test eax,eax
- jz .done
- invoke lstrcatW,packUiWide,packUiWide2
- stdcall PackUiDirectory,packUiWide
+ stdcall PackUiVersionDir,esi,eax
  test eax,eax
  jz .done
  invoke lstrcatW,packUiWide,packBackslash
@@ -736,7 +746,7 @@ proc PackActivateSelected uses ebx esi
  add eax,packLocalVersions
  invoke lstrcpyA,selectedVersion,eax
  stdcall EngineScanVersions,[hVersion]
- invoke SetWindowTextA,[hVersion],selectedVersion
+ stdcall ShowHomeVersion
  stdcall SaveSettings
  test eax,eax
  jz .done

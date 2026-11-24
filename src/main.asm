@@ -78,7 +78,7 @@ mouseTrack dd 16,2,0,0
 mouseTracking dd 0
 tickCount dd 0
 defaultPlayer db 'Player',0
-defaultVersion db '1.21.1',0
+defaultVersionW du '1.21.1',0
 defaultClientId db '54048348-72bb-4ed2-a8a4-c72423265e94',0
 className du 'OffsetLauncherWindow',0
 editClass du 'EDIT',0
@@ -458,7 +458,7 @@ proc CreateControls
     mov [hVersion],eax
     invoke SendMessageA,eax,CB_LIMITTEXT,120,0
     stdcall EngineScanVersions,[hVersion]
-    invoke SetWindowTextA,[hVersion],selectedVersion
+    stdcall ShowHomeVersion
     stdcall NewControl,editClass,ES_AUTOHSCROLL,102,288,480,416,26
     mov [hPlayer],eax
     invoke SendMessageW,eax,EM_SETLIMITTEXT,16,0
@@ -659,7 +659,7 @@ proc NavIndexFromPage page
 endp
 
 proc PullSettings uses ebx
-    invoke GetWindowTextA,[hVersion],selectedVersion,128
+    stdcall ReadHomeVersion
     invoke GetWindowTextA,[hPlayer],playerName,64
     invoke GetWindowTextA,[hClient],clientId,128
     invoke GetWindowTextW,[hGameDir],textBuffer,1024
@@ -836,14 +836,8 @@ proc LoadSettings
 .name:
     invoke WideCharToMultiByte,65001,0,textBuffer,-1,playerName,64,0,0
 .version:
-    invoke GetPrivateProfileStringW,sectionName,kVersion,emptyW,textBuffer,256,iniPath
-    cmp word [textBuffer],0
-    jne .hasVersion
-    invoke lstrcpyA,selectedVersion,defaultVersion
-    jmp .client
-.hasVersion:
-    invoke WideCharToMultiByte,65001,0,textBuffer,-1,selectedVersion,128,0,0
-.client:
+    invoke GetPrivateProfileStringW,sectionName,kVersion,defaultVersionW,textBuffer,256,iniPath
+    stdcall HomeVersionFromWide,textBuffer
     invoke GetPrivateProfileStringW,sectionName,kClient,emptyW,textBuffer,256,iniPath
     invoke WideCharToMultiByte,65001,0,textBuffer,-1,clientId,128,0,0
     cmp byte [clientId],0
@@ -865,22 +859,27 @@ proc LoadSettings
     ret
 endp
 
-proc SaveSettings uses ebx
-    stdcall PullSettings
-    test eax,eax
-    jz .failed
+proc EnsureSettingsIni uses ebx
     ; Leading BOM ensures Unicode settings also work on non-Chinese Windows.
     invoke GetFileAttributesW,iniPath
     cmp eax,-1
-    jne .write
+    jne .done
     invoke CreateFileW,iniPath,GENERIC_WRITE,0,0,CREATE_NEW,FILE_ATTRIBUTE_NORMAL,0
     cmp eax,-1
-    je .write
+    je .done
     mov ebx,eax
     mov word [textBuffer],0FEFFh
     invoke WriteFile,ebx,textBuffer,2,ramText,0
     invoke CloseHandle,ebx
-.write:
+.done:
+    ret
+endp
+
+proc SaveSettings uses ebx
+    stdcall PullSettings
+    test eax,eax
+    jz .failed
+    stdcall EnsureSettingsIni
     invoke WritePrivateProfileStringW,sectionName,kGame,gameDir,iniPath
     test eax,eax
     jz .writeFailed
@@ -3032,7 +3031,7 @@ proc WindowProc uses ebx esi edi,window,message,wparam,lparam
     ; Restore it so shortcuts and Tab continue working after completion.
     invoke SetFocus,[window]
     stdcall EngineScanVersions,[hVersion]
-    invoke SetWindowTextA,[hVersion],selectedVersion
+    stdcall ShowHomeVersion
     stdcall VersionFinishUI
     stdcall RefreshHomeVersionSettings
     stdcall LogFinishUI
@@ -3075,6 +3074,7 @@ include 'profiles.inc'
 include 'loaders.inc'
 include 'loader_change.inc'
 include 'versions.inc'
+include 'version_remove.inc'
 include 'versions_ui.inc'
 include 'version_page.inc'
 include 'loader_change_ui.inc'

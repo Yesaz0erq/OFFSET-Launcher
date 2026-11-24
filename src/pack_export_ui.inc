@@ -96,28 +96,6 @@ proc PackExportUiInvalidate
  invoke SetWindowTextW,[hPeUiPreview],sPackExportEmpty
  ret
 endp
-proc PackExportUiCanonical,path,destination
- invoke GetFullPathNameW,[path],1024,[destination],0
- test eax,eax
- jz .bad
- cmp eax,1024
- jae .bad
- mov edx,[destination]
-.trim:
- cmp eax,3
- jbe .good
- cmp word [edx+eax*2-2],92
- jne .good
- dec eax
- mov word [edx+eax*2],0
- jmp .trim
-.good:
- mov eax,1
- ret
-.bad:
- xor eax,eax
- ret
-endp
 ; A version workspace can open export without selecting that version for launch.
 proc PackExportUiOpen uses ebx,root,id
  locals
@@ -131,10 +109,10 @@ proc PackExportUiOpen uses ebx,root,id
  stdcall VsSafeId,[id]
  test eax,eax
  jz .bad
- stdcall PackExportUiCanonical,[root],addr sourceRoot
+ stdcall CanonicalGameRoot,[root],addr sourceRoot
  test eax,eax
  jz .bad
- stdcall PackExportUiCanonical,gameDir,addr currentRoot
+ stdcall CanonicalGameRoot,gameDir,addr currentRoot
  test eax,eax
  jz .bad
  invoke lstrcmpiW,addr sourceRoot,addr currentRoot
@@ -180,7 +158,7 @@ proc PackExportUiSource uses ebx
  jne .done
  mov [changed],0
  mov [peUiQuiet],1
- stdcall PackExportUiCanonical,gameDir,peUiCandidateRootW
+ stdcall CanonicalGameRoot,gameDir,peUiCandidateRootW
  test eax,eax
  jz .invalidRoot
  cmp [peUiInitialized],0

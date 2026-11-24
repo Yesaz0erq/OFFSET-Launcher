@@ -295,7 +295,7 @@ proc EngineScanVersions uses ebx esi edi, combo
  invoke GetFileAttributesW,ePath2
  cmp eax,-1
  je .advance
- invoke SendMessageA,[combo],CB_ADDSTRING,0,eValue
+ invoke SendMessageW,[combo],CB_ADDSTRING,0,eFind.cFileName
  inc [count]
  .advance:
  invoke FindNextFileW,[handle],eFind

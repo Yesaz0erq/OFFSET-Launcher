@@ -358,6 +358,7 @@ proc PaintVersionPage uses ebx,dc
 @@:
  cinvoke wsprintfW,vmTextW,fmtRam,eax
  stdcall Text,[dc],vmTextW,280,510,430,30,[fMedium],C_INK
+ stdcall Button,[dc],sVTrash,280,552,200,40,0
  stdcall Card,762,372,326,230,18
  stdcall Button,[dc],sLaunch,786,390,278,44,1
  stdcall Button,[dc],sVmUse,786,450,278,40,0
@@ -478,6 +479,20 @@ proc ClickVersionPage uses ebx,x,y
  stdcall VersionPageOpenFolder,eax
  ret
 .overviewActions:
+ cmp [x],280
+ jb .done
+ cmp [x],480
+ ja .launchActions
+ cmp [y],552
+ jb .done
+ cmp [y],592
+ ja .done
+ invoke MultiByteToWideChar,65001,8,vmIdA,-1,vmTextW,128
+ test eax,eax
+ jz .done
+ stdcall VersionRequestRemoval,vmRootW,vmTextW
+ ret
+.launchActions:
  cmp [x],786
  jb .done
  cmp [x],1064

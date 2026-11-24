@@ -266,7 +266,7 @@ proc VersionFillInstalled uses esi
     cmp [busy],0
     jne .done
     stdcall EngineScanVersions,[hVersion]
-    invoke SetWindowTextA,[hVersion],selectedVersion
+    stdcall ShowHomeVersion
     invoke SendMessageW,[hVInstalled],LB_RESETCONTENT,0,0
     invoke SendMessageW,[hVersion],CB_GETCOUNT,0,0
     mov [count],eax
@@ -595,6 +595,81 @@ proc VersionInstalledTarget
     ret
 endp
 
+; Capture the selected ID before opening the modal: repainting reuses vUiText.
+proc VersionRequestRemoval uses ebx,root,nameW
+ locals
+  removed rw 128
+  prompt rw 1024
+  current rw 128
+  savedRoot rw 1024
+  canonicalSaved rw 1024
+  canonicalRoot rw 1024
+  changed dd ?
+ endl
+ cmp [busy],0
+ jne .done
+ invoke lstrcpyW,addr removed,[nameW]
+ stdcall CanonicalGameRoot,[root],addr canonicalRoot
+ test eax,eax
+ jz .failed
+ cinvoke wsprintfW,addr prompt,sVTrashConfirm,addr removed
+ invoke MessageBoxW,[hWnd],addr prompt,sVTrash,MB_YESNO+MB_ICONQUESTION+MB_DEFBUTTON2
+ cmp eax,IDYES
+ jne .done
+ stdcall VersionTrash,addr canonicalRoot,addr removed
+ test eax,eax
+ jz .failed
+ stdcall HideVersionPageControls
+ mov [vmActive],0
+ mov [versionTab],1
+ stdcall ShowVersionControls
+ mov [changed],0
+ invoke GetWindowTextW,[hVersion],addr current,128
+ invoke lstrcmpiW,addr removed,addr current
+ test eax,eax
+ jnz .savedVersion
+ ; A workspace can refer to another game directory. Keep a still-installed selection.
+ invoke SendMessageW,[hVersion],CB_FINDSTRINGEXACT,-1,addr current
+ cmp eax,CB_ERR
+ jne .savedVersion
+ mov word [current],0
+ invoke SendMessageW,[hVersion],CB_GETLBTEXT,0,addr current
+ stdcall HomeVersionFromWide,addr current
+ stdcall ShowHomeVersion
+ stdcall RefreshHomeVersionSettings
+ stdcall ModSyncSelectedProfile
+ mov [changed],1
+.savedVersion:
+ ; Only update the selection for the root being edited; leave other settings alone.
+ invoke GetPrivateProfileStringW,sectionName,kGame,gameDir,addr savedRoot,1024,iniPath
+ stdcall CanonicalGameRoot,addr savedRoot,addr canonicalSaved
+ test eax,eax
+ jz .success
+ invoke lstrcmpiW,addr canonicalRoot,addr canonicalSaved
+ test eax,eax
+ jnz .success
+ cmp [changed],0
+ jne .save
+ invoke GetPrivateProfileStringW,sectionName,kVersion,defaultVersionW,addr prompt,128,iniPath
+ invoke lstrcmpiW,addr removed,addr prompt
+ test eax,eax
+ jnz .success
+.save:
+ stdcall EnsureSettingsIni
+ invoke WritePrivateProfileStringW,sectionName,kVersion,addr current,iniPath
+ test eax,eax
+ jnz .success
+ stdcall VersionStatusW,sVTrashSaveFailed
+ ret
+.success:
+ stdcall VersionStatusW,sVTrashed
+ ret
+.failed:
+ stdcall VersionStatusW,sVTrashFailed
+.done:
+ ret
+endp
+
 proc PaintVersionManager uses ebx,dc
     stdcall PageHeader,eyebrowVersions,sVersionHeading,2
     cinvoke wsprintfW,vUiText,sVTasksTab,[versionQueueCount]
@@ -637,9 +712,10 @@ proc PaintVersionManager uses ebx,dc
     stdcall Card,252,185,836,426,18
     stdcall CornerTicks,252,185,836,426,[themeCrossARGB]
     stdcall LineA,272,550,1066,550,A_DIVIDER,10
-    stdcall Button,[dc],sVSetCurrent,280,563,220,40,1
-    stdcall Button,[dc],sVOpenVersion,520,563,220,40,0
-    stdcall Button,[dc],sVmManage,760,563,296,40,0
+    stdcall Button,[dc],sVSetCurrent,280,563,182,40,1
+    stdcall Button,[dc],sVOpenVersion,478,563,182,40,0
+    stdcall Button,[dc],sVmManage,676,563,182,40,0
+    stdcall Button,[dc],sVTrash,874,563,182,40,0
     jmp .footer
 .queue:
     stdcall Card,252,185,836,426,18
@@ -744,16 +820,26 @@ proc ClickVersionManager uses ebx esi edi,x,y
     ja .done
     cmp [x],280
     jb .done
-    cmp [x],500
+    cmp [x],462
     jbe .selectCurrent
-    cmp [x],520
+    cmp [x],478
     jb .done
-    cmp [x],740
+    cmp [x],660
     jbe .openVersion
-    cmp [x],760
+    cmp [x],676
+    jb .done
+    cmp [x],858
+    jbe .manage
+    cmp [x],874
     jb .done
     cmp [x],1056
     ja .done
+    stdcall VersionInstalledTarget
+    test eax,eax
+    jz .done
+    stdcall VersionRequestRemoval,gameDir,vUiText
+    jmp .done
+.manage:
     stdcall OpenInstalledVersionPage
     jmp .done
 .openVersion:
@@ -771,7 +857,7 @@ proc ClickVersionManager uses ebx esi edi,x,y
     test eax,eax
     jz .done
     invoke lstrcpyA,selectedVersion,vUiTarget
-    invoke SetWindowTextA,[hVersion],selectedVersion
+    stdcall ShowHomeVersion
     stdcall VersionStatusW,sVCurrentSet
     jmp .done
 .queue:

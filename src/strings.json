@@ -1514,6 +1514,31 @@
       "zh": "系统",
       "en": "System",
       "ja": "システム"
+    },
+    "sVTrash": {
+      "zh": "移除版本",
+      "en": "Remove version",
+      "ja": "バージョンを削除"
+    },
+    "sVTrashConfirm": {
+      "zh": "移除版本「%s」？\n\n版本目录和其中的独立存档会一起移入游戏目录下的 .offset-version-trash。共享存档会保留在原处。",
+      "en": "Remove version “%s”?\n\nIts folder, including any isolated saves, will move to .offset-version-trash in the game directory. Shared saves stay in place.",
+      "ja": "「%s」を削除しますか？\n\n個別のセーブを含むバージョンフォルダーを、ゲームディレクトリの .offset-version-trash に移動します。共有セーブは元の場所に残ります。"
+    },
+    "sVTrashed": {
+      "zh": "版本已移除，可从游戏目录的 .offset-version-trash 恢复。",
+      "en": "Version removed. Restore its folder from .offset-version-trash in the game directory.",
+      "ja": "バージョンを削除しました。ゲームディレクトリの .offset-version-trash から復元できます。"
+    },
+    "sVTrashFailed": {
+      "zh": "无法移除版本，请检查目录是否存在、被占用或不可写。",
+      "en": "Could not move the version. Check that its folder exists, is writable and is not in use.",
+      "ja": "移動できませんでした。バージョンフォルダーの有無、使用状況と書き込み権限を確認してください。"
+    },
+    "sVTrashSaveFailed": {
+      "zh": "版本已移除，但当前版本选择未能保存。",
+      "en": "Version removed, but the current selection could not be saved.",
+      "ja": "バージョンを削除しましたが、現在の選択を保存できませんでした。"
     }
   },
   "status": {

@@ -6,7 +6,7 @@ OFFSET 是一个使用原生 x86 汇编编写的 Minecraft Java 版启动器，�
 
 ## 功能
 
-- Minecraft 正式版、快照和多版本管理
+- Minecraft 正式版、快照和多版本管理。可在「版本管理 → 已安装」移除版本。恢复时，将游戏目录下 `.offset-version-trash/` 中对应的文件夹按原版本名移回 `versions/`。
 - Fabric、Forge、NeoForge、Quilt 加载器
 - Microsoft 正版登录与离线启动
 - Modrinth 模组搜索、下载和管理；支持常用中文名、简称和繁体搜索
