@@ -1232,6 +1232,49 @@ proc VerifySha1 uses ebx esi edi,path,expected
     ret
 endp
 
+; Pin and hash the local source before copying it to a validated instance path.
+proc CopyVerifiedFile uses ebx esi edi,source,destination,digest
+ local lock:DWORD,parent[2048]:WORD
+ invoke GetFileAttributesW,[source]
+ test eax,FILE_ATTRIBUTE_DIRECTORY+400h
+ jnz .bad
+ invoke CreateFileW,[source],GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,00200000h,0
+ cmp eax,-1
+ je .bad
+ mov [lock],eax
+ stdcall VerifySha1,[source],[digest]
+ test eax,eax
+ jz .close
+ invoke lstrcpyW,addr parent,[destination]
+ lea edi,[parent]
+ mov esi,edi
+.scan:
+ lodsw
+ test ax,ax
+ jz .mkdir
+ cmp ax,92
+ je .slash
+ cmp ax,'/'
+ jne .scan
+.slash:
+ lea edi,[esi-2]
+ jmp .scan
+.mkdir:
+ mov word [edi],0
+ stdcall EnsureDirectory,addr parent
+ test eax,eax
+ jz .close
+ invoke CopyFileW,[source],[destination],0
+.close:
+ mov ebx,eax
+ invoke CloseHandle,[lock]
+ mov eax,ebx
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
 proc HttpDownload uses ebx esi edi,urlA,path,expected
     locals
         urlW rw 8192

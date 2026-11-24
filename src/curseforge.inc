@@ -275,16 +275,30 @@ proc CfFilters
 endp
 
 proc CfRequest
+ stdcall CfRequestJson,0
+ ret
+endp
+
+; A public pack metadata request never constructs or attaches API credentials.
+proc CfRequestJson,publicMirror
  stdcall CfCleanup
  cmp [modCancel],0
  jne .cancel
+ cmp [publicMirror],0
+ jne .url
  stdcall CfMakeHeaders
  test eax,eax
  jz .bad
+.url:
  invoke MultiByteToWideChar,65001,8,cfUrl,-1,cfWideUrl,8192
  test eax,eax
  jz .format
- stdcall HttpRequest,cfWideUrl,0,cfHeadersW,0
+ xor eax,eax
+ cmp [publicMirror],0
+ jne @f
+ mov eax,cfHeadersW
+@@:
+ stdcall HttpRequest,cfWideUrl,0,eax,0
  mov [cfResponse],eax
  stdcall CfWipeHeaders
  cmp [modCancel],0

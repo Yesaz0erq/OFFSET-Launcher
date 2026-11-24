@@ -2261,11 +2261,16 @@
       "en": "Downloading pack files…",
       "ja": "パックのファイルをダウンロード中…"
     },
+    "pkManualFmt": {
+      "source": "zh",
+      "en": "Place %s from CurseForge beside the archive and retry (project %u / file %u).",
+      "ja": "CurseForge から %s を取得し、ZIP と同じ場所に置いて再試行してください（%u / %u）。"
+    },
     "pkMsgBlocked": {
       "source": "zh",
-      "zh": "整合包包含无法通过官方接口下载的必需文件，请查看来源官网。",
-      "en": "Required files are unavailable through the official API. Visit the source website.",
-      "ja": "公式APIで取得できない必須ファイルがあります。配布サイトをご確認ください。"
+      "zh": "无法验证 CurseForge 项目 %u 的文件 %u，请检查来源和文件版本。",
+      "en": "Cannot verify CurseForge project %u, file %u. Check the source and file version.",
+      "ja": "CurseForge のプロジェクト %u のファイル %u を検証できません。配布元とバージョンをご確認ください。"
     },
     "pkMsgNetwork": {
       "source": "zh",

@@ -24,13 +24,13 @@ OFFSET 是一个使用原生 x86 汇编编写的 Minecraft Java 版启动器，�
 | 导入与导出格式 | 文件内容 |
 | --- | --- |
 | Modrinth `.mrpack` | 读取 `modrinth.index.json`，校验下载文件，依次应用 `overrides/` 和 `client-overrides/`。导出当前客户端实例。 |
-| CurseForge ZIP | 读取 `manifest.json` 和指定的覆盖目录，按项目 ID 和文件 ID 获取必需文件。下载需要在模组页配置自己的 CurseForge API Key。 |
+| CurseForge ZIP | 读取 `manifest.json` 和指定的覆盖目录，按项目 ID 和文件 ID 获取必需文件。配置 API Key 时使用 CurseForge 官方元数据，未配置时使用 MCIM 公共元数据镜像。文件按 SHA-1 校验。若作者限制第三方下载，可将官网下载的同名文件放在整合包旁重试，也会检查同名的本机 Prism 实例。 |
 | Prism Launcher / MultiMC ZIP | 读取 `mmc-pack.json`、`instance.cfg` 和 `.minecraft/` 或 `minecraft/`。支持空实例及标准加载器组件。 |
 | MCBBS ZIP（HMCL / PCL） | 读取 `mcbbs.packmeta` 或含 `addons` 的 `manifest.json`，校验内置文件的 SHA-1，并解析 CurseForge 文件引用。导出生成 MCBBS 与 CurseForge 双清单。 |
 
 从此版本起，通过模组页下载或从整合包安装的文件会在实例中保留来源。再次导出到同一平台时，路径和内容匹配的文件写入下载清单。修改过的文件和缺少来源记录的旧文件随包保存。
 
-支持根目录清单或单层文件夹包裹的 ZIP。单包上限为 1 GiB、16,384 个 ZIP 条目，单个内置文件上限为 512 MiB。标准加载器包括 Fabric、Forge、NeoForge 和 Quilt。MCBBS 支持本地包的安装快照，纯 `fileApi` 远程补全、自定义运行库以及 Prism 自定义组件补丁超出当前支持范围。
+支持根目录清单或单层文件夹包裹的 ZIP。单包上限为 1 GiB、16,384 个 ZIP 条目，单个内置文件上限为 1 GiB，解压后总量须小于 2 GiB。标准加载器包括 Fabric、Forge、NeoForge 和 Quilt。MCBBS 支持本地包的安装快照，纯 `fileApi` 远程补全、自定义运行库以及 Prism 自定义组件补丁超出当前支持范围。
 
 ## 构建
 

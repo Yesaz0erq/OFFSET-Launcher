@@ -22,6 +22,8 @@ start:
     je .inspect
     cmp eax,6
     je .install
+    cmp eax,9
+    je .manualFile
     cmp eax,7
     jae .rememberMod
     cmp eax,5
@@ -41,6 +43,17 @@ start:
     jz .failure
     stdcall PackInstallChecked,peDestW,peRootW,packInspectHash
     jmp .result
+.manualFile:
+    invoke lstrcpyW,pkArchive,peDestW
+    invoke lstrcpyW,pkPath,peRootW
+    invoke lstrcatW,pkPath,.manualPath
+    invoke lstrcpyW,pkFiles+PK_FWNAME,.manualName
+    invoke lstrcpyA,pkFiles+PK_FHASH,.manualHash
+    stdcall PkUseLocalFile,pkFiles
+    jmp .result
+.manualName du 'mods/manual.jar',0
+.manualPath du '\mods\manual.jar',0
+.manualHash db '96845139bb7425846cbe416076367f464cb8c1ff',0
 .rememberMod:
     sub eax,7
     mov [modProvider],eax
@@ -155,6 +168,16 @@ def run_tests(work):
         assert result.returncode == expect, (mode, path.name, result.returncode, expect)
         checks += 1
 
+    # A restricted file can be supplied beside the archive, but only if its hash matches.
+    manual = work / "manual.jar"
+    dest = work / "manual-instance"
+    manual.write_bytes(b"wrong file")
+    worker(9, work / "manual.zip", root=dest, expect=99)
+    assert not (dest / "mods/manual.jar").exists()
+    manual.write_bytes(b"manual file")
+    worker(9, work / "manual.zip", root=dest)
+    assert (dest / "mods/manual.jar").read_bytes() == manual.read_bytes()
+
     payload = b"fixture platform file"
     sha1 = hashlib.sha1(payload).hexdigest()
     mod_path = "mods/example.jar"
@@ -259,6 +282,15 @@ def run_tests(work):
     large.update({f"overrides/config/中文/{i}.txt": b"cfg" for i in range(4500)})
     archive(pack, large)
     worker(0, pack, expect=1)
+
+    # Real Distant Horizons databases can exceed 512 MiB. Stream the fixture.
+    block = bytes(1024 * 1024)
+    with ZipFile(pack, "w", ZIP_DEFLATED, compresslevel=1) as out:
+        out.writestr("manifest.json", json.dumps(cf))
+        with out.open("overrides/saves/world/DistantHorizons.sqlite", "w") as db:
+            for _ in range(513):
+                db.write(block)
+    worker(0, pack, expect=2)
 
     (game / mod_path).write_bytes(b"user edit")
     edited = work / "edited.mrpack"

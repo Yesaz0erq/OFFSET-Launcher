@@ -2,7 +2,7 @@
 ; Installs into a private sibling stage, atomically publishes a new instance.
 PK_ZMAX = 16384
 PK_ARCHIVE_MAX = 1073741824
-PK_ENTRY_MAX = 536870912
+PK_ENTRY_MAX = PK_ARCHIVE_MAX
 PK_ZDATA = 1032
 PK_ZCRC = 1036
 PK_ZSIZE = 1040
@@ -68,8 +68,13 @@ pkForgePrefix db 'forge-',0
 pkNeoPrefix db 'neoforge-',0
 pkFabricPrefix db 'fabric-',0
 pkQuiltPrefix db 'quilt-',0
-pkCfFileFmt db 'https://api.curseforge.com/v1/mods/%u/files/%u',0
-pkCfProjectFmt db 'https://api.curseforge.com/v1/mods/%u',0
+pkCfFileFmt db '%s%u/files/%u',0
+pkCfProjectFmt db '%s%u',0
+pkCfMirror db 'https://mod.mcimirror.top/curseforge/v1/mods/',0
+pkAppData du 'APPDATA',0
+pkPrismDir du '\PrismLauncher\instances\',0
+pkPrismGame du '\minecraft\',0
+pkManualFmt db '请将官网文件 %s 放在整合包旁再重试（CurseForge %u / %u）。',0
 pkCfModsPrefix db 'mods/',0
 pkCfResourcePrefix db 'resourcepacks/',0
 pkCfShaderPrefix db 'shaderpacks/',0
@@ -109,7 +114,7 @@ pkMsgArchive db '整合包压缩文件无效、路径不安全或超过支持范
 pkMsgManifest db '整合包清单无效，或包含暂不支持的依赖。',0
 pkMsgDestination db '实例目录已存在，或临时目录不属于本整合包。',0
 pkMsgFiles db '正在下载整合包文件…',0
-pkMsgBlocked db '整合包包含无法通过官方接口下载的必需文件，请查看来源官网。',0
+pkMsgBlocked db '无法验证 CurseForge 项目 %u 的文件 %u，请检查来源和文件版本。',0
 pkMsgNetwork db '整合包文件下载或校验失败，临时缓存已保留。',0
 pkMsgOverride db '整合包配置复制失败，临时缓存已保留。',0
 pkMsgDone db '整合包安装完成，可选择并启动。',0
@@ -1602,15 +1607,22 @@ endp
 ; CF manifest file IDs resolve through the official authenticated API. Never
 ; guess a blocked download URL or forward the key to a CDN/redirect.
 proc PkResolveCf uses ebx esi edi,index
- local item:DWORD,hashes:DWORD,count:DWORD,hashIndex:DWORD,found:DWORD,result:DWORD,folder:DWORD
+ local item:DWORD,hashes:DWORD,count:DWORD,hashIndex:DWORD,found:DWORD,result:DWORD,folder:DWORD,provider:DWORD,mirror:DWORD,distribution:DWORD
  mov [result],0
+ mov [provider],cfBase
+ mov [mirror],0
+ cmp byte [curseApiKey],0
+ jne @f
+ mov [provider],pkCfMirror
+ mov [mirror],1
+@@:
  mov ebx,[index]
  imul ebx,PK_FSIZE
  add ebx,pkFiles
- cinvoke wsprintfA,cfUrl,pkCfProjectFmt,dword [ebx+PK_FPROJECT]
- stdcall CfRequest
+ cinvoke wsprintfA,cfUrl,pkCfProjectFmt,[provider],dword [ebx+PK_FPROJECT]
+ stdcall CfRequestJson,[mirror]
  test eax,eax
- jz .done
+ jz .cleanup
  stdcall JsonGet,[cfContext],[cfRoot],cfKData
  mov [item],eax
  stdcall JsonGet,[cfContext],eax,cfKId
@@ -1627,8 +1639,7 @@ proc PkResolveCf uses ebx esi edi,index
  jne .done
  stdcall JsonGet,[cfContext],[item],cfKDistribution
  stdcall JsonBool,[cfContext],eax
- cmp eax,0
- je .done
+ mov [distribution],eax
  stdcall JsonGet,[cfContext],[item],cfKClass
  stdcall JsonInt,[cfContext],eax
  mov [folder],pkCfModsPrefix
@@ -1642,10 +1653,10 @@ proc PkResolveCf uses ebx esi edi,index
  jne .done
 .projectAccepted:
  stdcall CfCleanup
- cinvoke wsprintfA,cfUrl,pkCfFileFmt,dword [ebx+PK_FPROJECT],dword [ebx+PK_FID]
- stdcall CfRequest
+ cinvoke wsprintfA,cfUrl,pkCfFileFmt,[provider],dword [ebx+PK_FPROJECT],dword [ebx+PK_FID]
+ stdcall CfRequestJson,[mirror]
  test eax,eax
- jz .done
+ jz .cleanup
  stdcall JsonGet,[cfContext],[cfRoot],cfKData
  mov [item],eax
  stdcall JsonGet,[cfContext],eax,cfKId
@@ -1668,14 +1679,20 @@ proc PkResolveCf uses ebx esi edi,index
  stdcall JsonBool,[cfContext],eax
  cmp eax,1
  je .done
+ mov byte [ebx+PK_FURL],0
+ cmp [distribution],0
+ je .name
  stdcall JsonGet,[cfContext],[item],cfKDownload
  lea edi,[ebx+PK_FURL]
  stdcall PkString,[cfContext],eax,edi,2048
  test eax,eax
- jz .done
+ jz .localOnly
  stdcall ModTrustedUrl,edi,1
  test eax,eax
- jz .done
+ jnz .name
+.localOnly:
+ mov byte [edi],0
+.name:
  stdcall JsonGet,[cfContext],[item],cfKFileName
  stdcall PkString,[cfContext],eax,pkValue,4096
  test eax,eax
@@ -1760,8 +1777,80 @@ proc PkResolveCf uses ebx esi edi,index
  jne .done
  mov [result],1
 .done:
+ cmp [result],0
+ jne .cleanup
+ stdcall LangTrA,pkMsgBlocked
+ cinvoke wsprintfA,pkValue,eax,dword [ebx+PK_FPROJECT],dword [ebx+PK_FID]
+ stdcall SetStatusA,pkValue
+.cleanup:
  stdcall CfCleanup
  mov eax,[result]
+ ret
+endp
+
+; A local copy may satisfy even a file whose author disabled CDN distribution.
+; Try the existing stage, a file beside the archive, then an installed Prism
+; instance of the same name. Only a matching metadata SHA-1 is accepted.
+proc PkUseLocalFile uses ebx esi edi,record
+ mov ebx,[record]
+ lea eax,[ebx+PK_FHASH]
+ stdcall VerifySha1,pkPath,eax
+ test eax,eax
+ jnz .done
+ invoke lstrcpyW,pkSource,pkArchive
+ invoke lstrlenW,pkSource
+ lea edi,[pkSource+eax*2]
+.parent:
+ cmp edi,pkSource
+ jbe .prism
+ sub edi,2
+ cmp word [edi],92
+ jne .parent
+ mov word [edi+2],0
+ lea esi,[ebx+PK_FWNAME]
+.base:
+ lodsw
+ test ax,ax
+ jz .bad
+ cmp ax,'/'
+ jne .base
+ invoke lstrcatW,pkSource,esi
+ lea eax,[ebx+PK_FHASH]
+ stdcall CopyVerifiedFile,pkSource,pkPath,eax
+ test eax,eax
+ jnz .done
+.prism:
+ invoke MultiByteToWideChar,65001,8,packInstalledName,-1,pkWide,512
+ test eax,eax
+ jz .bad
+ dec eax
+ stdcall PkComponentSafe,pkWide,eax
+ test eax,eax
+ jz .bad
+ ; PkComponentSafe is normally called on components already split on '/'.
+ mov esi,pkWide
+.name:
+ lodsw
+ cmp ax,'/'
+ je .bad
+ test ax,ax
+ jnz .name
+ invoke GetEnvironmentVariableW,pkAppData,pkSource,1024
+ test eax,eax
+ jz .bad
+ cmp eax,1024
+ jae .bad
+ invoke lstrcatW,pkSource,pkPrismDir
+ invoke lstrcatW,pkSource,pkWide
+ invoke lstrcatW,pkSource,pkPrismGame
+ lea eax,[ebx+PK_FWNAME]
+ invoke lstrcatW,pkSource,eax
+ lea eax,[ebx+PK_FHASH]
+ stdcall CopyVerifiedFile,pkSource,pkPath,eax
+.done:
+ ret
+.bad:
+ xor eax,eax
  ret
 endp
 
@@ -1780,7 +1869,7 @@ proc PkDownloadFiles uses ebx esi edi
  je .nextResolve
  stdcall PkResolveCf,esi
  test eax,eax
- jz .blocked
+ jz .bad
 .nextResolve:
  inc esi
  jmp .resolve
@@ -1801,6 +1890,14 @@ proc PkDownloadFiles uses ebx esi edi
  invoke lstrcpyW,pkPath,pkStage
  invoke lstrcatW,pkPath,pkSlash
  invoke lstrcatW,pkPath,pkWide
+ cmp [pkFormat],1
+ je .fetch
+ stdcall PkUseLocalFile,ebx
+ test eax,eax
+ jnz .fileDone
+ cmp byte [ebx+PK_FURL],0
+ je .manual
+.fetch:
  lea eax,[ebx+PK_FURL]
  lea edx,[ebx+PK_FHASH]
  stdcall HttpDownload,eax,pkPath,edx
@@ -1854,8 +1951,15 @@ proc PkDownloadFiles uses ebx esi edi
  jmp .download
 .good: mov eax,1
  ret
-.blocked:
- stdcall SetStatusA,pkMsgBlocked
+.manual:
+ mov esi,ebx
+@@:
+ lodsb
+ cmp al,'/'
+ jne @b
+ stdcall LangTrA,pkManualFmt
+ cinvoke wsprintfA,pkValue,eax,esi,dword [ebx+PK_FPROJECT],dword [ebx+PK_FID]
+ stdcall SetStatusA,pkValue
  jmp .bad
 .network:
  stdcall SetStatusA,pkMsgNetwork
@@ -2078,7 +2182,10 @@ proc PackInstallChecked uses ebx esi edi,archivePathW,destinationW,expectedSha1A
  stdcall PkDownloadFiles
  test eax,eax
  jz .done
+ lea eax,[savedGame]
+ mov [mcsPackCache],eax
  stdcall PkInstallGame
+ mov [mcsPackCache],0
  test eax,eax
  jz .done
  stdcall PkCopyOverrides,pkOverrides

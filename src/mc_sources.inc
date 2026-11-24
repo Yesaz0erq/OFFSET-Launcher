@@ -2,6 +2,7 @@
 ; Mojang/BMCLAPI endpoints used by PCL's mirror-first configuration.
 ; Authentication and mod downloads do not pass through this module.
 section '.mcsdata' data readable writeable
+mcsPackCache dd 0              ; previous game directory during staged pack installation
 mcsMeta db 'https://piston-meta.mojang.com/',0
 mcsData db 'https://piston-data.mojang.com/',0
 mcsLauncher db 'https://launcher.mojang.com/',0
@@ -151,7 +152,41 @@ endp
 ; Each invocation owns its URL buffer, including concurrent resource workers.
 ; HttpDownload handles verified cache reuse, hashes and atomic file replacement.
 proc McDownload uses ebx esi edi,urlA,pathW,expectedSha1A,kind
-    local mirror[4096]:BYTE
+    local mirror[4096]:BYTE, cached[2048]:WORD
+    cmp [engineCancel],0
+    jne .cancel
+    cmp [mcsPackCache],0
+    je .network
+    cmp [expectedSha1A],0
+    je .network
+    ; Game paths are constructed under gameDir. Only reuse official hash-pinned files.
+    mov esi,gameDir
+    mov edi,[pathW]
+.prefix:
+    lodsw
+    test ax,ax
+    jz .relative
+    scasw
+    je .prefix
+    jmp .network
+.relative:
+    cmp word [edi],92
+    jne .network
+    invoke lstrlenW,edi
+    mov ebx,eax
+    invoke lstrlenW,[mcsPackCache]
+    add eax,ebx
+    cmp eax,2048
+    jae .network
+    stdcall VerifySha1,[pathW],[expectedSha1A]
+    test eax,eax
+    jnz .done
+    invoke lstrcpyW,addr cached,[mcsPackCache]
+    invoke lstrcatW,addr cached,edi
+    stdcall CopyVerifiedFile,addr cached,[pathW],[expectedSha1A]
+    test eax,eax
+    jnz .done
+.network:
     cmp [engineCancel],0
     jne .cancel
     stdcall McMirrorUrl,[urlA],addr mirror,4096,[kind],0
