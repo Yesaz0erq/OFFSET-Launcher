@@ -23,7 +23,8 @@ packMarkerSuffix du '\.offset-pack.json',0
 packWildcard du '\*',0
 packBackslash du '\',0
 packIdentityFmt du '%u-%s-%s',0
-packImportFmt du 'import-%08X',0
+packImportPrefix du 'import-',0
+packImportNumbered du '%s (%u)',0
 packMrExt du '.mrpack',0
 packCfExt du '.zip',0
 packFileFilter du 'Modrinth / CurseForge / Prism / MultiMC / MCBBS (*.mrpack;*.zip)',0,'*.mrpack;*.zip',0,'All files',0,'*.*',0,0
@@ -49,7 +50,6 @@ packImportHashA rb 41
 packImportNameW rw 256
 packImportVersionW rw 384
 packImportFolderW rw 128
-packImportFolderA rb 128
 packLocalNames rw 256*128
 packLocalDirs rw 1024*128
 packLocalVersions rb 128*128
@@ -321,9 +321,8 @@ proc PackImportPreview uses ebx
  cmp eax,40
  jne .bad
  invoke lstrcpyA,packImportHashA,packInspectHash
- invoke GetTickCount
- cinvoke wsprintfW,packUiIdentity,packImportFmt,eax
- invoke SetWindowTextW,[hPackImportFolder],packUiIdentity
+ stdcall PackSuggestImportFolder
+ invoke SetWindowTextW,[hPackImportFolder],packImportFolderW
  mov [packImportReady],1
  mov eax,1
  ret
@@ -333,49 +332,129 @@ proc PackImportPreview uses ebx
  ret
 endp
 
-proc PackImportDestination uses ebx esi
- cmp [packImportReady],1
- jne .bad
- invoke GetWindowTextW,[hPackImportFolder],packImportFolderW,128
+proc PackImportLeafSafe uses esi,nameW
+ mov esi,[nameW]
+ cmp word [esi],'.'               ; installed scan omits dot-prefixed names
+ je .bad
+ stdcall VsValidText,esi,80
  test eax,eax
  jz .bad
- cmp eax,80
- ja .bad
- mov esi,packImportFolderW
-.ascii:
- mov ax,[esi]
+ invoke lstrlenW,esi
+ stdcall PkComponentSafe,esi,eax
+ test eax,eax
+ jz .bad
+ ; PkComponentSafe expects its caller to split forward slashes.
+.next:
+ lodsw
+ cmp ax,'/'
+ je .bad
  test ax,ax
- jz .convert
- cmp ax,127
- ja .bad
- add esi,2
- jmp .ascii
-.convert:
- invoke WideCharToMultiByte,65001,0,packImportFolderW,-1,packImportFolderA,128,0,0
+ jnz .next
+ sub esi,2                       ; reserve names ending in the worker's stage suffix
+ invoke lstrlenW,pkStageSuffix
+ shl eax,1
+ sub esi,eax
+ cmp esi,[nameW]
+ jb .good
+ invoke lstrcmpiW,esi,pkStageSuffix
  test eax,eax
  jz .bad
- stdcall VersionsSafeId,packImportFolderA
- test eax,eax
- jz .bad
+.good:
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
+; After leaf validation, report available (1), occupied (-1), or inaccessible (0).
+proc PackImportFolderState uses ebx
  invoke lstrlenW,packRoot
  mov ebx,eax
  invoke lstrlenW,packImportFolderW
- add eax,ebx
- cmp eax,990
- jae .bad
+ lea eax,[eax+ebx+1]
+ cmp eax,850                      ; same maximum as PkPrepareStage
+ ja .bad
  invoke lstrcpyW,packDestination,packRoot
  invoke lstrcatW,packDestination,packBackslash
  invoke lstrcatW,packDestination,packImportFolderW
  invoke GetFileAttributesW,packDestination
  cmp eax,-1
- jne .bad
+ jne .occupied
  invoke GetLastError
- cmp eax,2 ; ERROR_FILE_NOT_FOUND
- je .good
- cmp eax,3 ; ERROR_PATH_NOT_FOUND
+ cmp eax,2
+ je .stage
+ cmp eax,3
+ je .free                          ; instances/ is created by the worker
+ jmp .bad
+.stage:
+ invoke lstrcpyW,packUiWide2,packDestination
+ invoke lstrcatW,packUiWide2,pkStageSuffix
+ invoke GetFileAttributesW,packUiWide2
+ cmp eax,-1
+ je .missing
+ stdcall PackStageMatches,packUiWide2,packImportHashA
+ test eax,eax
+ jz .occupied
+ ret
+.missing:
+ invoke GetLastError
+ cmp eax,2
+ je .free
+ cmp eax,3
  jne .bad
-.good:
+.free:
  mov eax,1
+ ret
+.occupied:
+ mov eax,-1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
+proc PackSuggestImportFolder uses ebx
+ stdcall PackImportLeafSafe,packImportNameW
+ test eax,eax
+ jz .fallback
+ invoke lstrlenW,packImportNameW
+ cmp eax,72                       ; allow room for numbered duplicates
+ ja .fallback
+ invoke lstrcpyW,packUiIdentity,packImportNameW
+ jmp .choose
+.fallback:
+ ; A digest-based ASCII name also resumes if the manifest name is unusable.
+ invoke lstrcpyW,packUiIdentity,packImportPrefix
+ invoke MultiByteToWideChar,65001,0,packImportHashA,8,packUiWide,8
+ mov word [packUiWide+16],0
+ invoke lstrcatW,packUiIdentity,packUiWide
+.choose:
+ invoke lstrcpyW,packImportFolderW,packUiIdentity
+ mov ebx,1
+.try:
+ stdcall PackImportFolderState
+ cmp eax,-1
+ jne .done
+ inc ebx
+ cmp ebx,1000
+ ja .done
+ cinvoke wsprintfW,packImportFolderW,packImportNumbered,packUiIdentity,ebx
+ jmp .try
+.done:
+ ret
+endp
+
+proc PackImportDestination
+ cmp [packImportReady],1
+ jne .bad
+ invoke GetWindowTextW,[hPackImportFolder],packImportFolderW,128
+ stdcall PackImportLeafSafe,packImportFolderW
+ test eax,eax
+ jz .bad
+ stdcall PackImportFolderState
+ cmp eax,1
+ jne .bad
  ret
 .bad:
  xor eax,eax

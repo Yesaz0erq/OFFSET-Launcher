@@ -113,7 +113,8 @@ pkMsgStart db '正在安装整合包…',0
 pkMsgArchive db '整合包压缩文件无效、路径不安全或超过支持范围。',0
 pkMsgManifest db '整合包清单无效，或包含暂不支持的依赖。',0
 pkMsgDestination db '实例目录已存在，或临时目录不属于本整合包。',0
-pkMsgFiles db '正在下载整合包文件…',0
+pkMsgResolve db '正在核对整合包依赖（%u/%u）…',0
+pkMsgFiles db '正在安装整合包文件（%u/%u）…',0
 pkMsgBlocked db '无法验证 CurseForge 项目 %u 的文件 %u，请检查来源和文件版本。',0
 pkMsgNetwork db '整合包文件下载或校验失败，临时缓存已保留。',0
 pkMsgOverride db '整合包配置复制失败，临时缓存已保留。',0
@@ -428,9 +429,9 @@ endp
 ; Validate the complete ZIP structure before giving it to tar. Central/local
 ; entries must be contiguous and agree, so no unlisted local entries survive.
 ; ZIP64, encryption, links, SFX, multi-disk and non-deflate codecs are rejected.
-; Reject alternate name/link/ZIP64 metadata rather than let the extractor
-; interpret another path than the one validated in the normal ZIP headers.
-proc PkExtraSafe uses ebx esi edi,extra,length
+; Accept a Unicode Path field only when it repeats the validated header name.
+; The downstream extractor must see exactly the same path as the preflight.
+proc PkExtraSafe uses ebx esi edi,extra,length,entryName,nameBytes
  mov esi,[extra]
  mov edi,esi
  add edi,[length]
@@ -450,6 +451,8 @@ proc PkExtraSafe uses ebx esi edi,extra,length
  je .accepted
  cmp dx,7875h                 ; Unix UID/GID; tar --no-same-owner ignores it.
  je .accepted
+ cmp dx,7075h                 ; Info-ZIP Unicode Path v1.
+ je .unicodePath
  cmp dx,000Ah                 ; NTFS timestamp container only.
  jne .bad
  cmp ebx,32
@@ -458,6 +461,29 @@ proc PkExtraSafe uses ebx esi edi,extra,length
  jne .bad
  cmp word [esi+10],24
  jne .bad
+ jmp .accepted
+.unicodePath:
+ mov ecx,[nameBytes]
+ add ecx,5                    ; version, CRC32 of header filename, UTF-8 name
+ cmp ebx,ecx
+ jne .bad
+ cmp byte [esi+4],1
+ jne .bad
+ stdcall EzCrcInit
+ stdcall EzCrcUpdate,-1,[entryName],[nameBytes]
+ not eax
+ cmp eax,[esi+5]
+ jne .bad
+ push esi
+ push edi
+ lea esi,[esi+9]
+ mov edi,[entryName]
+ mov ecx,[nameBytes]
+ repe cmpsb
+ pop edi
+ pop esi
+ jne .bad
+ lea eax,[esi+ebx+4]
 .accepted:
  mov esi,eax
  jmp .loop
@@ -619,10 +645,11 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  cmp eax,[cdEnd]
  ja .bad
  mov [cdCursor],eax
- lea eax,[esi+46]
+ lea ecx,[esi+46]
+ mov eax,ecx
  add eax,[nameLength]
  movzx edx,word [esi+30]
- stdcall PkExtraSafe,eax,edx
+ stdcall PkExtraSafe,eax,edx,ecx,[nameLength]
  test eax,eax
  jz .bad
  mov esi,[centralHeader]
@@ -672,10 +699,11 @@ proc PkValidateZip uses ebx esi edi,buffer,size
  cmp eax,[cdPos]
  ja .bad
  mov [localCursor],eax
- lea eax,[ebx+30]
+ lea ecx,[ebx+30]
+ mov eax,ecx
  add eax,[nameLength]
  movzx edx,word [ebx+28]
- stdcall PkExtraSafe,eax,edx
+ stdcall PkExtraSafe,eax,edx,ecx,[nameLength]
  test eax,eax
  jz .bad
  mov esi,[centralHeader]
@@ -995,9 +1023,46 @@ proc PkAncestorsSafe uses ebx esi edi,path
  ret
 endp
 
+; Match the worker's exact 40-byte ownership marker without traversing the stage.
+proc PackStageMatches uses ebx,stageW,hashA
+ locals
+  marker rw 1024
+  text rb 41
+  got dd ?
+ endl
+ stdcall VsDirectoryChain,[stageW],0
+ test eax,eax
+ jz .bad
+ invoke lstrcpyW,addr marker,[stageW]
+ invoke lstrcatW,addr marker,pkOwnerSuffix
+ stdcall VsRegularFile,addr marker
+ test eax,eax
+ jz .bad
+ invoke CreateFileW,addr marker,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
+ cmp eax,-1
+ je .bad
+ mov ebx,eax
+ invoke ReadFile,ebx,addr text,41,addr got,0
+ push eax
+ invoke CloseHandle,ebx
+ pop eax
+ test eax,eax
+ jz .bad
+ cmp [got],40
+ jne .bad
+ mov byte [text+40],0
+ invoke lstrcmpA,addr text,[hashA]
+ test eax,eax
+ jnz .bad
+ mov eax,1
+ ret
+.bad:
+ xor eax,eax
+ ret
+endp
+
 proc PkPrepareStage uses ebx esi edi,destination
  local parent rw 1024
- local ownerFile:DWORD
  invoke GetFullPathNameW,[destination],1024,pkDestination,0
  test eax,eax
  jz .bad
@@ -1041,26 +1106,9 @@ proc PkPrepareStage uses ebx esi edi,destination
  stdcall PkTreeSafe,pkStage,0
  test eax,eax
  jz .bad
- invoke lstrcpyW,pkPath,pkStage
- invoke lstrcatW,pkPath,pkOwnerSuffix
- invoke CreateFileW,pkPath,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0
- cmp eax,-1
- je .bad
- mov [ownerFile],eax
- invoke GetFileSize,eax,0
- mov ebx,eax
- invoke CloseHandle,[ownerFile]
- cmp ebx,40
- jne .bad
- stdcall EReadFile,pkPath
+ stdcall PackStageMatches,pkStage,pkArchiveHash
  test eax,eax
  jz .bad
- mov esi,eax
- invoke lstrcmpA,esi,pkArchiveHash
- mov ebx,eax
- stdcall FreeMem,esi
- test ebx,ebx
- jnz .bad
 .extract:
  stdcall EnsureDirectory,pkExtract
  ret
@@ -1854,10 +1902,18 @@ proc PkUseLocalFile uses ebx esi edi,record
  ret
 endp
 
+proc PkFileProgress,message,index
+ stdcall LangTrA,[message]
+ mov edx,[index]
+ inc edx
+ cinvoke wsprintfA,pkValue,eax,edx,[pkFileCount]
+ stdcall SetStatusA,pkValue
+ ret
+endp
+
 proc PkDownloadFiles uses ebx esi edi
  local urlIndex:DWORD,downloaded:DWORD,urls:DWORD
  xor esi,esi
- stdcall SetStatusA,pkMsgFiles
 .resolve:
  cmp esi,[pkFileCount]
  jae .downloadStart
@@ -1867,6 +1923,7 @@ proc PkDownloadFiles uses ebx esi edi
  jne .bad
  cmp [pkFormat],1
  je .nextResolve
+ stdcall PkFileProgress,pkMsgResolve,esi
  stdcall PkResolveCf,esi
  test eax,eax
  jz .bad
@@ -1882,6 +1939,7 @@ proc PkDownloadFiles uses ebx esi edi
  jne .bad
  cmp [modCancel],0
  jne .bad
+ stdcall PkFileProgress,pkMsgFiles,esi
  imul ebx,esi,PK_FSIZE
  add ebx,pkFiles
  stdcall PkPayloadSafe,ebx

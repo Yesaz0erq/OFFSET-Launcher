@@ -1,12 +1,14 @@
 """Exercise the native pack workers in an isolated Windows directory."""
+import binascii
 import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
+import struct
 import subprocess
 import tempfile
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 
 ROOT = Path(__file__).resolve().parents[1]
 # This entry point is assembled only in the temporary test copy.
@@ -246,6 +248,32 @@ def run_tests(work):
     archive(pack, {"mcbbs.packmeta": bbs, "overrides/" + mod_path: b"changed"})
     worker(5, pack, root=work / "mismatch", expect=99)
     assert not (work / "mismatch" / mod_path).exists()
+
+    # Some Windows exporters repeat a Chinese filename in the Info-ZIP Unicode
+    # Path field of both headers. Test the two headers independently.
+    path = "overrides/config/新的世界/lookupHistory.json"
+    name = path.encode("utf-8")
+    def unicode_path(raw_name, crc):
+        return struct.pack("<HHBI", 0x7075, len(raw_name) + 5, 1, crc) + raw_name
+
+    crc = binascii.crc32(name)
+    matching = unicode_path(name, crc)
+    stale_crc = unicode_path(name, crc ^ 1)
+    different_name = unicode_path(name.replace(b"lookup", b"backup"), crc)
+    for local, central, expected in [
+        (matching, matching, 2), (stale_crc, matching, 99), (matching, different_name, 99)
+    ]:
+        with ZipFile(pack, "w", ZIP_DEFLATED) as z:
+            z.writestr("manifest.json", json.dumps(cf))
+            entry = ZipInfo(path)
+            entry.extra = local
+            z.writestr(entry, b'{"enabled":true}', compress_type=ZIP_DEFLATED)
+            entry.extra = central
+        worker(0, pack, expect=expected)
+        if expected == 2:
+            destination = work / "unicode-config"
+            worker(5, pack, root=destination)
+            assert (destination / path.removeprefix("overrides/")).read_bytes() == b'{"enabled":true}'
 
     # ZIP permits a central directory in a different order from file data.
     with ZipFile(pack, "w", ZIP_DEFLATED) as z:

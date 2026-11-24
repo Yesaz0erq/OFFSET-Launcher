@@ -971,9 +971,9 @@
       "ja": "インスタンスフォルダー名"
     },
     "sPackImportFolderHelp": {
-      "zh": "字母、数字、点、横线或下划线",
-      "en": "Letters, numbers, dots, hyphens or underscores",
-      "ja": "英数字・ドット・ハイフン・アンダースコア"
+      "zh": "可使用中文，例如「沉浸增强」",
+      "en": "Unicode names are supported, including spaces.",
+      "ja": "日本語やスペースを含む名前を使えます"
     },
     "sPackImportFormat": {
       "zh": "格式",
@@ -991,9 +991,9 @@
       "ja": "Modrinth · CurseForge · Prism / MultiMC · MCBBS (HMCL / PCL)"
     },
     "sPackImportInvalidFolder": {
-      "zh": "实例目录名无效或已存在。",
-      "en": "Invalid or existing instance folder.",
-      "ja": "フォルダー名が無効か、すでに存在します。"
+      "zh": "实例目录名无效、目录不可用或已被占用。",
+      "en": "The instance folder name is invalid, unavailable, or already in use.",
+      "ja": "フォルダー名が無効か、利用できないか、すでに使用されています。"
     },
     "sPackImportName": {
       "zh": "名称",
@@ -2282,9 +2282,9 @@
     },
     "pkMsgFiles": {
       "source": "zh",
-      "zh": "正在下载整合包文件…",
-      "en": "Downloading pack files…",
-      "ja": "パックのファイルをダウンロード中…"
+      "zh": "正在安装整合包文件（%u/%u）…",
+      "en": "Installing pack files (%u/%u)…",
+      "ja": "パックのファイルを導入中（%u/%u）…"
     },
     "pkManualFmt": {
       "source": "zh",
@@ -2519,10 +2519,34 @@
       "en": "No compatible loader versions found.",
       "ja": "互換性のあるローダーがありません。"
     },
+    "pkMsgResolve": {
+      "source": "zh",
+      "zh": "正在核对整合包依赖（%u/%u）…",
+      "en": "Checking pack dependencies (%u/%u)…",
+      "ja": "パックの依存関係を確認中（%u/%u）…"
+    },
     "eErrJavaVersion": {
       "zh": "此 Minecraft 版本需要 Java %u 或更高版本，已打开官方下载页。",
       "en": "This Minecraft version requires Java %u or newer. The official download page was opened.",
       "ja": "この Minecraft には Java %u 以降が必要です。公式ダウンロードページを開きました。"
+    },
+    "ldProfileFetchFailed": {
+      "source": "zh",
+      "zh": "加载器启动配置下载失败，请检查网络及所选加载器版本后重试。",
+      "en": "Could not download the loader profile. Check your connection and selected loader version, then retry.",
+      "ja": "ローダーの起動構成をダウンロードできません。接続とローダーのバージョンを確認し、再試行してください。"
+    },
+    "ldProfileInvalid": {
+      "source": "zh",
+      "zh": "加载器返回的启动配置无效，或与所选 Minecraft 版本不匹配。",
+      "en": "The loader profile is invalid or does not match the selected Minecraft version.",
+      "ja": "ローダーの起動構成が無効か、選択した Minecraft バージョンと一致しません。"
+    },
+    "ldProfileWriteFailed": {
+      "source": "zh",
+      "zh": "无法保存加载器启动配置，请检查游戏目录的写入权限。",
+      "en": "Could not save the loader profile. Check write access to the game directory.",
+      "ja": "ローダーの起動構成を保存できません。ゲームディレクトリへの書き込み権限を確認してください。"
     }
   }
 }

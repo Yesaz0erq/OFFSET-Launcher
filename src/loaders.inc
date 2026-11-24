@@ -10,6 +10,9 @@ ldNeoList db 'https://maven.neoforged.net/api/maven/versions/releases/net/neofor
 ldForgeJar db 'https://maven.minecraftforge.net/net/minecraftforge/forge/%s/forge-%s-installer.jar',0
 ldForgeMirror db 'https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/%s/forge-%s-installer.jar',0
 ldNeoJar db 'https://maven.neoforged.net/releases/net/neoforged/neoforge/%s/neoforge-%s-installer.jar',0
+ldProfileFetchFailed db '加载器启动配置下载失败，请检查网络及所选加载器版本后重试。',0
+ldProfileInvalid db '加载器返回的启动配置无效，或与所选 Minecraft 版本不匹配。',0
+ldProfileWriteFailed db '无法保存加载器启动配置，请检查游戏目录的写入权限。',0
 ldShaExt db '.sha1',0
 ldKeyVersions db 'versions',0
 ldKeyLoader db 'loader',0
@@ -501,6 +504,47 @@ proc LdRequestText uses ebx,urlA
     ret
 endp
 
+; Retry this read-only request when no response arrived, a 200 body could not
+; be read, or the server reports a temporary failure. Parse only after success.
+proc LdFetchProfileText uses esi edi,urlA
+    xor esi,esi
+.request:
+    stdcall LdRequestText,[urlA]
+    test eax,eax
+    jnz .done
+    cmp [engineCancel],0
+    jne .failed
+    inc esi
+    cmp esi,3
+    jae .failed
+    mov eax,[httpStatus]
+    test eax,eax
+    jz .wait
+    cmp eax,200
+    je .wait
+    cmp eax,408
+    je .wait
+    cmp eax,429
+    je .wait
+    cmp eax,500
+    jb .failed
+    cmp eax,599
+    ja .failed
+.wait:
+    imul edi,esi,10
+.delay:
+    invoke Sleep,100
+    cmp [engineCancel],0
+    jne .failed
+    dec edi
+    jnz .delay
+    jmp .request
+.failed:
+    xor eax,eax
+.done:
+    ret
+endp
+
 proc LdReadJson uses ebx,urlA,textOut
     mov ebx,[textOut]
     mov dword [ebx],0
@@ -985,6 +1029,7 @@ proc LoaderInstall uses ebx esi edi,baseIdA,kind,versionA,targetIdA
         context dd ?
         result dd ?
         written dd ?
+        failure dd ?
         target rb 128
         expected rb 128
         fullVersion rb 256
@@ -1005,6 +1050,7 @@ proc LoaderInstall uses ebx esi edi,baseIdA,kind,versionA,targetIdA
     mov [response],0
     mov [context],0
     mov [result],0
+    mov [failure],ldFailure
     mov edi,[targetIdA]
     mov byte [edi],0
     stdcall LoaderSafeId,[baseIdA]
@@ -1062,13 +1108,20 @@ proc LoaderInstall uses ebx esi edi,baseIdA,kind,versionA,targetIdA
 .quilt:
     cinvoke wsprintfA,addr url,ldQuiltProfile,[baseIdA],[versionA]
 .profile:
-    stdcall LdReadJson,addr url,addr response
+    mov [failure],ldProfileFetchFailed
+    stdcall LdFetchProfileText,addr url
+    mov [response],eax
+    test eax,eax
+    jz .done
+    mov [failure],ldProfileInvalid
+    stdcall JsonParse,eax
     mov [context],eax
     test eax,eax
     jz .done
     stdcall LdValidateProfile,eax,[baseIdA],addr target
     test eax,eax
     jz .done
+    mov [failure],ldProfileWriteFailed
     stdcall LdProfilePaths,addr target,addr installDir,addr path
     test eax,eax
     jz .done
@@ -1237,7 +1290,7 @@ proc LoaderInstall uses ebx esi edi,baseIdA,kind,versionA,targetIdA
     mov [result],0
     cmp [engineCancel],0
     jne .cancel
-    stdcall SetStatusA,ldFailure
+    stdcall SetStatusA,[failure]
     jmp .return
 .cancel:
     stdcall SetStatusA,ldCancelled
